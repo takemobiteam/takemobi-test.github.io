@@ -16,13 +16,17 @@ Example 1: Mallorca
 
 Cost = distance travelled
 
-(Why does Mallorca use distance travelled while other destinations have more complex cost functions? Explain that here.)
 
-Example 2: XXXX
 
-Cost = XXXXXXX
+Example 2: Zakynthos
 
-**[To delegate: Add example cost functions that represent the breadth of cost functions across destinations.]**
+Cost = (# of Vehicle A x cost of vehicle A) + (# of Vehicle B x cost of vehicle B)
+
+
+
+In general, destinations where TUI owns their own fleet usually have a simple "distance traveled" cost function like Mallorca, and other destinations that are primiarily relying on suppliers have the more complex cost function like Zakynthos.
+
+**[Ask Jacob: Is this how he'd represent Zakynthos cost function?]**
 
 ## Business Rules
 
