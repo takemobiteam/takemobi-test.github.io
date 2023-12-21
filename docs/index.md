@@ -84,13 +84,24 @@ Each flight represents a real flight in the world on a specific day. Multiple bo
 
 ## Changes
 
-**[Jacob: How do booking changes work? What does it look like when they get sent?]**
+**[Jacob: How do booking changes work? What does it look like when they get sent? Send a booking & the id is the same & we just replace it?]**
+
+Operations: ([from stream_processors.py])
+
+- Saved
+- Deleted
+- Locked
+- Unlocked
+
+**[To delegate: example booking & booking change]**
 
 ## Errors
 
 If there is an error with a booking, this error is sent back to TUI via AWS SNS. An error may be sent immediately after the booking is received, if the booking could not be stored. If the booking can be stored but an error occurs later during planning, the error will be sent when planning occurs (either 14 days prior to the planned date, or soon after receipt of the booking if sent less than 14 days prior to the planned date).
 
-**[Dan: Should we attempt to autogenerate errors & descriptions from code, for booking errors? Or describe manually, with detail on which ones might be sent when?]**
+**[To delegate: Should we attempt to autogenerate errors & descriptions from code, for booking errors? Jamie says yes. Or describe manually, with detail on which ones might be sent when?]**
+
+
 
 # APIs: Manual Changes, Requesting a Replan, Warnings, & Errors
 
