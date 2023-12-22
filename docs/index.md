@@ -134,3 +134,10 @@ After the freeze date (e.g. <2 days prior to planned date), changes must be made
 # (Notes to self)
 
 We can link to other docs in this repo [another_file.md](./another_file.md)
+
+Miscellaneous questions - check if we covered these:
+
+- Once TUI sends us bookings, how will they know that we successfully planned or didn’t?
+- How & when & in what format do we send error messages? (I think we send these via SNS).
+- How do we send them back the plans? 
+- What happens if they send us too many bookings at once? (like that one time they did this) How many do we expect they will send at maximum in what span of time, so they give us a heads up if they ever plan to send more?
