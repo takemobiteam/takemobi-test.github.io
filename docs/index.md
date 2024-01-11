@@ -130,7 +130,7 @@ If these fields are not sent as part of a booking, we will not send an error. **
 | ----------------------------------------------- | ------ | ------------------------------------------------------------ |
 | destination_guest_hotel_id                      | string | Hotel id for the hotel where the guests are staying, provided for arrivals. This is not used, because destination_stop_hotel_id is used instead. |
 | origin_guest_hotel_id                           | string | Hotel id for the hotel where the guests are staying, provided for departures. This is not used, because origin_stop_hotel_id is used instead. |
-| lead_pax_name                                   | string | lead passenger for the booking                               |
+| lead_pax_name                                   | string | Lead passenger for the booking                               |
 | origin_point_type/destination_point_type        | enum   | "Hotel" or "Terminal". These are not used because transfer_way already defines what the origin & destination point types are. |
 | orgin_terminal_type / destination_terminal_type | enum   | "Airport"                                                    |
 
