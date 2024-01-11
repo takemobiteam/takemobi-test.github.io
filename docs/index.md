@@ -120,7 +120,7 @@ Guests that have itineraries involving multiple hotels may have additional trans
 | ------------------ | -------- | ------------------------------------------------------------ | ------------------ |
 | force_pickup_time  | datetime | Associated flight id. Usually includes destination_id.       | "ASX-5006-1333547" |
 | force_dropoff_time | datetime | Hotel id for the hotel where the transfer should pick up the guests. Usually includes destination_id. | "5006-7729"        |
-| vehicle_type       | enum     | Force planning to use a specific type of vehicle for this booking | "Van / Minivan"    |
+| vehicle_type       | enum     | Force planning to use a specific type of vehicle for this booking. Any vehicle type specified in the master data for the associated destination is valid. | "Van / Minivan"    |
 
 ### Fields TUI Sends but Mobi Does Not Use
 
@@ -157,6 +157,8 @@ Each flight represents a real flight in the world on a specific day. Multiple bo
 ## Changes
 
 **[Delegate: How do booking changes work? What does it look like when they get sent? Send a booking & the id is the same & we just replace it?]**
+
+vehicle_type error recent (make system tolerate it)
 
 Operations: ([from stream_processors.py])
 
