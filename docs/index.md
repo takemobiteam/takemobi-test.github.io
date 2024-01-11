@@ -60,6 +60,9 @@ Each item in this diagram is further described in a section below.
 
 **Open Questions for CPS team:**
 
+- (Alice) For vehicle_type (which they can specify if they want to force a specific vehicle type):
+  - What are all the options that someone could specify? I see "Van / Minivan" as one example in the example booking.
+  - Can someone specify multiple options? Or do they have to pick 1?
 - (Alice) Please share an example of this optional field because it's not in the examples below.
   - force_pickup_time/ force_dropoff_time: [datetime] the expected date time of picking up and dropping off.
 - (Dan) Check whether fields we don't use will throw an error if not included
@@ -67,14 +70,6 @@ Each item in this diagram is further described in a section below.
   - booking_plan_status: [choice] in {Pending, Planned} if this booking is already planned.
 - (Dan) What needs to be true of the format for us to be able to parse it? Is it a .json blob?
   - Does order of fields not matter? Just checking.
-
-Action items for Charlie:
-
-- Document optional field: force_pickup_time/ force_dropoff_time
-
-- Document optional field: "vehicle_type":"Van / Minivan" - see example in between hotels below
-
-  
 
 ## Bookings
 
@@ -119,6 +114,14 @@ Guests that have itineraries involving multiple hotels may have additional trans
 | presentation_window_from | int    | How many minutes **at most** the transfer can arrive at the airport before the flight departure time. e.g. 180 means the transfer can arrive at most 3 hours before the flight departure. | 180                |
 | presentation_window_to   | int    | How many minutes **at least** the transfer can arrive at the airport before the flight departure time. e.g. 120 means the transfer can arrive at most 2 hour before the flight departure. | 120                |
 
+### Optional Fields
+
+| Field              | Type     | Description                                                  | Example            |
+| ------------------ | -------- | ------------------------------------------------------------ | ------------------ |
+| force_pickup_time  | datetime | Associated flight id. Usually includes destination_id.       | "ASX-5006-1333547" |
+| force_dropoff_time | datetime | Hotel id for the hotel where the transfer should pick up the guests. Usually includes destination_id. | "5006-7729"        |
+| vehicle_type       | enum     | Force planning to use a specific type of vehicle for this booking | "Van / Minivan"    |
+
 ### Fields TUI Sends but Mobi Does Not Use
 
 If these fields are not sent as part of a booking, we will not send an error. **(Check if this is true)**
@@ -130,7 +133,6 @@ If these fields are not sent as part of a booking, we will not send an error. **
 | lead_pax_name                                   | string | lead passenger for the booking                               |
 | origin_point_type/destination_point_type        | enum   | "Hotel" or "Terminal". These are not used because transfer_way already defines what the origin & destination point types are. |
 | orgin_terminal_type / destination_terminal_type | enum   | "Airport"                                                    |
-| passengers                                      | dict   | passenger_id (int starting from 1), name (string), age (int) |
 
 ### Example Bookings
 
