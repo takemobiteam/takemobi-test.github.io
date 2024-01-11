@@ -60,24 +60,28 @@ Each item in this diagram is further described in a section below.
 
 **Open Questions for CPS team:**
 
-- Is this field optional? I don't see it in the example bookings
+- (For Alice) Please share an example of this optional field because it's not in the examples below.
   - force_pickup_time/ force_dropoff_time: [datetime] the expected date time of picking up and dropping off.
-- Is booking_plan_status something TUI sends us? That doesn't make sense to me.
+-  (Ask Dan) Is booking_plan_status something TUI sends us? That doesn't make sense to me. Is this something TUI sends us to indicate whether it's a new booking or an updated booking?
   - booking_plan_status: [choice] in {Pending, Planned} if this booking is already planned.
-- Is vehicle_type something TUI sends us? That doesn't make sense to me. 
-  - vehicle_type: [string] the vehicle type the booking is in
-- What needs to be true of the format for us to be able to parse it? Is it a .json blob? Does the "welfare" field need to be nested under "passengers" for us to parse it?
-- Why does TUI send us bookings for transfers between hotels? What are the use cases?
-- Does total_pax include infants who don't need seats? How do we know how many passengers need a seat? Do we look at age of passengers?
-- Do we just use destination_stop_hotel_id rather than destination_guest_hotel_id? Or do we ever use destination_guest_hotel_id?
-- Are all of these fields below required for all bookings of the specified type? What happens if the presentation window is not specified? Is there a default?
-- Are we checking for the fields that we don't use? Are they required by our system?
+- (Check with Dan or whoever documents booking errors?) What needs to be true of the format for us to be able to parse it? Is it a .json blob?
+  - Does order of fields not matter? Just checking.
+- (Jacob) Why does TUI send us bookings for transfers between hotels? What are the use cases?
+- (Jacob) Do we just use destination_stop_hotel_id rather than destination_guest_hotel_id? Or do we ever use destination_guest_hotel_id? Should we call out we never use destination_guest_hotel_id?
+- (Jacob) What happens if the presentation window is not specified? Is there a default? Should there be? Looks like presentation window default is 0, so that's weird.
+- Are we checking for the fields that we don't use? Are they required by our system? (Alice thinks no)
   - ext_booking: [string] external booking id (we don't use it in code).
   - lead_pax_name: [string] name of the leading passenger in the booking(we don't use it in code).
   - origin_point_type: [choice] in {Hotel, Terminal} picking up point type. (we don't use it in code)
   - destination_point_type: [choice] in {Hotel, Terminal} dropping off point type. (we don't use it in code)
   - orgin_terminal_type / destination_terminal_type: [fixed choice] = airport. (we don't use it in code)
   - passengers: [list] a list of passengers' info (we don't use it in code), the info includes “passenger id” (consecutive interger starting from 1), “name”, “age”
+
+Action items for Charlie:
+
+- Document optional field: force_pickup_time/ force_dropoff_time
+- Document optional field: "vehicle_type":"Van / Minivan" - see example in between hotels below
+- Document infant. Does total_pax include infants who don't need seats? How do we know how many passengers need a seat? Do we look at age of passengers? Default is 2, so 0 or 1 qualifies. Specified by tour operator parameters. They don't give us a number of infants. We calculated seated_pax ourselves.
 
 ## Bookings
 
@@ -209,7 +213,7 @@ If the replan buttons cannot meet TUI staff's needs in some circumstances, then 
 
 # Master Data
 
-
+[Full .yaml contents](https://musical-guide-gq4eyjv.pages.github.io/#/)
 
 ## Request
 
@@ -222,6 +226,10 @@ If the replan buttons cannot meet TUI staff's needs in some circumstances, then 
 ## Plans
 
 ## Changes
+
+# Next Tasks To Delegate
+
+- Flights (1 hour ish). Alice? Fields with type, description, example - call out if certain fields are required vs optional, and if there are any TUI sends us but does not use. Example flight.
 
 # (Notes to self)
 
