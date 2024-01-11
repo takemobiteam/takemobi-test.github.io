@@ -60,28 +60,21 @@ Each item in this diagram is further described in a section below.
 
 **Open Questions for CPS team:**
 
-- (For Alice) Please share an example of this optional field because it's not in the examples below.
+- (Alice) Please share an example of this optional field because it's not in the examples below.
   - force_pickup_time/ force_dropoff_time: [datetime] the expected date time of picking up and dropping off.
--  (Ask Dan) Is booking_plan_status something TUI sends us? That doesn't make sense to me. Is this something TUI sends us to indicate whether it's a new booking or an updated booking?
+- (Dan) Check whether fields we don't use will throw an error if not included
+- (Dan) Is booking_plan_status something TUI sends us? That doesn't make sense to me. Is this something TUI sends us to indicate whether it's a new booking or an updated booking?
   - booking_plan_status: [choice] in {Pending, Planned} if this booking is already planned.
-- (Check with Dan or whoever documents booking errors?) What needs to be true of the format for us to be able to parse it? Is it a .json blob?
+- (Dan) What needs to be true of the format for us to be able to parse it? Is it a .json blob?
   - Does order of fields not matter? Just checking.
-- (Jacob) Why does TUI send us bookings for transfers between hotels? What are the use cases?
-- (Jacob) Do we just use destination_stop_hotel_id rather than destination_guest_hotel_id? Or do we ever use destination_guest_hotel_id? Should we call out we never use destination_guest_hotel_id?
-- (Jacob) What happens if the presentation window is not specified? Is there a default? Should there be? Looks like presentation window default is 0, so that's weird.
-- Are we checking for the fields that we don't use? Are they required by our system? (Alice thinks no)
-  - ext_booking: [string] external booking id (we don't use it in code).
-  - lead_pax_name: [string] name of the leading passenger in the booking(we don't use it in code).
-  - origin_point_type: [choice] in {Hotel, Terminal} picking up point type. (we don't use it in code)
-  - destination_point_type: [choice] in {Hotel, Terminal} dropping off point type. (we don't use it in code)
-  - orgin_terminal_type / destination_terminal_type: [fixed choice] = airport. (we don't use it in code)
-  - passengers: [list] a list of passengers' info (we don't use it in code), the info includes “passenger id” (consecutive interger starting from 1), “name”, “age”
 
 Action items for Charlie:
 
 - Document optional field: force_pickup_time/ force_dropoff_time
+
 - Document optional field: "vehicle_type":"Van / Minivan" - see example in between hotels below
-- Document infant. Does total_pax include infants who don't need seats? How do we know how many passengers need a seat? Do we look at age of passengers? Default is 2, so 0 or 1 qualifies. Specified by tour operator parameters. They don't give us a number of infants. We calculated seated_pax ourselves.
+
+  
 
 ## Bookings
 
@@ -92,45 +85,48 @@ For every group who books a tour with TUI together, there will generally be 2 bo
 - **Arrival:** a transfer picks up the group at the Cancun airport & brings them to their hotel
 - **Departure:** a transfer picks up the group at their hotel & brings them to the Cancun airport
 
+Guests that have itineraries involving multiple hotels may have additional transfers, of the "Between Hotels" type.
+
 ### Required Fields for All Bookings
 
-| Field            | Type   | Description                                                  | Example              |
-| ---------------- | ------ | ------------------------------------------------------------ | -------------------- |
-| booking_id       | string | Booking's unique id                                          | "ASX-5006-1813434-2" |
-| transfer_way     | enum?  | Whether a booking is an arrival, a departure, or between hotels. Possible values: "Arrival", "Departure", "Between hotels" | "Departure"          |
-| operation_date   | date   | Date of transfer (YYYY-MM-DD)                                | "2024-01-13"         |
-| total_pax        | int    | Number of passengers as part of the booking who will need a seat? | 2                    |
-| destination_id   | string | Associated destination                                       | "5006"               |
-| touroperator_id  | string | Associated tour operator, identifying rules this booking needs to obey in planning. Usually includes destination_id. | "5006-205747"        |
-| combinable       | bool   | Whether the booking can be combined with other bookings (e.g. VIP bookings cannot be combined) | "true"               |
-| flight_exclusive | bool   | Whether the flight cannot be combined with other flights (e.g. ??) | "false"              |
-| welfare          | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to bookings where this field is set to true. | "false"              |
+| Field            | Type   | Description                                                  | Example                                                      |
+| ---------------- | ------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| booking_id       | string | Unique id for each booking                                   | "ASX-5006-1813434-2"                                         |
+| ext_booking      | string | External booking id. If bookings share this value, then they will be grouped together. | "61902535"                                                   |
+| transfer_way     | enum   | Whether a booking is an arrival, a departure, or between hotels. Possible values: "Arrival", "Departure", "Between hotels" | "Departure"                                                  |
+| operation_date   | date   | Date of transfer (YYYY-MM-DD)                                | "2024-01-13"                                                 |
+| total_pax        | int    | Number of passengers as part of the booking who will need a seat? | 2                                                            |
+| destination_id   | string | Associated destination                                       | "5006"                                                       |
+| touroperator_id  | string | Associated tour operator, identifying rules this booking needs to obey in planning. Usually includes destination_id. | "5006-205747"                                                |
+| combinable       | bool   | Whether the booking can be combined with other bookings (e.g. VIP bookings cannot be combined) | "true"                                                       |
+| flight_exclusive | bool   | Whether the flight cannot be combined with other flights (e.g. ??) | "false"                                                      |
+| welfare          | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to bookings where this field is set to true. | "false"                                                      |
+| passengers       | dict   | Includes passenger_id (int starting from 1), name (string), & age (int). Upon ingestion of the booking, ages of passengers are checked against min_age (specified in master data per tour operator). By default passengers with age under 2 are assumed to be infants in arms and not require a seat. Mobi does not use the passenger information aside from this age check. | "passengers":[{"passenger_id":1,"name":"Hendrik Rauh","age":54},{"passenger_id":2,"name":"Grit Berghof","age":50}] |
 
 ### Required Fields for Arrivals
 
-| Field                      | Type   | Description                                                  | Example             |
-| -------------------------- | ------ | ------------------------------------------------------------ | ------------------- |
-| origin_flight_id           | string | Associated flight id. Usually includes destination_id.       | "ASX-5175-347722-1" |
-| destination_guest_hotel_id | string | Hotel id for the hotel where the guests are staying. Usually includes destination_id. | "5175-64985"        |
-| destination_stop_hotel_id  | string | Hotel id for the hotel where the transfer should drop the guests off. Usually includes destination_id. | "5175-64985"        |
+| Field                     | Type   | Description                                                  | Example             |
+| ------------------------- | ------ | ------------------------------------------------------------ | ------------------- |
+| origin_flight_id          | string | Associated flight id. Usually includes destination_id.       | "ASX-5175-347722-1" |
+| destination_stop_hotel_id | string | Hotel id for the hotel where the transfer should drop the guests off. Usually includes destination_id. | "5175-64985"        |
 
 ### Required Fields for Departures
 
 | Field                    | Type   | Description                                                  | Example            |
 | ------------------------ | ------ | ------------------------------------------------------------ | ------------------ |
 | destination_flight_id    | string | Associated flight id. Usually includes destination_id.       | "ASX-5006-1333547" |
-| origin_guest_hotel_id    | string | Hotel id for the hotel where the guests are staying. Usually includes destination_id. | "5006-7729"        |
 | origin_stop_hotel_id     | string | Hotel id for the hotel where the transfer should pick up the guests. Usually includes destination_id. | "5006-7729"        |
 | presentation_window_from | int    | How many minutes **at most** the transfer can arrive at the airport before the flight departure time. e.g. 180 means the transfer can arrive at most 3 hours before the flight departure. | 180                |
 | presentation_window_to   | int    | How many minutes **at least** the transfer can arrive at the airport before the flight departure time. e.g. 120 means the transfer can arrive at most 2 hour before the flight departure. | 120                |
 
 ### Fields TUI Sends but Mobi Does Not Use
 
-These examples are real bookings, which include the following fields that Mobi does not use:
+If these fields are not sent as part of a booking, we will not send an error. **(Check if this is true)**
 
 | Field                                           | Type   | Description                                                  |
 | ----------------------------------------------- | ------ | ------------------------------------------------------------ |
-| ext_booking                                     | string | external booking id                                          |
+| destination_guest_hotel_id                      | string | Hotel id for the hotel where the guests are staying, provided for arrivals. This is not used, because destination_stop_hotel_id is used instead. |
+| origin_guest_hotel_id                           | string | Hotel id for the hotel where the guests are staying, provided for departures. This is not used, because origin_stop_hotel_id is used instead. |
 | lead_pax_name                                   | string | lead passenger for the booking                               |
 | origin_point_type/destination_point_type        | enum   | "Hotel" or "Terminal". These are not used because transfer_way already defines what the origin & destination point types are. |
 | orgin_terminal_type / destination_terminal_type | enum   | "Airport"                                                    |
