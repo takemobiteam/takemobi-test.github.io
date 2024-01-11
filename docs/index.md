@@ -58,131 +58,93 @@ Each item in this diagram is further described in a section below.
 
 # Bookings, Flights, Changes, & Errors
 
-Open Questions:
+**Open Questions for CPS team:**
 
-- Do we support not just arrivals & departures today, but also between hotels? Does TUI send us bookings for transfers between hotels?
-- Does total_pax include infants who don't need seats? How do we know how many passengers need a seat?
+- Is this field optional? I don't see it in the example bookings
+  - force_pickup_time/ force_dropoff_time: [datetime] the expected date time of picking up and dropping off.
+- Is booking_plan_status something TUI sends us? That doesn't make sense to me.
+  - booking_plan_status: [choice] in {Pending, Planned} if this booking is already planned.
+- Is vehicle_type something TUI sends us? That doesn't make sense to me. 
+  - vehicle_type: [string] the vehicle type the booking is in
+- What needs to be true of the format for us to be able to parse it? Is it a .json blob? Does the "welfare" field need to be nested under "passengers" for us to parse it?
+- Why does TUI send us bookings for transfers between hotels? What are the use cases?
+- Does total_pax include infants who don't need seats? How do we know how many passengers need a seat? Do we look at age of passengers?
+- Do we just use destination_stop_hotel_id rather than destination_guest_hotel_id? Or do we ever use destination_guest_hotel_id?
+- Are all of these fields below required for all bookings of the specified type? What happens if the presentation window is not specified? Is there a default?
+- Are we checking for the fields that we don't use? Are they required by our system?
+  - ext_booking: [string] external booking id (we don't use it in code).
+  - lead_pax_name: [string] name of the leading passenger in the booking(we don't use it in code).
+  - origin_point_type: [choice] in {Hotel, Terminal} picking up point type. (we don't use it in code)
+  - destination_point_type: [choice] in {Hotel, Terminal} dropping off point type. (we don't use it in code)
+  - orgin_terminal_type / destination_terminal_type: [fixed choice] = airport. (we don't use it in code)
+  - passengers: [list] a list of passengers' info (we don't use it in code), the info includes “passenger id” (consecutive interger starting from 1), “name”, “age”
 
 ## Bookings
 
 A booking represents a need for a transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single booking generally has booked a tour with TUI together, will be on the same flights, and will be staying at the same hotel.
 
-For every group who books a tour with TUI togehter, there will be 2 bookings sent to Mobi because there are 2 transfers. For example, if the group is going to Cancun, there would be the following 2 bookings:
+For every group who books a tour with TUI together, there will be 2 bookings sent to Mobi because there are 2 transfers. For example, if the group is going to Cancun, there would be the following 2 bookings:
 
 - **Arrival:** a transfer picks up the group at the Cancun airport & brings them to their hotel
 - **Departure:** a transfer picks up the group at their hotel & brings them to the Cancun airport
 
 ### Required Fields for All Bookings
 
-| Field           | Type   | Description                                                  | Example              |
-| --------------- | ------ | ------------------------------------------------------------ | -------------------- |
-| booking_id      | string | Booking's unique id                                          | "ASX-5006-1813434-2" |
-| transfer_way    | enum?  | Whether a booking is an arrival, a departure, or between hotels. Possible values: "arrival", "departure", "between_hotels"? | "departure"          |
-| operation_date  | date   | Date of transfer (YYYY-MM-DD)                                | "2024-01-13"         |
-| total_pax       | int    | Number of guests as part of the booking who will need a seat? | 2                    |
-| destination_id  | string | Associated destination                                       | "5006"               |
-| touroperator_id | string | Associated tour operator, identifying rules this booking needs to obey in planning. Usually includes destination_id. | "5006-205747"        |
-| combinable      | bool   | Whether the booking can be combined with other bookings (e.g. VIP bookings cannot be combined) | "True"               |
-|                 |        |                                                              |                      |
-|                 |        |                                                              |                      |
-|                 |        |                                                              |                      |
-|                 |        |                                                              |                      |
-|                 |        |                                                              |                      |
-|                 |        |                                                              |                      |
+| Field            | Type   | Description                                                  | Example              |
+| ---------------- | ------ | ------------------------------------------------------------ | -------------------- |
+| booking_id       | string | Booking's unique id                                          | "ASX-5006-1813434-2" |
+| transfer_way     | enum?  | Whether a booking is an arrival, a departure, or between hotels. Possible values: "Arrival", "Departure", "Between hotels" | "Departure"          |
+| operation_date   | date   | Date of transfer (YYYY-MM-DD)                                | "2024-01-13"         |
+| total_pax        | int    | Number of passengers as part of the booking who will need a seat? | 2                    |
+| destination_id   | string | Associated destination                                       | "5006"               |
+| touroperator_id  | string | Associated tour operator, identifying rules this booking needs to obey in planning. Usually includes destination_id. | "5006-205747"        |
+| combinable       | bool   | Whether the booking can be combined with other bookings (e.g. VIP bookings cannot be combined) | "true"               |
+| flight_exclusive | bool   | Whether the flight cannot be combined with other flights (e.g. ??) | "false"              |
+| welfare          | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to bookings where this field is set to true. | "false"              |
 
 ### Required Fields for Arrivals
 
-| Field            | Type   | Description          | Example             |
-| ---------------- | ------ | -------------------- | ------------------- |
-| origin_flight_id | string | Associated flight id | "ASX-5175-347722-1" |
-|                  |        |                      |                     |
-|                  |        |                      |                     |
-|                  |        |                      |                     |
-|                  |        |                      |                     |
-|                  |        |                      |                     |
-|                  |        |                      |                     |
-|                  |        |                      |                     |
-|                  |        |                      |                     |
-|                  |        |                      |                     |
-|                  |        |                      |                     |
-|                  |        |                      |                     |
-|                  |        |                      |                     |
+| Field                      | Type   | Description                                                  | Example             |
+| -------------------------- | ------ | ------------------------------------------------------------ | ------------------- |
+| origin_flight_id           | string | Associated flight id. Usually includes destination_id.       | "ASX-5175-347722-1" |
+| destination_guest_hotel_id | string | Hotel id for the hotel where the guests are staying. Usually includes destination_id. | "5175-64985"        |
+| destination_stop_hotel_id  | string | Hotel id for the hotel where the transfer should drop the guests off. Usually includes destination_id. | "5175-64985"        |
 
 ### Required Fields for Departures
 
-| Field                 | Type   | Description                                            | Example            |
-| --------------------- | ------ | ------------------------------------------------------ | ------------------ |
-| destination_flight_id | string | Associated flight id. Usually includes destination_id. | "ASX-5006-1333547" |
-|                       |        |                                                        |                    |
-|                       |        |                                                        |                    |
-|                       |        |                                                        |                    |
-|                       |        |                                                        |                    |
-|                       |        |                                                        |                    |
-|                       |        |                                                        |                    |
-|                       |        |                                                        |                    |
-|                       |        |                                                        |                    |
-|                       |        |                                                        |                    |
-|                       |        |                                                        |                    |
-|                       |        |                                                        |                    |
-|                       |        |                                                        |                    |
+| Field                    | Type   | Description                                                  | Example            |
+| ------------------------ | ------ | ------------------------------------------------------------ | ------------------ |
+| destination_flight_id    | string | Associated flight id. Usually includes destination_id.       | "ASX-5006-1333547" |
+| origin_guest_hotel_id    | string | Hotel id for the hotel where the guests are staying. Usually includes destination_id. | "5006-7729"        |
+| origin_stop_hotel_id     | string | Hotel id for the hotel where the transfer should pick up the guests. Usually includes destination_id. | "5006-7729"        |
+| presentation_window_from | int    | How many minutes **at most** the transfer can arrive at the airport before the flight departure time. e.g. 180 means the transfer can arrive at most 3 hours before the flight departure. | 180                |
+| presentation_window_to   | int    | How many minutes **at least** the transfer can arrive at the airport before the flight departure time. e.g. 120 means the transfer can arrive at most 2 hour before the flight departure. | 120                |
 
-- **booking_id**: [string] booking's unique id, usually in format "destinationID_***".
-- ext_booking: [string] external booking id (we don't use it in code).
-- touroperator_id: [foreign key] associated tour_operator, identifying rules this booking needs to obey.
-- **destination_id**: [foreign key] associated destination where booking locates.
-- **operation_date**: [datetime] date when booking happens in formate YYYY-MM-DD.
-- total_pax: [integer] amount of passengers on the booking.
-- lead_pax_name: [string] name of the leading passenger in the booking(we don't use it in code).
-- combinable: [boolean] if the booking can be combined with other bookings.
-- transfer_way: [choice] kind of the booking, in {Departure, arrival, between hotels}. 'departure' means the booking ends in airport to get on a flight. 'arrival' means the booking starts from airport to pick up the passengers from a flight.
-- origin_flight_id/ destination_flight_id: [foreign key] associated flight. 'origin_flight_id' is for arrival booking while departure has 'destination_flight_id'.
-- origin_point_type: [choice] in {Hotel, Terminal} picking up point type. (we don't use it in code)
-- destination_point_type: [choice] in {Hotel, Terminal} dropping off point type. (we don't use it in code)
-- orgin_terminal_type / destination_terminal_type: [fixed choice] = airport. (we don't use it in code)
-- origin_guest_hotel_id: [foreign key] associated hotel at which the passenger was actually staying.
-- origin_stop_hotel_id: [foreign key] associated hotel hotel where the passenger is picked up.
-- destination_guest_hotel_id: [foreign key] associated hotel at which the passenger is actually going to stay.
-- destination_stop_hotel_id: [foreign key] associated hotel where the passenger is dropped off
-- flight_exclusive: [boolean] if bookings from this flight can be combined with those from other flights
-- presentation_window_from: [integer] usually set for departure booking. It means the eariliest we can arrive at the airport before the flight taking off time. i.e. 120 means we can arrive at most 2 hours before flight takes off.
-- presentation_window_to: [integer] usually set for departure booking. It means the latest we can arrive at the airport before the flight taking off time.
-- booking_plan_status: [choice] in {Pending, Planned} if this booking is already planned.
-- passengers: [list] a list of passengers' info (we don't use it in code), the info includes “passenger id” (consecutive interger starting from 1), “name”, “age”
-- welfare: [boolean] if the booking should be put in to a welfare vehicle. non-welfare booking cannot be in a welfare vehicle.
-- force_pickup_time/ force_dropoff_time: [datetime] the expected date time of picking up and dropping off.
-- vehicle_type: [string] the vehicle type the booking is in
+### Fields TUI Sends but Mobi Does Not Use
 
- \
- \
-Example:
+These examples are real bookings, which include the following fields that Mobi does not use:
+
+| Field                                           | Type   | Description                                                  |
+| ----------------------------------------------- | ------ | ------------------------------------------------------------ |
+| ext_booking                                     | string | external booking id                                          |
+| lead_pax_name                                   | string | lead passenger for the booking                               |
+| origin_point_type/destination_point_type        | enum   | "Hotel" or "Terminal". These are not used because transfer_way already defines what the origin & destination point types are. |
+| orgin_terminal_type / destination_terminal_type | enum   | "Airport"                                                    |
+| passengers                                      | dict   | passenger_id (int starting from 1), name (string), age (int) |
+
+### Example Bookings
+
+**Arrival Booking**
+
+{"booking_id":"ASX-5175-347722-1","touroperator_id":"5175-212553","ext_booking":"61902535","lead_pax_name":"HENDRIK,  RAUH","destination_id":"5175","total_pax":2,"combinable":true,"transfer_way":"Arrival","operation_date":"2024-01-24","origin_flight_id":"ASX-5175-31293","origin_point_type":"Terminal","origin_terminal_type":"Airport","destination_point_type":"Hotel","destination_guest_hotel_id":"5175-64985","destination_stop_hotel_id":"5175-64985","flight_exclusive":false,"presentation_window_from":0,"presentation_window_to":0,"booking_plan_status":"Pending","passengers":[{"passenger_id":1,"name":"Hendrik Rauh","age":54},{"passenger_id":2,"name":"Grit Berghof","age":50}],"welfare":false}}]}
 
 **Departure Booking**
 
-[{"metadata":{"content-type":"vnd.booking-event.v1","X-B3-TraceId":"0","operation":"locked"},"payload":{"booking_id":"ASX-5006-1813434-2","touroperator_id":"5006-205747","ext_booking":"WRC1A1BU","lead_pax_name":"SR  NICOLE GRUSZYNSKI","destination_id":"5006","total_pax":2,"combinable":true,"transfer_way":"Departure","operation_date":"2024-01-13","origin_point_type":"Hotel","origin_guest_hotel_id":"5006-7729","origin_stop_hotel_id":"5006-7729","destination_flight_id":"ASX-5006-1333547","destination_point_type":"Terminal","destination_terminal_type":"Airport","flight_exclusive":false,"presentation_window_from":180,"presentation_window_to":180,"booking_plan_status":"Planned","passengers":[{"passenger_id":1,"name":"SR  NICOLE GRUSZYNSKI","age":30},{"passenger_id":2,"name":"SR  NICOLE GRUSZYNSKI","age":30}],"welfare":false}}]
+{"booking_id":"ASX-5006-1813434-2","touroperator_id":"5006-205747","ext_booking":"WRC1A1BU","lead_pax_name":"SR  NICOLE GRUSZYNSKI","destination_id":"5006","total_pax":2,"combinable":true,"transfer_way":"Departure","operation_date":"2024-01-13","origin_point_type":"Hotel","origin_guest_hotel_id":"5006-7729","origin_stop_hotel_id":"5006-7729","destination_flight_id":"ASX-5006-1333547","destination_point_type":"Terminal","destination_terminal_type":"Airport","flight_exclusive":false,"presentation_window_from":180,"presentation_window_to":180,"booking_plan_status":"Planned","passengers":[{"passenger_id":1,"name":"SR  NICOLE GRUSZYNSKI","age":30},{"passenger_id":2,"name":"SR  NICOLE GRUSZYNSKI","age":30}],"welfare":false}}]}
 
- \
-**Arrival Booking**
+**Between Hotels Booking**
 
-[{"metadata":{"content-type":"vnd.booking-event.v1","X-B3-TraceId":"0","operation":"saved"},"payload":{"booking_id":"ASX-5175-347722-1","touroperator_id":"5175-212553","ext_booking":"61902535","lead_pax_name":"HENDRIK,  RAUH","destination_id":"5175","total_pax":2,"combinable":true,"transfer_way":"Arrival","operation_date":"2024-01-24","origin_flight_id":"ASX-5175-31293","origin_point_type":"Terminal","origin_terminal_type":"Airport","destination_point_type":"Hotel","destination_guest_hotel_id":"5175-64985","destination_stop_hotel_id":"5175-64985","flight_exclusive":false,"presentation_window_from":0,"presentation_window_to":0,"booking_plan_status":"Pending","passengers":[{"passenger_id":1,"name":"Hendrik Rauh","age":54},{"passenger_id":2,"name":"Grit Berghof","age":50}],"welfare":false}}]
-
- \
-**Between hotels Booking**
-
-[{"metadata":{"content-type":"vnd.booking-event.v1","X-B3-TraceId":"0","operation":"saved"},"payload":{"booking_id":"ASX-5006-1835811-1","touroperator_id":"5006-42180","ext_booking":"22077510","lead_pax_name":"MALJONEN  EERO  (L)","destination_id":"5006","total_pax":2,"combinable":false,"transfer_way":"Between hotels","vehicle_type":"Van / Minivan","operation_date":"2024-01-12","origin_point_type":"Hotel","origin_guest_hotel_id":"5006-8183","origin_stop_hotel_id":"5006-8183","destination_point_type":"Hotel","destination_guest_hotel_id":"5006-61586","destination_stop_hotel_id":"5006-61586","flight_exclusive":false,"booking_plan_status":"Pending","passengers":[{"passenger_id":1,"name":"MALJONEN  EERO  (L)","age":30},{"passenger_id":2,"name":"MALJONEN  EERO  (L)","age":30}],"welfare":false}}]
-
-
-
-
-
-[Bookings List API, Example, & Schema](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_list)
-
-**[To delegate: Validate that auto-generated booking schema matches what TUI sends us for bookings. We want to document TUI's actual interface with us.]**
-
-**[To delegate: Create an example booking with values that illustrate the breadth of what a booking may contain.]**
-
-
-
-
+{"booking_id":"ASX-5006-1835811-1","touroperator_id":"5006-42180","ext_booking":"22077510","lead_pax_name":"MALJONEN  EERO  (L)","destination_id":"5006","total_pax":2,"combinable":false,"transfer_way":"Between hotels","vehicle_type":"Van / Minivan","operation_date":"2024-01-12","origin_point_type":"Hotel","origin_guest_hotel_id":"5006-8183","origin_stop_hotel_id":"5006-8183","destination_point_type":"Hotel","destination_guest_hotel_id":"5006-61586","destination_stop_hotel_id":"5006-61586","flight_exclusive":false,"booking_plan_status":"Pending","passengers":[{"passenger_id":1,"name":"MALJONEN  EERO  (L)","age":30},{"passenger_id":2,"name":"MALJONEN  EERO  (L)","age":30}],"welfare":false}}]
 
 ## Flights
 
@@ -192,7 +154,7 @@ Each flight represents a real flight in the world on a specific day. Multiple bo
 
 ## Changes
 
-**[Jacob: How do booking changes work? What does it look like when they get sent? Send a booking & the id is the same & we just replace it?]**
+**[Delegate: How do booking changes work? What does it look like when they get sent? Send a booking & the id is the same & we just replace it?]**
 
 Operations: ([from stream_processors.py])
 
@@ -202,6 +164,10 @@ Operations: ([from stream_processors.py])
 - Unlocked
 
 **[To delegate: example booking & booking change]**
+
+## When Bookings Get Planned
+
+What determines when bookings get planned? A field in the master data? What are the most common values?
 
 ## Errors
 
