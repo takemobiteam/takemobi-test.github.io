@@ -83,7 +83,7 @@ Each item in this diagram is further described in a section below.
 
 A booking represents a need for a transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single booking generally has booked a tour with TUI together, will be on the same flights, and will be staying at the same hotel.
 
-For every group who books a tour with TUI together, there will be 2 bookings sent to Mobi because there are 2 transfers. For example, if the group is going to Cancun, there would be the following 2 bookings:
+For every group who books a tour with TUI together, there will generally be 2 bookings sent to Mobi because there are 2 transfers. For example, if the group is going to Cancun, there would be the following 2 bookings:
 
 - **Arrival:** a transfer picks up the group at the Cancun airport & brings them to their hotel
 - **Departure:** a transfer picks up the group at their hotel & brings them to the Cancun airport
