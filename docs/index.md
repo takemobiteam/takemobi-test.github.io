@@ -70,6 +70,7 @@ Each item in this diagram is further described in a section below.
   - booking_plan_status: [choice] in {Pending, Planned} if this booking is already planned.
 - (Dan) What needs to be true of the format for us to be able to parse it? Is it a .json blob?
   - Does order of fields not matter? Just checking.
+- (Jamie) How does it work if multiple errors are applicable? We return only the first one? Or the list of all applicable? Is it the same for bookings vs APIs?
 
 ## Bookings
 
