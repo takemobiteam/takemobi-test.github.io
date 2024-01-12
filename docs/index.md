@@ -78,8 +78,8 @@ A booking represents a need for a transfer (a ride in a vehicle) for a group of 
 
 For every group who books a tour with TUI together, there will generally be 2 bookings sent to Mobi because there are 2 transfers. For example, if the group is going to Cancun, there would be the following 2 bookings:
 
-- **Arrival:** a transfer picks up the group at the Cancun airport & brings them to their hotel
-- **Departure:** a transfer picks up the group at their hotel & brings them to the Cancun airport
+- **Arrival to a destination:** a transfer picks up the group at the Cancun airport & brings them to their hotel
+- **Departure from a destination:** a transfer picks up the group at their hotel & brings them to the Cancun airport
 
 Guests that have itineraries involving multiple hotels may have additional transfers, of the "Between Hotels" type.
 
@@ -117,11 +117,11 @@ Guests that have itineraries involving multiple hotels may have additional trans
 
 ### Optional Fields
 
-| Field              | Type     | Description                                                  | Example            |
-| ------------------ | -------- | ------------------------------------------------------------ | ------------------ |
-| force_pickup_time  | datetime | Associated flight id. Usually includes destination_id.       | "ASX-5006-1333547" |
-| force_dropoff_time | datetime | Hotel id for the hotel where the transfer should pick up the guests. Usually includes destination_id. | "5006-7729"        |
-| vehicle_type       | enum     | Force planning to use a specific type of vehicle for this booking. Any vehicle type specified in the master data for the associated destination is valid. | "Van / Minivan"    |
+| Field                  | Type     | Description                                                  | Example                     |
+| ---------------------- | -------- | ------------------------------------------------------------ | --------------------------- |
+| force_pickup_datetime  | datetime | Force planning to use a specific time for pickup for this booking | "2024-05-05T18:15:00-04:00" |
+| force_dropoff_datetime | datetime | Force planning to use a specific time for dropoff for this booking | "2024-05-05T18:15:00-04:00" |
+| vehicle_type           | enum     | Force planning to use a specific type of vehicle for this booking. Any vehicle type specified in the master data for the associated destination is valid. | "Van / Minivan"             |
 
 ### Fields TUI Sends but Mobi Does Not Use
 
