@@ -216,7 +216,9 @@ If the replan buttons cannot meet TUI staff's needs in some circumstances, then 
 
 # Master Data
 
-As shown in the image, one **Destination** can have multiple **AreaGroups**. One **AreaGroup** can have multiple **Areas**, but an **Area** does not have to belong to an **AreaGroup**. One **Area** can have multiple **Airports** and multiple **Hotels**.
+![Data Exchange Diagram 1](./attachments/CPSDiagram1.jpg)
+
+As shown in the image above, one **Destination** can have multiple **AreaGroups**. One **AreaGroup** can have multiple **Areas**, but an **Area** does not have to belong to an **AreaGroup**. One **Area** can have multiple **Airports** and multiple **Hotels**.
 
 Destinations tend to be either islands or broad regions surrounding a major city. Island destinations include Mallorca and Zakynthos. Other destinations include Antalya and Cancún.
 
