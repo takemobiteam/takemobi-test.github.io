@@ -42,7 +42,7 @@ The Continuous Planning System has been configured with business rules for each 
 
 # Data Exchange Overview
 
-![Data Exchange Diagram 1](./attachments/CPS-Diagram-2.jpg)
+![Data Exchange Diagram 1](./attachments/CPSDiagram2.jpg)
 
 ![Data Exchange Diagram 2](./attachments/DataExchangeDiagramPurple.png)
 
