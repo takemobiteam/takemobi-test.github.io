@@ -42,7 +42,9 @@ The Continuous Planning System has been configured with business rules for each 
 
 # Data Exchange Overview
 
-![Data Exchange Diagram](./attachments/CPS-Diagram-2.jpg)
+![Data Exchange Diagram 1](./attachments/CPS-Diagram-2.jpg)
+
+![Data Exchange Diagram 2](./attachments/DataExchangeDiagramPurple.png)
 
 1. **Bookings, Flights, & changes:** TUI sends bookings, flights, & changes to Mobi on a continuous basis via an AWS Kinesis stream. All bookings, flights, & changes are sent this way up until the freeze date (e.g. 2 days prior to planned date).
 2. **Booking errors:** If there is an error with a booking, this error is sent back to TUI via AWS SNS. An error may be sent immediately after the booking is received, if the booking could not be stored. If the booking can be stored but an error occurs later during planning, the error will be sent when planning occurs (either 14 days prior to the planned date, or soon after receipt of the booking if sent less than 14 days prior to the planned date).
