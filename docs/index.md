@@ -344,6 +344,13 @@ Vehicle can have multiple prices while price can also belong to multiple vehicle
 
 ## Tour Operators
 
+Tour Operators are organizations that run tours in a specific destination. Business rules are primarily set on a tour operator level, by specifying a set of parameters by qa_rule_id for a given tour operator. Tour operators also specify (what is exclusive_to, what is private_veh_capacity_behaviour)?
+
+Example:
+{'id': '5016-212177', 'name': 'ABAX', 'short_name': 'ABAXS', 'destination_id': '5016', 'sap_code': '0001093579', 'client_type': '3p_b2b', 'transport_setup': {'qa_rule_id': 48, 'exclusive_to': 'both', 'private_veh_capacity_behaviour': 'none'}}
+
+## Parameters 
+
 ## Master Data Format
 
 [Reference in .yaml format](https://musical-guide-gq4eyjv.pages.github.io/#/)
