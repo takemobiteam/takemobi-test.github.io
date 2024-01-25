@@ -56,7 +56,7 @@ The Continuous Planning System has been configured with business rules for each 
 
 Each item in this diagram is further described in a section below.
 
-# Bookings, Flights, & Errors
+# Bookings & Flights
 
 **Open Questions for CPS team:**
 
@@ -65,19 +65,58 @@ Each item in this diagram is further described in a section below.
   - Can someone specify multiple options? Or do they have to pick 1?
 - (Dan) Is booking_plan_status something TUI sends us? That doesn't make sense to me. Is this something TUI sends us to indicate whether it's a new booking or an updated booking?
   - booking_plan_status: [choice] in {Pending, Planned} if this booking is already planned.
-- (Jamie) How does it work if multiple errors are applicable? We return only the first one? Or the list of all applicable? Is it the same for bookings vs APIs?
-- (Jamie) Check whether fields we don't use will throw an error if not included
 
-## Bookings
+## Bookings & Flights Overview
 
-A booking represents a need for a transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single booking generally has booked a tour with TUI together, will be on the same flights, and will be staying at the same hotel.
+A **Booking** represents a need for a transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single **Booking** generally has booked a tour with TUI together, will be on the same flights, and will be staying at the same **Hotel**.
 
-For every group who books a tour with TUI together, there will generally be 2 bookings sent to Mobi because there are 2 transfers. For example, if the group is going to Cancun, there would be the following 2 bookings:
+For every group who books a tour with TUI together, there will generally be 2 **Bookings** sent to Mobi because there are 2 transfers. For example, if the group is going to Cancun, there would be the following 2 **Bookings**:
 
 - **Arrival to a destination:** a transfer picks up the group at the Cancun airport & brings them to their hotel
 - **Departure from a destination:** a transfer picks up the group at their hotel & brings them to the Cancun airport
 
-Guests that have itineraries involving multiple hotels may have additional transfers, of the "Between Hotels" type.
+Guests that have itineraries involving multiple **Hotels** may have additional transfers, so they would have 1 or more additional **Bookings** with the "Between Hotels" type.
+
+Each **Flight** represents a real flight in the world that corresponds to an **Arrival** to a destination or a **Departure** from a destination where 1 or more groups of passengers will need a transfer. Multiple **Bookings** may correspond to a given **Flight.**
+
+## When Bookings Get Planned
+
+What determines when bookings get planned? A field in the master data? What are the most common values?
+
+## Sending Bookings & Flights via AWS Kinesis
+
+Bookings & Flights are sent as records in a AWS Kinesis data stream. Records include metadata and a payload. Fields within the record can be sent in any order.
+
+Metadata specifies:
+
+- content-type
+  - 'vnd.booking-event.v1' for bookings
+  - 'vnd.flight-event.v1' for flights
+- operation
+  - saved (creating a new booking or flight, or updating it) - requires the booking or flight object with all required fields.
+    - If a booking or flight comes in with a new booking_id or flight_id, it will be created
+    - If a booking or flight comes in with an existing booking_id or flight_id, it will be updated
+    - Booking_id & flight_id are globally unique across destinations & dates
+  - deleted (deleting a booking or flight) - requires just the booking_id or flight_id
+    - If a booking has already been assigned to a trip, deleting it will remove it from the relevant trip
+  - locked (locking a booking) - requires just the booking_id
+    - Locking a booking means it will not be replanned & assigned to a new trip
+  - unlocked (unlocking a booking) - requires just the booking_id
+    - Unlocking a booking means it can be replanned & assigned to a new trip
+
+**Example Booking record:**
+
+```
+{'metadata': {'content-type': 'vnd.booking-event.v1', 'X-B3-TraceId': '0', 'operation': 'saved'}, 'payload': {'booking_id': 'ASX-5082-5178600-1', 'touroperator_id': 'TOP 1', 'ext_booking': 'BETWEENHT', 'lead_pax_name': 'ASELA ASELA', 'destination_id': '1', 'total_pax': 2, 'combinable': True, 'transfer_way': 'between hotels', 'force_pickup_datetime': '2023-01-31T15:00:00+01:00', 'origin_point_type': 'Hotel', 'origin_guest_hotel_id': '1', 'origin_stop_hotel_id': '1', 'destination_point_type': 'Hotel', 'destination_guest_hotel_id': '2', 'destination_stop_hotel_id': '2', 'flight_exclusive': False, 'booking_plan_status': 'Pending', 'passengers': [{'passenger_id': 1, 'name': 'ASELA ASELA', 'age': 30}, {'passenger_id': 2, 'name': 'ASELA ASELA', 'age': 30}], 'operation_date': '2023-01-31', 'welfare': False}}
+```
+
+**Example Flight record:**
+
+```
+{'metadata': {'content-type': 'vnd.flight-event.v1', 'operation': 'saved'}, 'payload': {'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'first_flight': False, 'destination_terminal_id': 'MUC'}}
+```
+
+## Fields for Bookings
 
 ### Required Fields for All Bookings
 
@@ -145,52 +184,27 @@ If these fields are not sent as part of a booking, we will not send an error. **
 
 {"booking_id":"ASX-5006-1835811-1","touroperator_id":"5006-42180","ext_booking":"22077510","lead_pax_name":"MALJONEN  EERO  (L)","destination_id":"5006","total_pax":2,"combinable":false,"transfer_way":"Between hotels","vehicle_type":"Van / Minivan","operation_date":"2024-01-12","origin_point_type":"Hotel","origin_guest_hotel_id":"5006-8183","origin_stop_hotel_id":"5006-8183","destination_point_type":"Hotel","destination_guest_hotel_id":"5006-61586","destination_stop_hotel_id":"5006-61586","flight_exclusive":false,"booking_plan_status":"Pending","passengers":[{"passenger_id":1,"name":"MALJONEN  EERO  (L)","age":30},{"passenger_id":2,"name":"MALJONEN  EERO  (L)","age":30}],"welfare":false}}]
 
-## Flights
+## Fields for Flights
 
-Each flight represents a real flight in the world on a specific day. Multiple bookings may correspond to a given flight. Flights generally have the following fields:
+### Required Fields for All Flights
 
-- (List out fields)
+| Field                   | Type     | Description                                                  | Example                     |
+| ----------------------- | -------- | ------------------------------------------------------------ | --------------------------- |
+| flight_id               | string   | Unique id for each flight                                    | "10027"                     |
+| flight_number           | string   | Flight number used in the real world for this flight         | "VY3832"                    |
+| flight_way              | enum     | Whether a flight is an arrival to a Destination, or a departure from a Destination. Possible values: "Arrival", "Departure". | "Departure"                 |
+| flight_date             | datetime | Date/time of flight arrival or departure, depending on the flight_way | "2019-07-01T14:00:00+02:00" |
+| destination_terminal_id | string   | ?                                                            | "MUC"                       |
+| original_terminal_id    | string   | ?                                                            | "1"                         |
+| first_flight            | bool     | ?                                                            | "False"                     |
 
-## When Bookings Get Planned
+### Optional Fields
 
-What determines when bookings get planned? A field in the master data? What are the most common values?
+### Example Flights
 
-We plan bookings with the same date & destination together.
+**Example Departure:**
 
-## Sending Bookings & Flights via AWS Kinesis
-
-Bookings & Flights are sent as records in a AWS Kinesis data stream. Records include metadata and a payload. Fields within the record can be sent in any order.
-
-Metadata specifies:
-
-- content-type
-  - 'vnd.booking-event.v1' for bookings
-  - 'vnd.flight-event.v1' for flights
-- operation
-  - saved (creating a new booking or flight, or updating it) - requires the booking or flight object with all required fields.
-    - If a booking or flight comes in with a new booking_id or flight_id, it will be created
-    - If a booking or flight comes in with an existing booking_id or flight_id, it will be updated
-    - Booking_id & flight_id are globally unique across destinations & dates
-  - deleted (deleting a booking or flight) - requires just the booking_id or flight_id
-    - If a booking has already been assigned to a trip, deleting it will remove it from the relevant trip
-  - locked (locking a booking) - requires just the booking_id
-    - Locking a booking means it will not be replanned & assigned to a new trip
-  - unlocked (unlocking a booking) - requires just the booking_id
-    - Unlocking a booking means it can be replanned & assigned to a new trip
-
-
-
-**Example Booking record:**
-
-```
-{'metadata': {'content-type': 'vnd.booking-event.v1', 'X-B3-TraceId': '0', 'operation': 'saved'}, 'payload': {'booking_id': 'ASX-5082-5178600-1', 'touroperator_id': 'TOP 1', 'ext_booking': 'BETWEENHT', 'lead_pax_name': 'ASELA ASELA', 'destination_id': '1', 'total_pax': 2, 'combinable': True, 'transfer_way': 'between hotels', 'force_pickup_datetime': '2023-01-31T15:00:00+01:00', 'origin_point_type': 'Hotel', 'origin_guest_hotel_id': '1', 'origin_stop_hotel_id': '1', 'destination_point_type': 'Hotel', 'destination_guest_hotel_id': '2', 'destination_stop_hotel_id': '2', 'flight_exclusive': False, 'booking_plan_status': 'Pending', 'passengers': [{'passenger_id': 1, 'name': 'ASELA ASELA', 'age': 30}, {'passenger_id': 2, 'name': 'ASELA ASELA', 'age': 30}], 'operation_date': '2023-01-31', 'welfare': False}}
-```
-
-**Example Flight record:**
-
-```
-{'metadata': {'content-type': 'vnd.flight-event.v1', 'operation': 'saved'}, 'payload': {'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'first_flight': False, 'destination_terminal_id': 'MUC'}}
-```
+{'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'first_flight': False, 'destination_terminal_id': 'MUC'}}
 
 ## Errors
 
@@ -200,6 +214,11 @@ Timing of errors depends on the type of error:
 
 - An error may be sent immediately after the booking is received, if the booking could not be stored. 
 - If the booking can be stored but an error occurs later during planning, the error will be sent when planning occurs.
+
+**Open Questions:**
+
+- (Jamie) How does it work if multiple errors are applicable? We return only the first one? Or the list of all applicable? Is it the same for bookings vs APIs?
+- (Jamie) Check whether fields we don't use will throw an error if not included
 
 
 
