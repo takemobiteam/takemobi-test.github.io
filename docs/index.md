@@ -72,6 +72,35 @@ Each item in this diagram is further described in a section below.
   - Does order of fields not matter? Just checking.
 - (Jamie) How does it work if multiple errors are applicable? We return only the first one? Or the list of all applicable? Is it the same for bookings vs APIs?
 
+## Kinesis Records
+
+Bookings & Flights are sent as records in a AWS Kinsesis data stream. Records include metadata and a payload.
+
+Metadata specifies:
+
+- content-type
+  - 'vnd.booking-event.v1' for bookings
+  - 'vnd.flight-event.v1' for flights
+- operation
+  - saved (creating a new booking or flight, or updating it) - requires the booking or flight object with all required fields. If a booking or flight comes in with a new booking_id or flight_id, it will be created. If a booking or flight comes in with an existing booking_id or flight_id, it will be updated.
+  - deleted (deleting a booking or flight) - requires just the booking_id or flight_id
+  - locked (locking a booking) - requires just the booking_id
+  - unlocked (unlocking a booking) - requires just the booking_id
+
+Payloads for Bookings & Flights are specified in the Bookings section & Flights section below.
+
+**Example booking record:**
+
+```
+{'metadata': {'content-type': 'vnd.booking-event.v1', 'X-B3-TraceId': '0', 'operation': 'saved'}, 'payload': {'booking_id': 'ASX-5082-5178600-1', 'touroperator_id': 'TOP 1', 'ext_booking': 'BETWEENHT', 'lead_pax_name': 'ASELA ASELA', 'destination_id': '1', 'total_pax': 2, 'combinable': True, 'transfer_way': 'between hotels', 'force_pickup_datetime': '2023-01-31T15:00:00+01:00', 'origin_point_type': 'Hotel', 'origin_guest_hotel_id': '1', 'origin_stop_hotel_id': '1', 'destination_point_type': 'Hotel', 'destination_guest_hotel_id': '2', 'destination_stop_hotel_id': '2', 'flight_exclusive': False, 'booking_plan_status': 'Pending', 'passengers': [{'passenger_id': 1, 'name': 'ASELA ASELA', 'age': 30}, {'passenger_id': 2, 'name': 'ASELA ASELA', 'age': 30}], 'operation_date': '2023-01-31', 'welfare': False}}
+```
+
+**Example flight record:**
+
+```
+{'metadata': {'content-type': 'vnd.flight-event.v1', 'operation': 'saved'}, 'payload': {'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'first_flight': False, 'destination_terminal_id': 'MUC'}}
+```
+
 ## Bookings
 
 A booking represents a need for a transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single booking generally has booked a tour with TUI together, will be on the same flights, and will be staying at the same hotel.
@@ -297,6 +326,10 @@ Vehicle can have multiple prices while price can also belong to multiple vehicle
 
 **Area Example:**
 {'id': '5016-AGDIMITRIS', 'description': 'Agios Dimitris', 'destination_id': '5016', 'destination_name': 'ZTH', 'transport_setup': {'exclusive_area': False, 'locks_setup': [], 'audit_date': '2023-04-12T06:36:39.349174Z', 'area_penalty': 0, 'feeder': False, 'feeder_time_in_advance': 0}}
+
+
+
+## Tour Operators
 
 ## Master Data Format
 
