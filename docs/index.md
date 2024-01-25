@@ -81,7 +81,25 @@ Each **Flight** represents a real flight in the world that corresponds to an **A
 
 ## When Bookings Get Planned
 
-What determines when bookings get planned? A field in the master data? What are the most common values?
+- When a booking comes in via the Kinesis stream, it gets ingested but not planned until the "planning window" for the relevant destination.
+- The start of the planning window is specified by the first_planning_time fields, as part of **Parameters**
+  - First planning time pickups
+  - First planning days pickups
+  - First planning time dropoffs
+  - First planning days dropoffs
+- The end of the planning window is specified by the stop_free_replan fields, as part of the **Destination**
+  - Stop free replan time pickups
+  - Stop free replan days pickups
+  - Stop free replan time dropoffs
+  - Stop free replan time dropoffs
+- During the planning window for a particular destination & operation date, we check every 5 minutes if there have been any changes to bookings or flights. If we do see changes, we do a replan including all the bookings for the destination & operation date.
+- If a booking is locked, it will not be replanned. 
+
+
+
+**Open Question:** What are the most common values for the start & end of planning window?
+
+
 
 ## Sending Bookings & Flights via AWS Kinesis
 
