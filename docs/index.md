@@ -196,7 +196,6 @@ If these fields are not sent as part of a booking, we will not send an error. **
 | flight_date             | datetime | Date/time of flight arrival or departure, depending on the flight_way | "2019-07-01T14:00:00+02:00" |
 | destination_terminal_id | string   | ?                                                            | "MUC"                       |
 | original_terminal_id    | string   | ?                                                            | "1"                         |
-| first_flight            | bool     | ?                                                            | "False"                     |
 
 ### Optional Fields
 
@@ -204,7 +203,7 @@ If these fields are not sent as part of a booking, we will not send an error. **
 
 **Example Departure:**
 
-{'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'first_flight': False, 'destination_terminal_id': 'MUC'}}
+{'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'destination_terminal_id': 'MUC'}}
 
 ## Errors
 
@@ -273,12 +272,15 @@ Destinations tend to be either islands or broad regions surrounding a major city
 **Destination Example:** 
 {'id': '5002', 'destination_name': 'Punta Cana', 'company': 'DO0', 'office': 3, 'transport_stations': ['AZS', 'EPS', 'HEX', 'JBQ', 'LRM', 'PLRMP', 'POP', 'PSDG', 'PSDQP', 'PUJ', 'SDQ', 'STI'], 'transport_setup': {'qa_rule_id': 163, 'time_zone': 'America/Santo_Domingo', 'solver_calculation': 'cost', 'presentation_time_average': 'max', 'combinable_sign_from': 1, 'combinable_sign_to': 99, 'non_combinable_sign_from': 200, 'non_combinable_sign_to': 299, 'stop_free_replan_time_pickups': '08:00:00', 'stop_free_replan_days_pickups': 1, 'stop_free_replan_time_dropoffs': '08:00:00', 'stop_free_replan_days_dropoffs': 2, 'real_cost': True, 'round_times': True, 'back_to_back_sign': 'original', 'group_by_hotelflight': True, 'private_veh_capacity_behaviour': 'none'}}
 
-## Airports
+## Transport Stations: Airports & Ports
 
-Airports map to airports in the real world. There may be multiple airports in one destination, but many have just one.
+Airports & ports map to airports & ports in the real world. There may be multiple airports & ports in one destination, but many have just one airport. These are specified as "transport stations" in the master data.
 
 **Airport Example:**
 {'id': 'AAQ', 'name': 'ANAPA', 'transport_station_type': 'airport'}, {'id': 'AAR', 'name': 'AARHUS', 'transport_station_type': 'airport'}
+
+**Port Example:** 
+
 {'id': '0GRC2', 'name': 'Zakynthos Port', 'transport_station_type': 'harbour'}
 
 ### Terminals
