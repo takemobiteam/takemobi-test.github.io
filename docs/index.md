@@ -56,50 +56,17 @@ The Continuous Planning System has been configured with business rules for each 
 
 Each item in this diagram is further described in a section below.
 
-# Bookings, Flights, Changes, & Errors
+# Bookings, Flights, & Errors
 
 **Open Questions for CPS team:**
 
 - (Alice) For vehicle_type (which they can specify if they want to force a specific vehicle type):
   - What are all the options that someone could specify? I see "Van / Minivan" as one example in the example booking.
   - Can someone specify multiple options? Or do they have to pick 1?
-- (Alice) Please share an example of this optional field because it's not in the examples below.
-  - force_pickup_time/ force_dropoff_time: [datetime] the expected date time of picking up and dropping off.
-- (Dan) Check whether fields we don't use will throw an error if not included
 - (Dan) Is booking_plan_status something TUI sends us? That doesn't make sense to me. Is this something TUI sends us to indicate whether it's a new booking or an updated booking?
   - booking_plan_status: [choice] in {Pending, Planned} if this booking is already planned.
-- (Dan) What needs to be true of the format for us to be able to parse it? Is it a .json blob?
-  - Does order of fields not matter? Just checking.
 - (Jamie) How does it work if multiple errors are applicable? We return only the first one? Or the list of all applicable? Is it the same for bookings vs APIs?
-
-## Kinesis Records
-
-Bookings & Flights are sent as records in a AWS Kinsesis data stream. Records include metadata and a payload.
-
-Metadata specifies:
-
-- content-type
-  - 'vnd.booking-event.v1' for bookings
-  - 'vnd.flight-event.v1' for flights
-- operation
-  - saved (creating a new booking or flight, or updating it) - requires the booking or flight object with all required fields. If a booking or flight comes in with a new booking_id or flight_id, it will be created. If a booking or flight comes in with an existing booking_id or flight_id, it will be updated.
-  - deleted (deleting a booking or flight) - requires just the booking_id or flight_id
-  - locked (locking a booking) - requires just the booking_id
-  - unlocked (unlocking a booking) - requires just the booking_id
-
-Payloads for Bookings & Flights are specified in the Bookings section & Flights section below.
-
-**Example booking record:**
-
-```
-{'metadata': {'content-type': 'vnd.booking-event.v1', 'X-B3-TraceId': '0', 'operation': 'saved'}, 'payload': {'booking_id': 'ASX-5082-5178600-1', 'touroperator_id': 'TOP 1', 'ext_booking': 'BETWEENHT', 'lead_pax_name': 'ASELA ASELA', 'destination_id': '1', 'total_pax': 2, 'combinable': True, 'transfer_way': 'between hotels', 'force_pickup_datetime': '2023-01-31T15:00:00+01:00', 'origin_point_type': 'Hotel', 'origin_guest_hotel_id': '1', 'origin_stop_hotel_id': '1', 'destination_point_type': 'Hotel', 'destination_guest_hotel_id': '2', 'destination_stop_hotel_id': '2', 'flight_exclusive': False, 'booking_plan_status': 'Pending', 'passengers': [{'passenger_id': 1, 'name': 'ASELA ASELA', 'age': 30}, {'passenger_id': 2, 'name': 'ASELA ASELA', 'age': 30}], 'operation_date': '2023-01-31', 'welfare': False}}
-```
-
-**Example flight record:**
-
-```
-{'metadata': {'content-type': 'vnd.flight-event.v1', 'operation': 'saved'}, 'payload': {'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'first_flight': False, 'destination_terminal_id': 'MUC'}}
-```
+- (Jamie) Check whether fields we don't use will throw an error if not included
 
 ## Bookings
 
@@ -184,30 +151,55 @@ Each flight represents a real flight in the world on a specific day. Multiple bo
 
 - (List out fields)
 
-## Changes
-
-**[Delegate: How do booking changes work? What does it look like when they get sent? Send a booking & the id is the same & we just replace it?]**
-
-vehicle_type error recent (make system tolerate it)
-
-Operations: ([from stream_processors.py])
-
-- Saved
-- Deleted
-- Locked
-- Unlocked
-
-**[To delegate: example booking & booking change]**
-
 ## When Bookings Get Planned
 
 What determines when bookings get planned? A field in the master data? What are the most common values?
 
 We plan bookings with the same date & destination together.
 
+## Sending Bookings & Flights via AWS Kinesis
+
+Bookings & Flights are sent as records in a AWS Kinesis data stream. Records include metadata and a payload. Fields within the record can be sent in any order.
+
+Metadata specifies:
+
+- content-type
+  - 'vnd.booking-event.v1' for bookings
+  - 'vnd.flight-event.v1' for flights
+- operation
+  - saved (creating a new booking or flight, or updating it) - requires the booking or flight object with all required fields.
+    - If a booking or flight comes in with a new booking_id or flight_id, it will be created
+    - If a booking or flight comes in with an existing booking_id or flight_id, it will be updated
+    - Booking_id & flight_id are globally unique across destinations & dates
+  - deleted (deleting a booking or flight) - requires just the booking_id or flight_id
+    - If a booking has already been assigned to a trip, deleting it will remove it from the relevant trip
+  - locked (locking a booking) - requires just the booking_id
+    - Locking a booking means it will not be replanned & assigned to a new trip
+  - unlocked (unlocking a booking) - requires just the booking_id
+    - Unlocking a booking means it can be replanned & assigned to a new trip
+
+
+
+**Example Booking record:**
+
+```
+{'metadata': {'content-type': 'vnd.booking-event.v1', 'X-B3-TraceId': '0', 'operation': 'saved'}, 'payload': {'booking_id': 'ASX-5082-5178600-1', 'touroperator_id': 'TOP 1', 'ext_booking': 'BETWEENHT', 'lead_pax_name': 'ASELA ASELA', 'destination_id': '1', 'total_pax': 2, 'combinable': True, 'transfer_way': 'between hotels', 'force_pickup_datetime': '2023-01-31T15:00:00+01:00', 'origin_point_type': 'Hotel', 'origin_guest_hotel_id': '1', 'origin_stop_hotel_id': '1', 'destination_point_type': 'Hotel', 'destination_guest_hotel_id': '2', 'destination_stop_hotel_id': '2', 'flight_exclusive': False, 'booking_plan_status': 'Pending', 'passengers': [{'passenger_id': 1, 'name': 'ASELA ASELA', 'age': 30}, {'passenger_id': 2, 'name': 'ASELA ASELA', 'age': 30}], 'operation_date': '2023-01-31', 'welfare': False}}
+```
+
+**Example Flight record:**
+
+```
+{'metadata': {'content-type': 'vnd.flight-event.v1', 'operation': 'saved'}, 'payload': {'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'first_flight': False, 'destination_terminal_id': 'MUC'}}
+```
+
 ## Errors
 
-If there is an error with a booking, this error is sent back to TUI via AWS SNS. An error may be sent immediately after the booking is received, if the booking could not be stored. If the booking can be stored but an error occurs later during planning, the error will be sent when planning occurs (either 14 days prior to the planned date, or soon after receipt of the booking if sent less than 14 days prior to the planned date).
+If there is an error with a booking, this error is sent back to TUI via AWS SNS. 
+
+Timing of errors depends on the type of error: 
+
+- An error may be sent immediately after the booking is received, if the booking could not be stored. 
+- If the booking can be stored but an error occurs later during planning, the error will be sent when planning occurs.
 
 
 
