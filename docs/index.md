@@ -412,7 +412,85 @@ An optional piece of master data that can be sent to specify if this hotel is ex
 
 ## Plans
 
-## Changes
+Questions for Dan:
+
+- Do the plans always have the same content-type (vnd.response-planning-event.v1)?
+- Do the plans always have the same operation (saved)?
+- How is duration defined? What are the units? What is the type (e.g. int, long)?
+- How is distance defined? What are the units? What is the type (e.g. int, long)?
+- How is combinable defined? Combinable bookings makes sense to me, but I'm not sure what it means as a property of a trip.
+- What is exclusive_to? How is it defined?
+- What are the options for change_origin?
+- Is username always populated?
+- What’s the difference between free_seats & available_seats?
+- What are “rules”? Is that the same thing as Parameters?
+- What are the possible values for point_type?
+- What are the possible values for terminal_type?
+- One of your examples is a locked trip. In what scenario would we send a locked trip to TUI as part of a plan? In my mind locking trips is something that primarily happens on the day of travel via API call
+- Can I get an example trip that contains multiple bookings?
+- Can I get an example trip that contains remarks?
+- Can I get an example trip that has contains infeasible reasons, and ideally multiple infeasible reasons? Presumably a trip will contain infeasible reasons if feasible: false.
+- If we replan & send new trips, how does TUI know the old trips are no longer relevant? Struggling to understand how they turn our stream of plan records into a set of things they are displaying.
+
+Plans are sent back as records in a AWS Kinesis data stream. Records include metadata and a payload.
+
+**Metadata specifies:**
+
+- content-type: vnd.response-planning-event.v1
+- operation: saved
+
+**Data includes the following fields:**
+
+| Field                | Type   | Description                                                  | Example                                |
+| -------------------- | ------ | ------------------------------------------------------------ | -------------------------------------- |
+| transfer_id          | string | Unique id for each trip                                      | "8496be06-656f-4403-ae67-b38fa8c5874c" |
+| date                 | string | Date of transfer (YYYY-MM-DD)                                | "2024-01-25"                           |
+| destination_id       | string | Associated destination                                       | "5006"                                 |
+| bookings             | list   | List of bookings, by booking_id                              | ["ASX-5006-1834847-3"]                 |
+| vehicle_id           | int    | Type of vehicle                                              | "5006-VAN 8-MX0-V-10080"               |
+| vehicle_sign         | string | Sign number for the vehicle (auto-generated 1-99)            | "29"                                   |
+| transfer_way         | enum   | Whether a flight is an arrival to a Destination, or a departure from a Destination. Possible values: "arrival", "departure". | "arrival"                              |
+| rules                |        |                                                              | [233]                                  |
+| duration             |        |                                                              | 55                                     |
+| distance             |        |                                                              | 58922                                  |
+| routes               | list   | List of routes. Routes are defined below.                    |                                        |
+| remarks              |        |                                                              |                                        |
+| combinable           | bool   | Whether this trip can be combined with other trips           |                                        |
+| welfare              | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to bookings where this field is set to true. | "false"                                |
+| exclusive_to         | bool   |                                                              |                                        |
+| change_origin        |        |                                                              |                                        |
+| username             |        |                                                              |                                        |
+| locked               |        |                                                              |                                        |
+| feasible             |        |                                                              |                                        |
+| infeasibility_reason |        |                                                              |                                        |
+| total_pax            |        |                                                              |                                        |
+| free_seats           |        |                                                              |                                        |
+| total_seats          |        |                                                              |                                        |
+| available_seats      |        |                                                              |                                        |
+
+
+
+**Routes include the following fields:**
+
+| Field                   | Type     | Description                                                  | Example                                |
+| ----------------------- | -------- | ------------------------------------------------------------ | -------------------------------------- |
+| stop_order              | int      | Number of the stop, in order. First stop is 0, then stops increment by 1. | 0                                      |
+| date_time               | datetime | Datetime of stop                                             | "2024-01-25T15:55:00+00:00"            |
+| stop_id                 |          |                                                              | "b1db04fa-719f-470f-b06f-55b03af0c260" |
+| feeder_meeting_point    | bool     | Whether the stop is a feeder meeting point, where other vehicles will pick up or drop off passengers for these bookings | false                                  |
+| pickup_bookings         | list     | List of bookings, by booking_id, that will be picked up at this stop | ["ASX-5006-1834847-3"]                 |
+| dropoff_bookings        | list     | List of bookings, by booking_id, that will be dropped off at this stop | ["ASX-5006-1834847-3"]                 |
+| point_type              | enum     |                                                              | "Terminal"                             |
+| terminal_type           | enum     | If point_type is "Terminal", the type of terminal            | "Airport"                              |
+| terminal_id             | string   | If point_type is Terminal, the id of the terminal            | "CUN-NA"                               |
+| stop_hotel_id           | string   | If point_type is Hotel, the id of the hotel. This generally includes the destination. | "5006-15902"                           |
+| distance_from_last_stop | int      | Distance from last stop (km)                                 | 59                                     |
+
+
+
+**Example Plan Record:**
+
+{'Data': '{"metadata": {"content-type": "vnd.response-planning-event.v1", "operation": "saved"}, "payload": {"transfer_id": "8496be06-656f-4403-ae67-b38fa8c5874c", "date": "2024-01-25", "destination_id": 5006, "bookings": ["ASX-5006-1834847-3"], "vehicle_id": "5006-VAN 8-MX0-V-10080", "vehicle_sign": "29", "transfer_way": "arrival", "rules": ["233"], "duration": 55, "distance": 58922, **"routes": [{"stop_order": 0, "date_time": "2024-01-25T15:55:00+00:00", "stop_id": "b1db04fa-719f-470f-b06f-55b03af0c260", "feeder_meeting_point": false, "pickup_bookings": ["ASX-5006-1834847-3"], "point_type": "Terminal", "terminal_type": "Airport", "terminal_id": "CUN-NA", "distance_from_last_stop": 0}, {"stop_order": 1, "date_time": "2024-01-25T16:45:00+00:00", "stop_id": "3bf35cb0-7f14-485c-a73c-80c02a085ed7", "feeder_meeting_point": false, "dropoff_bookings": ["ASX-5006-1834847-3"], "point_type": "Hotel", "stop_hotel_id": "5006-15902", "distance_from_last_stop": 59}],** "remarks": [], "combinable": true, "welfare": false, "exclusive_to": false, "change_origin": "Dashboard", "username": "[tui-adfs_thamara.villagran@tui.com](mailto:tui-adfs_thamara.villagran@tui.com)", "locked": true, "feasible": true, "infeasibility_reason": [], "total_pax": 5, "free_seats": 3, "total_seats": 8, "available_seats": 3}
 
 # Next Tasks To Delegate
 
