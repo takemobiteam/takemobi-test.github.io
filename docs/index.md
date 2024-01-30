@@ -1,6 +1,10 @@
+Planned structure of documentation:
 
-
-[TOC]
+1. Overview
+2. Bookings & Flights (ready for review now)
+3. Regular Planning
+4. APIs
+5. Master Data
 
 
 
