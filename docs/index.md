@@ -138,7 +138,7 @@ When a booking comes in via the Kinesis stream, it gets ingested but not planned
 | combinable          | bool   | Whether the booking can be combined with other bookings (e.g. VIP bookings cannot be combined) | "true"                                                       |
 | flight_exclusive    | bool   | Whether the flight cannot be combined with other flights (e.g. **TODO: provide example of when this is useful**) | "false"                                                      |
 | welfare             | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to bookings where this field is set to true. | "false"                                                      |
-| booking_plan_status | enum   | "Pending" or "Planned" **(TODO: why does TUI send us this field?)** | "Pending"                                                    |
+| booking_plan_status | enum   | "Pending" or "Planned" ***(This field is not used by Mobi - does TUI use it?)*** | "Pending"                                                    |
 | passengers          | dict   | Includes passenger_id (int starting from 1), name (string), & age (int). Upon ingestion of the booking, ages of passengers are checked against min_age (specified in master data per tour operator). By default passengers with age under 2 are assumed to be infants in arms and not require a seat. Mobi does not use the passenger information aside from this age check. | "passengers":[{"passenger_id":1,"name":"Hendrik Rauh","age":54},{"passenger_id":2,"name":"Grit Berghof","age":50}] |
 
 ### Required Fields for Arrivals
@@ -211,8 +211,8 @@ If these fields are not sent as part of a booking, we will not send an error. **
 | flight_number           | string   | Flight number used in the real world for this flight         | "VY3832"                    |
 | flight_way              | enum     | Whether a flight is an arrival to a Destination, or a departure from a Destination. Possible values: "Arrival", "Departure". | "Departure"                 |
 | flight_date             | datetime | Date/time of flight arrival or departure, depending on the flight_way | "2019-07-01T14:00:00+02:00" |
-| destination_terminal_id | string   | **TODO: define**                                             | "MUC"                       |
-| original_terminal_id    | string   | **TODO: define**                                             | "1"                         |
+| destination_terminal_id | string   | Terminal that flight arrives in. If an arrival, use this as the terminal for the booking. | "MUC"                       |
+| original_terminal_id    | string   | Terminal that flight departs from. If a departure, use this as the terminal for the booking. | "1"                         |
 
 
 
@@ -253,13 +253,14 @@ Currently, if multiple **kinesis_rejection** error messages are applicable, mult
 | "KR_no_existing_tour_operator"  | "Kinesis record for booking %(booking_id)s discarded: Touroperator %(tour_operator_id)s has not been defined in Master Data" | touroperator_id must match a touroperator_id that has been defined in the Master Data for the Destination. If it does not, that will cause this error message. |
 | "KR_between_hotels_no_pickup"   | "Kinesis record for booking %(booking_id)s discarded: booking between hotels without specified pickup time." | A booking with transfer_way "Between Hotels" must have a specified pickup time. If it does not, that will cause this error message. |
 | "KR_between_hotels_same_hotels" | "Kinesis record for booking %(booking_id)s discarded: the origin and destination hotels are the same: %(hotel_id)s" | A booking with transfer_way "Between Hotels" must specify 2 different hotels, one as origin and one as destination. If the hotel_id is the same for the origin and destination, that will cause this error message. |
+| "KR_no_terminal_exists"         | "Kinesis record for flight %(flight_id)s discarded: the flight is non-existent and no flight can be created because no terminal is found in master data" | **TODO: revisit this error message, since this error seems to be a booking discard when we can't make a dummy flight. Not informative for TUI.** |
 
 ### Kinesis Rejection Errors for Flights
 
-| message_id                 | Message                                                      | Description                                                  |
-| -------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| "KR_non_existing_terminal" | "Kinesis record for flight %(flight_id)s discarded: Non-existing terminal %(terminal_id)s referenced" | **TODO: clarify difference between this & the following error** |
-| "KR_no_terminal_exists"    | "Kinesis record for flight %(flight_id)s discarded: the flight is non-existent and no flight can be created because no terminal is found in master data" | **TODO: clarify difference between this & the previous error** |
+| message_id                 | Message                                                      | Description                                            |
+| -------------------------- | ------------------------------------------------------------ | ------------------------------------------------------ |
+| "KR_non_existing_terminal" | "Kinesis record for flight %(flight_id)s discarded: Non-existing terminal %(terminal_id)s referenced" | Terminal_id did not match a terminal_id in master data |
+|                            |                                                              |                                                        |
 
 ### (Kinesis Rejection Error To Dos)
 
@@ -271,7 +272,7 @@ Currently, if multiple **kinesis_rejection** error messages are applicable, mult
 
 **TODO: Cross-check kinesis rejection errors with which fields we've specified as required vs optional.**
 
-**TODO: Document these error messages - do they only surface once planning starts?**
+**TODO: Document these error messages in another place & recategorize in our code - they seem to be not actually kinesis_rejection errors**
 
  {    "category": "kinesis_rejection",    "message_id": "KR_booking_not_discarded_unassigned",    "message": "Solver was not able to plan booking %(booking_id)s: it was not discarded, but does not have a trip assigned!",    "description": **null**,    "solution": **null**  }, 
 
