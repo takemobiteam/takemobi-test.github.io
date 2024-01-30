@@ -12,7 +12,7 @@ Planned structure of documentation:
 
 ## Bookings & Flights Overview
 
-A **Booking** represents a need for a transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single **Booking** generally has booked a tour with TUI together, will be on the same flights, and will be staying at the same **Hotel**.
+A **Booking** represents a need for a transfer (define transfer earlier? to me it is not an intuitive term. Also - I believe a transfer is specifically a hotel - airport trip, but technically we do other types as well.) (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single **Booking** generally (not always, sometimes its through a third party) has booked a tour with TUI together, will be on the same flights, and will be staying at the same **Hotel**. (Might be worth calling out here that a booking is a ONE-WAY transfer)
 
 For every group who books a tour with TUI together, there will generally be 2 **Bookings** sent to Mobi because there are 2 transfers. For example, if the group is going to Cancun, there would be the following 2 **Bookings**:
 
@@ -42,9 +42,9 @@ When a booking comes in via the Kinesis stream, it gets ingested but not planned
     - If a booking or flight comes in with an existing booking_id or flight_id, it will be updated
     - Booking_id & flight_id are globally unique across destinations & dates
   - deleted (deleting a booking or flight) - requires just the booking_id or flight_id
-    - If a booking has already been assigned to a trip, deleting it will remove it from the relevant trip
+    - If a booking has already been assigned to a trip, deleting it will remove it from the relevant trip (and it should update the trip as needed e.g. if the route changes)
   - locked (locking a booking) - requires just the booking_id
-    - Locking a booking means it will not be replanned & assigned to a new trip
+    - Locking a booking means it will not be replanned & assigned to a new trip (would emphasize it rather as not touched by automated solver processes
   - unlocked (unlocking a booking) - requires just the booking_id
     - Unlocking a booking means it can be replanned & assigned to a new trip
 
@@ -73,6 +73,26 @@ When a booking comes in via the Kinesis stream, it gets ingested but not planned
 
 
 ## Fields for Bookings
+
+(Notes for this section:
+
+ext_booking - I think that description isn't correct. It takes more than that value matching to force a grouping, and it has some specific signifigance beyond Mobi that might be worth knowing.
+
+total_pax - should include all passengers, even infants.
+
+destination_id - should we define what a destination is? It's easy to mininterpret it as where the booking is going.
+
+flight_exclusive - I believe one case this is useful is if they believe a flight will be delayed, so they don't have to worry about the delay impacting a large portion of the plan.
+
+passengers - passengers is scheduled for removal from Mobi use. The one thing we use it for is to check for infant-in-arms based on the passenger age.
+
+General note - I think statements like "usually includes destination_id" are confusing/misleading. I think it would be better to call it out as a link to a specific object type and that object will speak for itself.
+
+presentation_window - there is a little bit of funky stuff going on with these values actually. I think they are SUPPOSED to have more with grouping than with scheduling (although maybe its just the upper bound that matters for grouping but not scheduling?). I recommend getting TUI's statement on these.
+
+fields not used - we should make a note to ditch these if possible. Especially the other hotel fields, I think they cause non-negligible confusion...
+
+flight_number - do we use this? I feel like we dont...
 
 ### Required Fields for All Bookings
 
@@ -180,10 +200,11 @@ If these fields are not sent as part of a booking, we will not send an error. **
 
 If there is an error with a booking, the error is sent back to TUI via AWS SNS. 
 
+(I would rather not frame these as errors. The term we usually use is discard or record rejection)
 Timing of errors depends on the type of error: 
 
-- An error may be sent immediately after the booking is received, if the booking could not be stored. These errors are specified in the next section, [Kinesis Rejection Errors](#kinesis-rejection-errors).
-- If the booking can be stored but an error occurs later during planning, the error will be sent when planning occurs. These errors are specified in [Regular Planning](#regular-planning).
+- An error may be sent during processing from kinesis if the booking could not be stored. These errors are specified in the next section, [Kinesis Rejection Errors](#kinesis-rejection-errors).
+- If the booking can be stored but the solver determines the booking to not be plannable, the error will be sent when planning occurs. These errors are specified in [Regular Planning](#regular-planning).
 
 ### Kinesis Rejection Errors
 
@@ -195,12 +216,14 @@ These messages are sent out at the time that the booking or flight is sent in, v
 
 Currently, if multiple **kinesis_rejection** error messages are applicable, multiple SNS messages will be sent. ***In the future, a single SNS message will be sent with all the applicable error messages for the booking or flight.***
 
+(For the no_terminal_exists error: an important point here is that sometimes bookings are sent BEFORE we get the corresponding flight record, meaning we have to create a placeholder flight that will later be filled in for us to save the booking. That is why this error is a booking discard error - we can't create the placeholder flight necessary to save the booking.)
+
 ### Kinesis Rejection Errors for Bookings
 
 | message_id                      | Message                                                      | Description                                                  |
 | ------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | "KR_unsupported_transfer_type"  | "Kinesis record for booking %(booking_id)s discarded: booking has unsupported transfer type %(transfer_type)s" | transfer_type must be "Arrival", "Departure", or "Between Hotels". Any other value for transfer_type will cause this error message. |
-| "KR_no_existing_tour_operator"  | "Kinesis record for booking %(booking_id)s discarded: Touroperator %(tour_operator_id)s has not been defined in Master Data" | touroperator_id must match a touroperator_id that has been defined in the Master Data for the Destination. If it does not, that will cause this error message. |
+| "KR_no_existing_tour_operator"  | "Kinesis record for booking %(booking_id)s discarded: Touroperator %(tour_operator_id)s has not been defined in Master Data" | touroperator_id must match a touroperator object that has been defined in the Master Data for the Destination. If it does not, that will cause this error message. |
 | "KR_between_hotels_no_pickup"   | "Kinesis record for booking %(booking_id)s discarded: booking between hotels without specified pickup time." | A booking with transfer_way "Between Hotels" must have a specified pickup time. If it does not, that will cause this error message. |
 | "KR_between_hotels_same_hotels" | "Kinesis record for booking %(booking_id)s discarded: the origin and destination hotels are the same: %(hotel_id)s" | A booking with transfer_way "Between Hotels" must specify 2 different hotels, one as origin and one as destination. If the hotel_id is the same for the origin and destination, that will cause this error message. |
 | "KR_no_terminal_exists"         | "Kinesis record for flight %(flight_id)s discarded: the flight is non-existent and no flight can be created because no terminal is found in master data" | **TODO: revisit this error message, since this error seems to be a booking discard when we can't make a dummy flight. Not informative for TUI.** |
@@ -209,7 +232,7 @@ Currently, if multiple **kinesis_rejection** error messages are applicable, mult
 
 | message_id                 | Message                                                      | Description                                            |
 | -------------------------- | ------------------------------------------------------------ | ------------------------------------------------------ |
-| "KR_non_existing_terminal" | "Kinesis record for flight %(flight_id)s discarded: Non-existing terminal %(terminal_id)s referenced" | Terminal_id did not match a terminal_id in master data |
+| "KR_non_existing_terminal" | "Kinesis record for flight %(flight_id)s discarded: Non-existing terminal %(terminal_id)s referenced" | Terminal_id did not match a terminal in master data |
 |                            |                                                              |                                                        |
 
 ### (Kinesis Rejection Error To Dos)
