@@ -230,21 +230,62 @@ If these fields are not sent as part of a booking, we will not send an error. **
 
 
 
-## Errors
+## Booking & Flight Errors
 
-If there is an error with a booking, this error is sent back to TUI via AWS SNS. 
+If there is an error with a booking, the error is sent back to TUI via AWS SNS. 
 
 Timing of errors depends on the type of error: 
 
-- An error may be sent immediately after the booking is received, if the booking could not be stored. These errors are specified in this section.
+- An error may be sent immediately after the booking is received, if the booking could not be stored. These errors are specified in the next section, [Kinesis Rejection Errors](#kinesis-rejection-errors).
 - If the booking can be stored but an error occurs later during planning, the error will be sent when planning occurs. These errors are specified in [Regular Planning](#regular-planning).
 
-**Open Questions:**
+### Kinesis Rejection Errors
 
-- (Jamie) How does it work if multiple errors are applicable? We return only the first one? Or the list of all applicable? Is it the same for bookings vs APIs?
-- (Jamie) Check whether fields we don't use will throw an error if not included
+There are multiple categories of errors. The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible error messages.
 
+**kinesis_rejection** error messages indicate that a booking or a flight has been sent into the system, but the booking or flight has issues which would make it impossible to process. 
 
+These messages are sent out at the time that the booking or flight is sent in, via an AWS SNS topic.  
+
+Currently, if multiple kinesis_rejection error messages are applicable, multiple SNS messages will be sent. In the future, a single SNS message will be sent with all the applicable error messages for the booking or flight.
+
+Examples of reasons why a booking or flight might be rejected:
+
+- `KR_no_existing_tour_operator` - A booking specifies an unknown tour operator
+- `KR_between_hotels_no_pickup` - A booking between hotels does not specify a pickup time
+- `KR_non_existing_terminal` - A flight specifies an unknown terminal
+
+### Kinesis Rejection Errors for Bookings
+
+| message_id                      | Message                                                      | Description                                                  |
+| ------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| "KR_unsupported_transfer_type"  | "Kinesis record for booking %(booking_id)s discarded: booking has unsupported transfer type %(transfer_type)s" | transfer_type must be "Arrival", "Departure", or "Between Hotels". Any other value for transfer_type will cause this error message. |
+| "KR_no_existing_tour_operator"  | "Kinesis record for booking %(booking_id)s discarded: Touroperator %(tour_operator_id)s has not been defined in Master Data" | touroperator_id must match a touroperator_id that has been defined in the Master Data for the Destination. If it does not, that will cause this error message. |
+| "KR_between_hotels_no_pickup"   | "Kinesis record for booking %(booking_id)s discarded: booking between hotels without specified pickup time." | A booking with transfer_way "Between Hotels" must have a specified pickup time. If it does not, that will cause this error message. |
+| "KR_between_hotels_same_hotels" | "Kinesis record for booking %(booking_id)s discarded: the origin and destination hotels are the same: %(hotel_id)s" | A booking with transfer_way "Between Hotels" must specify 2 different hotels, one as origin and one as destination. If the hotel_id is the same for the origin and destination, that will cause this error message. |
+
+### Kinesis Rejection Errors for Flights
+
+| message_id                 | Message                                                      | Description                                                  |
+| -------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| "KR_non_existing_terminal" | "Kinesis record for flight %(flight_id)s discarded: Non-existing terminal %(terminal_id)s referenced" | **TODO: clarify difference between this & the following error** |
+| "KR_no_terminal_exists"    | "Kinesis record for flight %(flight_id)s discarded: the flight is non-existent and no flight can be created because no terminal is found in master data" | **TODO: clarify difference between this & the previous error** |
+
+### (Error To Dos)
+
+**TODO: Is this the complete set of kinesis rejection errors? Isn't it possible that any of the required fields is missing at this point? Do we not validate we have all the required fields?** 
+
+**TODO: Document new format for single SNS message with multiple error messages.**
+
+**TODO: Auto-generate error messages & descriptions, so that this won't get out of date. Add descriptions from this documentation into the code.** 
+
+**TODO: Cross-check kinesis rejection errors with which fields we've specified as required vs optional.**
+
+**TODO: Document these error messages - do they only surface once planning starts?**
+
+ {    "category": "kinesis_rejection",    "message_id": "KR_booking_not_discarded_unassigned",    "message": "Solver was not able to plan booking %(booking_id)s: it was not discarded, but does not have a trip assigned!",    "description": **null**,    "solution": **null**  }, 
+
+ {    "category": "kinesis_rejection",    "message_id": "KR_booking_vehicle_assignment_issue",    "message": "Solver expects to be able to assign a vehicle to booking %(booking_id)s but none is valid.",    "description": **null**,    "solution": **null**  },
 
 # Regular Planning
 
