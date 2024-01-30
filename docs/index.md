@@ -58,14 +58,6 @@ Each item in this diagram is further described in a section below.
 
 # Bookings & Flights
 
-**Open Questions for CPS team:**
-
-- (Alice) For vehicle_type (which they can specify if they want to force a specific vehicle type):
-  - What are all the options that someone could specify? I see "Van / Minivan" as one example in the example booking.
-  - Can someone specify multiple options? Or do they have to pick 1?
-- (Dan) Is booking_plan_status something TUI sends us? That doesn't make sense to me. Is this something TUI sends us to indicate whether it's a new booking or an updated booking?
-  - booking_plan_status: [choice] in {Pending, Planned} if this booking is already planned.
-
 ## Bookings & Flights Overview
 
 A **Booking** represents a need for a transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single **Booking** generally has booked a tour with TUI together, will be on the same flights, and will be staying at the same **Hotel**.
@@ -79,31 +71,13 @@ Guests that have itineraries involving multiple **Hotels** may have additional t
 
 Each **Flight** represents a real flight in the world that corresponds to an **Arrival** to a destination or a **Departure** from a destination where 1 or more groups of passengers will need a transfer. Multiple **Bookings** may correspond to a given **Flight.**
 
-## When Bookings Get Planned
-
-- When a booking comes in via the Kinesis stream, it gets ingested but not planned until the "planning window" for the relevant destination.
-- The start of the planning window is specified by the first_planning_time fields, as part of **Parameters**
-  - First planning time pickups
-  - First planning days pickups
-  - First planning time dropoffs
-  - First planning days dropoffs
-- The end of the planning window is specified by the stop_free_replan fields, as part of the **Destination**
-  - Stop free replan time pickups
-  - Stop free replan days pickups
-  - Stop free replan time dropoffs
-  - Stop free replan time dropoffs
-- During the planning window for a particular destination & operation date, we check every 5 minutes if there have been any changes to bookings or flights. If we do see changes, we do a replan including all the bookings for the destination & operation date.
-- If a booking is locked, it will not be replanned. 
-
-
-
-**Open Question:** What are the most common values for the start & end of planning window?
-
 
 
 ## Sending Bookings & Flights via AWS Kinesis
 
 Bookings & Flights are sent as records in a AWS Kinesis data stream. Records include metadata and a payload. Fields within the record can be sent in any order.
+
+When a booking comes in via the Kinesis stream, it gets ingested but not planned until the "planning window" for the relevant destination. See [When Bookings Get Planned](#When Bookings Get Planned) for further details.
 
 Metadata specifies:
 
@@ -138,19 +112,20 @@ Metadata specifies:
 
 ### Required Fields for All Bookings
 
-| Field            | Type   | Description                                                  | Example                                                      |
-| ---------------- | ------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| booking_id       | string | Unique id for each booking                                   | "ASX-5006-1813434-2"                                         |
-| ext_booking      | string | External booking id. If bookings share this value, then they will be grouped together. | "61902535"                                                   |
-| transfer_way     | enum   | Whether a booking is an arrival, a departure, or between hotels. Possible values: "Arrival", "Departure", "Between hotels" | "Departure"                                                  |
-| operation_date   | date   | Date of transfer (YYYY-MM-DD)                                | "2024-01-13"                                                 |
-| total_pax        | int    | Number of passengers as part of the booking who will need a seat? | 2                                                            |
-| destination_id   | string | Associated destination                                       | "5006"                                                       |
-| touroperator_id  | string | Associated tour operator, identifying rules this booking needs to obey in planning. Usually includes destination_id. | "5006-205747"                                                |
-| combinable       | bool   | Whether the booking can be combined with other bookings (e.g. VIP bookings cannot be combined) | "true"                                                       |
-| flight_exclusive | bool   | Whether the flight cannot be combined with other flights (e.g. ??) | "false"                                                      |
-| welfare          | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to bookings where this field is set to true. | "false"                                                      |
-| passengers       | dict   | Includes passenger_id (int starting from 1), name (string), & age (int). Upon ingestion of the booking, ages of passengers are checked against min_age (specified in master data per tour operator). By default passengers with age under 2 are assumed to be infants in arms and not require a seat. Mobi does not use the passenger information aside from this age check. | "passengers":[{"passenger_id":1,"name":"Hendrik Rauh","age":54},{"passenger_id":2,"name":"Grit Berghof","age":50}] |
+| Field               | Type   | Description                                                  | Example                                                      |
+| ------------------- | ------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| booking_id          | string | Unique id for each booking                                   | "ASX-5006-1813434-2"                                         |
+| ext_booking         | string | External booking id. If bookings share this value, then they will be grouped together. | "61902535"                                                   |
+| transfer_way        | enum   | Whether a booking is an arrival, a departure, or between hotels. Possible values: "Arrival", "Departure", "Between hotels" | "Departure"                                                  |
+| operation_date      | date   | Date of transfer (YYYY-MM-DD)                                | "2024-01-13"                                                 |
+| total_pax           | int    | Number of passengers as part of the booking who will need a seat? | 2                                                            |
+| destination_id      | string | Associated destination                                       | "5006"                                                       |
+| touroperator_id     | string | Associated tour operator, identifying rules this booking needs to obey in planning. Usually includes destination_id. | "5006-205747"                                                |
+| combinable          | bool   | Whether the booking can be combined with other bookings (e.g. VIP bookings cannot be combined) | "true"                                                       |
+| flight_exclusive    | bool   | Whether the flight cannot be combined with other flights (e.g. ??) | "false"                                                      |
+| welfare             | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to bookings where this field is set to true. | "false"                                                      |
+| booking_plan_status | enum   | "Pending" or "Planned" **(Todo: why does TUI send us this field?)** | "Pending"                                                    |
+| passengers          | dict   | Includes passenger_id (int starting from 1), name (string), & age (int). Upon ingestion of the booking, ages of passengers are checked against min_age (specified in master data per tour operator). By default passengers with age under 2 are assumed to be infants in arms and not require a seat. Mobi does not use the passenger information aside from this age check. | "passengers":[{"passenger_id":1,"name":"Hendrik Rauh","age":54},{"passenger_id":2,"name":"Grit Berghof","age":50}] |
 
 ### Required Fields for Arrivals
 
@@ -178,7 +153,7 @@ Metadata specifies:
 
 ### Fields TUI Sends but Mobi Does Not Use
 
-If these fields are not sent as part of a booking, we will not send an error. **(Check if this is true)**
+If these fields are not sent as part of a booking, we will not send an error. **(TODO: need to check if this is true)**
 
 | Field                                           | Type   | Description                                                  |
 | ----------------------------------------------- | ------ | ------------------------------------------------------------ |
@@ -236,6 +211,28 @@ Timing of errors depends on the type of error:
 
 - (Jamie) How does it work if multiple errors are applicable? We return only the first one? Or the list of all applicable? Is it the same for bookings vs APIs?
 - (Jamie) Check whether fields we don't use will throw an error if not included
+
+
+
+# Regular Planning
+
+## When Bookings Get Planned
+
+- When a booking comes in via the Kinesis stream, it gets ingested but not planned until the "planning window" for the relevant destination.
+- The start of the planning window is specified by the first_planning_time fields, as part of **Parameters**
+  - First planning time pickups
+  - First planning days pickups
+  - First planning time dropoffs
+  - First planning days dropoffs
+- The end of the planning window is specified by the stop_free_replan fields, as part of the **Destination**
+  - Stop free replan time pickups
+  - Stop free replan days pickups
+  - Stop free replan time dropoffs
+  - Stop free replan time dropoffs
+- During the planning window for a particular destination & operation date, we check every 5 minutes if there have been any changes to bookings or flights. If we do see changes, we do a replan including all the bookings for the destination & operation date.
+- If a booking is locked, it will not be replanned. 
+
+**TODO: What are the most common values for the start & end of planning window?**
 
 
 
