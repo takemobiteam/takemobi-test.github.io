@@ -56,6 +56,8 @@ The Continuous Planning System has been configured with business rules for each 
 
 Each item in this diagram is further described in a section below.
 
+
+
 # Bookings & Flights
 
 ## Bookings & Flights Overview
@@ -75,11 +77,11 @@ Each **Flight** represents a real flight in the world that corresponds to an **A
 
 ## Sending Bookings & Flights via AWS Kinesis
 
-Bookings & Flights are sent as records in a AWS Kinesis data stream. Records include metadata and a payload. Fields within the record can be sent in any order.
+Bookings & Flights are sent as records in a AWS Kinesis data stream. Records include metadata and a payload. Fields within the record can be sent in any order. 
 
 When a booking comes in via the Kinesis stream, it gets ingested but not planned until the "planning window" for the relevant destination. See [When Bookings Get Planned](#when-bookings-get-planned) for further details.
 
-Metadata specifies:
+**Metadata specifies:**
 
 - content-type
   - 'vnd.booking-event.v1' for bookings
@@ -96,6 +98,16 @@ Metadata specifies:
   - unlocked (unlocking a booking) - requires just the booking_id
     - Unlocking a booking means it can be replanned & assigned to a new trip
 
+
+
+**Payload fields for bookings & flights are specified in the following sections:**
+
+[Fields for Bookings](#fields-for-bookings)
+
+[Fields for Flights](#fields-for-flights)
+
+
+
 **Example Booking record:**
 
 ```
@@ -107,6 +119,8 @@ Metadata specifies:
 ```
 {'metadata': {'content-type': 'vnd.flight-event.v1', 'operation': 'saved'}, 'payload': {'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'first_flight': False, 'destination_terminal_id': 'MUC'}}
 ```
+
+
 
 ## Fields for Bookings
 
@@ -122,9 +136,9 @@ Metadata specifies:
 | destination_id      | string | Associated destination                                       | "5006"                                                       |
 | touroperator_id     | string | Associated tour operator, identifying rules this booking needs to obey in planning. Usually includes destination_id. | "5006-205747"                                                |
 | combinable          | bool   | Whether the booking can be combined with other bookings (e.g. VIP bookings cannot be combined) | "true"                                                       |
-| flight_exclusive    | bool   | Whether the flight cannot be combined with other flights (e.g. ??) | "false"                                                      |
+| flight_exclusive    | bool   | Whether the flight cannot be combined with other flights (e.g. **TODO: provide example of when this is useful**) | "false"                                                      |
 | welfare             | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to bookings where this field is set to true. | "false"                                                      |
-| booking_plan_status | enum   | "Pending" or "Planned" **(Todo: why does TUI send us this field?)** | "Pending"                                                    |
+| booking_plan_status | enum   | "Pending" or "Planned" **(TODO: why does TUI send us this field?)** | "Pending"                                                    |
 | passengers          | dict   | Includes passenger_id (int starting from 1), name (string), & age (int). Upon ingestion of the booking, ages of passengers are checked against min_age (specified in master data per tour operator). By default passengers with age under 2 are assumed to be infants in arms and not require a seat. Mobi does not use the passenger information aside from this age check. | "passengers":[{"passenger_id":1,"name":"Hendrik Rauh","age":54},{"passenger_id":2,"name":"Grit Berghof","age":50}] |
 
 ### Required Fields for Arrivals
@@ -163,19 +177,33 @@ If these fields are not sent as part of a booking, we will not send an error. **
 | origin_point_type/destination_point_type        | enum   | "Hotel" or "Terminal". These are not used because transfer_way already defines what the origin & destination point types are. |
 | orgin_terminal_type / destination_terminal_type | enum   | "Airport"                                                    |
 
+
+
 ### Example Bookings
 
 **Arrival Booking**
 
+```
 {"booking_id":"ASX-5175-347722-1","touroperator_id":"5175-212553","ext_booking":"61902535","lead_pax_name":"HENDRIK,  RAUH","destination_id":"5175","total_pax":2,"combinable":true,"transfer_way":"Arrival","operation_date":"2024-01-24","origin_flight_id":"ASX-5175-31293","origin_point_type":"Terminal","origin_terminal_type":"Airport","destination_point_type":"Hotel","destination_guest_hotel_id":"5175-64985","destination_stop_hotel_id":"5175-64985","flight_exclusive":false,"presentation_window_from":0,"presentation_window_to":0,"booking_plan_status":"Pending","passengers":[{"passenger_id":1,"name":"Hendrik Rauh","age":54},{"passenger_id":2,"name":"Grit Berghof","age":50}],"welfare":false}}]}
+```
+
+
 
 **Departure Booking**
 
+```
 {"booking_id":"ASX-5006-1813434-2","touroperator_id":"5006-205747","ext_booking":"WRC1A1BU","lead_pax_name":"SR  NICOLE GRUSZYNSKI","destination_id":"5006","total_pax":2,"combinable":true,"transfer_way":"Departure","operation_date":"2024-01-13","origin_point_type":"Hotel","origin_guest_hotel_id":"5006-7729","origin_stop_hotel_id":"5006-7729","destination_flight_id":"ASX-5006-1333547","destination_point_type":"Terminal","destination_terminal_type":"Airport","flight_exclusive":false,"presentation_window_from":180,"presentation_window_to":180,"booking_plan_status":"Planned","passengers":[{"passenger_id":1,"name":"SR  NICOLE GRUSZYNSKI","age":30},{"passenger_id":2,"name":"SR  NICOLE GRUSZYNSKI","age":30}],"welfare":false}}]}
+```
+
+
 
 **Between Hotels Booking**
 
+```
 {"booking_id":"ASX-5006-1835811-1","touroperator_id":"5006-42180","ext_booking":"22077510","lead_pax_name":"MALJONEN  EERO  (L)","destination_id":"5006","total_pax":2,"combinable":false,"transfer_way":"Between hotels","vehicle_type":"Van / Minivan","operation_date":"2024-01-12","origin_point_type":"Hotel","origin_guest_hotel_id":"5006-8183","origin_stop_hotel_id":"5006-8183","destination_point_type":"Hotel","destination_guest_hotel_id":"5006-61586","destination_stop_hotel_id":"5006-61586","flight_exclusive":false,"booking_plan_status":"Pending","passengers":[{"passenger_id":1,"name":"MALJONEN  EERO  (L)","age":30},{"passenger_id":2,"name":"MALJONEN  EERO  (L)","age":30}],"welfare":false}}]
+```
+
+
 
 ## Fields for Flights
 
@@ -187,16 +215,20 @@ If these fields are not sent as part of a booking, we will not send an error. **
 | flight_number           | string   | Flight number used in the real world for this flight         | "VY3832"                    |
 | flight_way              | enum     | Whether a flight is an arrival to a Destination, or a departure from a Destination. Possible values: "Arrival", "Departure". | "Departure"                 |
 | flight_date             | datetime | Date/time of flight arrival or departure, depending on the flight_way | "2019-07-01T14:00:00+02:00" |
-| destination_terminal_id | string   | ?                                                            | "MUC"                       |
-| original_terminal_id    | string   | ?                                                            | "1"                         |
+| destination_terminal_id | string   | **TODO: define**                                             | "MUC"                       |
+| original_terminal_id    | string   | **TODO: define**                                             | "1"                         |
 
-### Optional Fields
+
 
 ### Example Flights
 
 **Example Departure:**
 
+```
 {'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'destination_terminal_id': 'MUC'}}
+```
+
+
 
 ## Errors
 
@@ -204,8 +236,8 @@ If there is an error with a booking, this error is sent back to TUI via AWS SNS.
 
 Timing of errors depends on the type of error: 
 
-- An error may be sent immediately after the booking is received, if the booking could not be stored. 
-- If the booking can be stored but an error occurs later during planning, the error will be sent when planning occurs.
+- An error may be sent immediately after the booking is received, if the booking could not be stored. These errors are specified in this section.
+- If the booking can be stored but an error occurs later during planning, the error will be sent when planning occurs. These errors are specified in [Regular Planning](#regular-planning).
 
 **Open Questions:**
 
