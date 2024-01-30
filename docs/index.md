@@ -77,7 +77,7 @@ Each **Flight** represents a real flight in the world that corresponds to an **A
 
 Bookings & Flights are sent as records in a AWS Kinesis data stream. Records include metadata and a payload. Fields within the record can be sent in any order.
 
-When a booking comes in via the Kinesis stream, it gets ingested but not planned until the "planning window" for the relevant destination. See [When Bookings Get Planned](#When Bookings Get Planned) for further details.
+When a booking comes in via the Kinesis stream, it gets ingested but not planned until the "planning window" for the relevant destination. See [When Bookings Get Planned](#when-bookings-get-planned) for further details.
 
 Metadata specifies:
 
