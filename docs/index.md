@@ -187,15 +187,11 @@ If these fields are not sent as part of a booking, we will not send an error. **
 {"booking_id":"ASX-5175-347722-1","touroperator_id":"5175-212553","ext_booking":"61902535","lead_pax_name":"HENDRIK,  RAUH","destination_id":"5175","total_pax":2,"combinable":true,"transfer_way":"Arrival","operation_date":"2024-01-24","origin_flight_id":"ASX-5175-31293","origin_point_type":"Terminal","origin_terminal_type":"Airport","destination_point_type":"Hotel","destination_guest_hotel_id":"5175-64985","destination_stop_hotel_id":"5175-64985","flight_exclusive":false,"presentation_window_from":0,"presentation_window_to":0,"booking_plan_status":"Pending","passengers":[{"passenger_id":1,"name":"Hendrik Rauh","age":54},{"passenger_id":2,"name":"Grit Berghof","age":50}],"welfare":false}}]}
 ```
 
-
-
 **Departure Booking**
 
 ```
 {"booking_id":"ASX-5006-1813434-2","touroperator_id":"5006-205747","ext_booking":"WRC1A1BU","lead_pax_name":"SR  NICOLE GRUSZYNSKI","destination_id":"5006","total_pax":2,"combinable":true,"transfer_way":"Departure","operation_date":"2024-01-13","origin_point_type":"Hotel","origin_guest_hotel_id":"5006-7729","origin_stop_hotel_id":"5006-7729","destination_flight_id":"ASX-5006-1333547","destination_point_type":"Terminal","destination_terminal_type":"Airport","flight_exclusive":false,"presentation_window_from":180,"presentation_window_to":180,"booking_plan_status":"Planned","passengers":[{"passenger_id":1,"name":"SR  NICOLE GRUSZYNSKI","age":30},{"passenger_id":2,"name":"SR  NICOLE GRUSZYNSKI","age":30}],"welfare":false}}]}
 ```
-
-
 
 **Between Hotels Booking**
 
@@ -222,7 +218,7 @@ If these fields are not sent as part of a booking, we will not send an error. **
 
 ### Example Flights
 
-**Example Departure:**
+**Example Departure Flight:**
 
 ```
 {'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'destination_terminal_id': 'MUC'}}
@@ -241,19 +237,13 @@ Timing of errors depends on the type of error:
 
 ### Kinesis Rejection Errors
 
-There are multiple categories of errors. The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible error messages.
+There are multiple categories of errors. The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible error messages, across all categories. This section describes one category of errors: **kinesis_rejection** errors.
 
 **kinesis_rejection** error messages indicate that a booking or a flight has been sent into the system, but the booking or flight has issues which would make it impossible to process. 
 
 These messages are sent out at the time that the booking or flight is sent in, via an AWS SNS topic.  
 
-Currently, if multiple kinesis_rejection error messages are applicable, multiple SNS messages will be sent. In the future, a single SNS message will be sent with all the applicable error messages for the booking or flight.
-
-Examples of reasons why a booking or flight might be rejected:
-
-- `KR_no_existing_tour_operator` - A booking specifies an unknown tour operator
-- `KR_between_hotels_no_pickup` - A booking between hotels does not specify a pickup time
-- `KR_non_existing_terminal` - A flight specifies an unknown terminal
+Currently, if multiple **kinesis_rejection** error messages are applicable, multiple SNS messages will be sent. ***In the future, a single SNS message will be sent with all the applicable error messages for the booking or flight.***
 
 ### Kinesis Rejection Errors for Bookings
 
@@ -271,7 +261,7 @@ Examples of reasons why a booking or flight might be rejected:
 | "KR_non_existing_terminal" | "Kinesis record for flight %(flight_id)s discarded: Non-existing terminal %(terminal_id)s referenced" | **TODO: clarify difference between this & the following error** |
 | "KR_no_terminal_exists"    | "Kinesis record for flight %(flight_id)s discarded: the flight is non-existent and no flight can be created because no terminal is found in master data" | **TODO: clarify difference between this & the previous error** |
 
-### (Error To Dos)
+### (Kinesis Rejection Error To Dos)
 
 **TODO: Is this the complete set of kinesis rejection errors? Isn't it possible that any of the required fields is missing at this point? Do we not validate we have all the required fields?** 
 
