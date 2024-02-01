@@ -82,9 +82,7 @@ There are multiple categories of errors. The endpoint **GET /tui-cps/v1/messages
 
 At the start of planning, the system runs preprocessing checks to ensure that the bookings are viable for planning. If an error is found, a Booking Discard message is sent via AWS SNS. These messages begin with "BD_" where BD stands for Booking Discards.
 
-When a preprocessing error occurs & a Booking Discard message is sent, the booking is not actually discarded. The booking is ignored during that instance of planning. Each time planning runs, if the booking has not changed then the same error would occur. The system checks to see if that error has already been sent for that booking, and prevents duplicate errors from being sent for the same booking. 
-
-If a proprocessing error occurs, the booking will not be planned until the booking is updated either via Kinesis if it is during the planning window, or via API call if it is after the planning window.
+When a preprocessing error occurs & a Booking Discard message is sent, the booking is not actually discarded. The booking is ignored during regular planning until it is altered (an updated version is sent either via the Kinesis stream or via API call) or a related booking needs to be planned. **(TODO: define this.**)
 
 
 
