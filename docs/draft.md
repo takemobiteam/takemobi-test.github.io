@@ -76,6 +76,48 @@ Each item in this diagram is further described in a section below.
 
 
 
+## Pre-planning Error Checks
+
+There are multiple categories of errors. The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible error messages, across all categories. This section describes one category of errors: **preprocessing** errors.
+
+At the start of planning, the system runs preprocessing checks to ensure that the bookings are viable for planning. If an error is found, a Booking Discard message is sent via AWS SNS. These messages begin with "BD_" where BD stands for Booking Discards.
+
+When a preprocessing error occurs & a Booking Discard message is sent, the booking is not actually discarded. The booking is ignored during planning & will not be planned until the booking is updated either via Kinesis if it is during the planning window, or via API call if it is after the planning window.
+
+**(TODO: Do we just keep checking it & sending a new error every time planning runs?)**
+
+| message_id                             | Message                                                      | Description |
+| -------------------------------------- | ------------------------------------------------------------ | ----------- |
+| "BD_no_hotel"                          | "Missing needed hotel"                                       |             |
+| "BD_zero_pax_booking"                  | "Listed with 0 seated passengers."                           |             |
+| "BD_no_area_price"                     | "Booking %(booking_id)s has no price object. Needs price from origin %(origin)s to destination %(destination)s." |             |
+| "BD_missing_ferry_bookings"            | "Associated ferry trip legs are missing"                     |             |
+| "BD_missing_ferry_terminal"            | "Missing the destination/origin point associated with the ferry stop." |             |
+| "BD_missing_feeder_meeting_point"      | "Booking is a feeder but area has no feeder meeting point."  |             |
+| "BD_missing_feeder_main_meeting_point" | "Main booking for feeder is missing the main meeting point"  |             |
+| "BD_dummy_hotel"                       | "Hotel %(hotel_name)s of id %(hotel_id)s is unknown to the planner. It is using the Dummy hotel placeholder" |             |
+| "BD_wrong_coordinates"                 | "Hotel %(hotel_name)s of id %(hotel_id)s has coordinates of 0,0. It is using the Dummy hotel placeholder" |             |
+| "BD_duplicated_locations"              | "Hotel %(hotel_name)s of id %(hotel_id)s has the same location of %(coordinates)s as some other hotels" |             |
+| "BD_dummy_flight"                      | "Flight %(flight_id)s of booking %(booking_id)s is unknown to the planner. It is using flight placeholder info" |             |
+| "BD_zero_pax_booking"                  | "Listed with 0 seated passengers."                           |             |
+| "BD_invalid_vehicle_type"              | "message": "Vehicle type %(vehicle_type)s does not exists."  |             |
+| "BD_too_large_for_hotel"               | "Listed with %(pax_amount)s seated passengers, but its hotel can only take buses of size %(hotel_capacity)s, vehicles constrained to capacity %(vehicle_capacity)s. Available seats are: %(available_seats)s" |             |
+| "BD_no_vehicle"                        | "There is no vehicle that can accommodate it."               |             |
+| "BD_split_needed"                      | "There is no vehicle that can accommodate it."               |             |
+| "BD_no_ferry"                          | "Unable to assign a ferry to booking %(booking_id)s"         |             |
+| "BD_hotel_invalid"                     | "booking's hotel order is in a circular"                     |             |
+| "BD_feeder_criteria_setup"             | "booking hotel area has two feeder criteria set"             |             |
+| "BD_between_hotels_same_hotels"        | "booking %(booking_id)s between hotels with same destination and origin" |             |
+| "PRIVATE_FEEDER_MAIN_DISCARDED"        | "Not using feeders with the following bookings as they are marked as exclusive: %(bookings)s" |             |
+| "BD_no_more_vehicles"                  | "Unable to satisfy vehicle quantity limits for booking %(booking_id)s" |             |
+| "BD_no_prev_next"                      | "Previous or next transfer booking discarded"                |             |
+| "BD_missing_feeder_booking"            | "Main booking is missing the associated feeder booking."     |             |
+| "BD_missing_main_booking"              | "Feeder booking is missing the associated main booking."     |             |
+| "BD_main_not_configured_for_feeder"    | "Feeder booking is missing a properly-configured main booking" |             |
+| "BD_ftaa_flaw"                         | "Some flaw with flight_terminal_airport_area."               |             |
+
+
+
 # APIs: Requesting a Replan, Manual Changes, Warnings, & Errors
 
 ## Requesting a Replan
