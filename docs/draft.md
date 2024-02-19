@@ -159,6 +159,10 @@ Invalid Example:
 
 Infeasible Example:
 
+
+
+The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible error messages, across all categories.
+
 ### Invalid Messages
 
 **[Internal note: We recently got feedback from Asela that she wants to change which category certain issues are in - is that completed? We should document the new state.]**
