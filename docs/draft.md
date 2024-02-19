@@ -197,6 +197,33 @@ Infeasible Example:
 | "T_ERR_023"                   | "Trip %(id)s with %(seats)s seats violates hotel %(hotels_name)s seat limit %(limits)s." |                                                              |
 | "Infeasible_Booking"          | "Booking %(bid)s in Trip %(tid)s is incompatible because of %(reasons)s" |                                                              |
 
+### Incompatibile Messages (a subset of Infeasible Messages)
+
+| message_id  | Message                                                      | Description |
+| ----------- | ------------------------------------------------------------ | ----------- |
+| "T_ERR_005" | "Bookings %(ids)s have mismatched transfer ways."            |             |
+| "T_ERR_006" | "Bookings %(ids)s do not have overlapping intervals."        |             |
+| "T_ERR_007" | "Bookings %(ids)s violate hotel exclusivity."                |             |
+| "T_ERR_008" | "Bookings %(ids)s violate hotel area exclusivity."           |             |
+| "T_ERR_009" | "Bookings %(ids)s violate tour operator exclusivity."        |             |
+| "T_ERR_010" | "Bookings %(ids)s violate tour operator hotel exclusivity."  |             |
+| "T_ERR_011" | "Bookings %(ids)s violate tour operator group exclusivity."  |             |
+| "T_ERR_012" | "Bookings %(ids)s violate flight exclusivity."               |             |
+| "T_ERR_013" | "Bookings %(ids)s violate hotel area group exclusivity."     |             |
+| "T_ERR_014" | "Bookings %(ids)s violate flight-cooperator exclusivity."    |             |
+| "T_ERR_015" | "Bookings %(ids)s have incompatible areas."                  |             |
+| "T_ERR_016" | "Bookings %(ids)s have incompatible dossier codes."          |             |
+| "T_ERR_000" | "Bookings %(ids)s are the same booking."                     |             |
+| "T_ERR_001" | "Bookings %(ids)s are uncombinable"                          |             |
+| "T_ERR_017" | "Bookings %(ids)s have incompatible flights due to first flight feature." |             |
+| "T_ERR_002" | "Bookings %(ids)s have incompatible flight times."           |             |
+| "T_ERR_040" | "Bookings %(ids)s have incompatible ferry leg types."        |             |
+| "T_ERR_018" | "Bookings %(ids)s have incompatible force pickup %(attribute)s." |             |
+| "T_ERR_003" | "Bookings %(ids)s are too far apart to be grouped"           |             |
+| "T_ERR_041" | "Feeder bookings %(ids)s have different corresponding main trips." |             |
+| "T_ERR_019" | "Bookings %(ids)s have incompatible force dropoff %(attribute)s." |             |
+| "T_ERR_004" | "Bookings %(ids)s violate terminal exclusivity."             |             |
+
 # Master Data
 
 ## Overview
