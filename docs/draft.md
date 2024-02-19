@@ -80,41 +80,40 @@ Each item in this diagram is further described in a section below.
 
 There are multiple categories of errors. The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible error messages, across all categories. This section describes one category of errors: **preprocessing** errors.
 
-At the start of planning, the system runs preprocessing checks to ensure that the bookings are viable for planning. If an error is found, a Booking Discard message is sent via AWS SNS. These messages begin with "BD_" where BD stands for Booking Discards.
+At the start of planning, the system runs preprocessing checks to ensure that the bookings are viable for planning. If an error is found, a Booking Discard message is sent via AWS SNS. These messages generally begin with "BD_" where BD stands for Booking Discards.
 
-When a preprocessing error occurs & a Booking Discard message is sent, the booking is not actually discarded. The booking is ignored during regular planning until it is altered (an updated version is sent either via the Kinesis stream or via API call) or a related booking needs to be planned. **(TODO: define this.**)
+When a preprocessing error occurs & a Booking Discard message is sent, the booking is not actually discarded. The booking is ignored during regular planning until it is altered (an updated version is sent either via the Kinesis stream or via API call) or a related booking needs to be planned. **(TODO: define this, give example.**)
 
 
 
-| message_id                             | Message                                                      | Description |
-| -------------------------------------- | ------------------------------------------------------------ | ----------- |
-| "BD_no_hotel"                          | "Missing needed hotel"                                       |             |
-| "BD_zero_pax_booking"                  | "Listed with 0 seated passengers."                           |             |
-| "BD_no_area_price"                     | "Booking %(booking_id)s has no price object. Needs price from origin %(origin)s to destination %(destination)s." |             |
-| "BD_missing_ferry_bookings"            | "Associated ferry trip legs are missing"                     |             |
-| "BD_missing_ferry_terminal"            | "Missing the destination/origin point associated with the ferry stop." |             |
-| "BD_missing_feeder_meeting_point"      | "Booking is a feeder but area has no feeder meeting point."  |             |
-| "BD_missing_feeder_main_meeting_point" | "Main booking for feeder is missing the main meeting point"  |             |
-| "BD_dummy_hotel"                       | "Hotel %(hotel_name)s of id %(hotel_id)s is unknown to the planner. It is using the Dummy hotel placeholder" |             |
-| "BD_wrong_coordinates"                 | "Hotel %(hotel_name)s of id %(hotel_id)s has coordinates of 0,0. It is using the Dummy hotel placeholder" |             |
-| "BD_duplicated_locations"              | "Hotel %(hotel_name)s of id %(hotel_id)s has the same location of %(coordinates)s as some other hotels" |             |
-| "BD_dummy_flight"                      | "Flight %(flight_id)s of booking %(booking_id)s is unknown to the planner. It is using flight placeholder info" |             |
-| "BD_zero_pax_booking"                  | "Listed with 0 seated passengers."                           |             |
-| "BD_invalid_vehicle_type"              | "message": "Vehicle type %(vehicle_type)s does not exists."  |             |
-| "BD_too_large_for_hotel"               | "Listed with %(pax_amount)s seated passengers, but its hotel can only take buses of size %(hotel_capacity)s, vehicles constrained to capacity %(vehicle_capacity)s. Available seats are: %(available_seats)s" |             |
-| "BD_no_vehicle"                        | "There is no vehicle that can accommodate it."               |             |
-| "BD_split_needed"                      | "There is no vehicle that can accommodate it."               |             |
-| "BD_no_ferry"                          | "Unable to assign a ferry to booking %(booking_id)s"         |             |
-| "BD_hotel_invalid"                     | "booking's hotel order is in a circular"                     |             |
-| "BD_feeder_criteria_setup"             | "booking hotel area has two feeder criteria set"             |             |
-| "BD_between_hotels_same_hotels"        | "booking %(booking_id)s between hotels with same destination and origin" |             |
-| "PRIVATE_FEEDER_MAIN_DISCARDED"        | "Not using feeders with the following bookings as they are marked as exclusive: %(bookings)s" |             |
-| "BD_no_more_vehicles"                  | "Unable to satisfy vehicle quantity limits for booking %(booking_id)s" |             |
-| "BD_no_prev_next"                      | "Previous or next transfer booking discarded"                |             |
-| "BD_missing_feeder_booking"            | "Main booking is missing the associated feeder booking."     |             |
-| "BD_missing_main_booking"              | "Feeder booking is missing the associated main booking."     |             |
-| "BD_main_not_configured_for_feeder"    | "Feeder booking is missing a properly-configured main booking" |             |
-| "BD_ftaa_flaw"                         | "Some flaw with flight_terminal_airport_area."               |             |
+| message_id                             | Message                                                      |
+| -------------------------------------- | ------------------------------------------------------------ |
+| "BD_no_hotel"                          | "Missing needed hotel"                                       |
+| "BD_zero_pax_booking"                  | "Listed with 0 seated passengers."                           |
+| "BD_no_area_price"                     | "Booking %(booking_id)s has no price object. Needs price from origin %(origin)s to destination %(destination)s." |
+| "BD_missing_ferry_bookings"            | "Associated ferry trip legs are missing"                     |
+| "BD_missing_ferry_terminal"            | "Missing the destination/origin point associated with the ferry stop." |
+| "BD_missing_feeder_meeting_point"      | "Booking is a feeder but area has no feeder meeting point."  |
+| "BD_missing_feeder_main_meeting_point" | "Main booking for feeder is missing the main meeting point"  |
+| "BD_dummy_hotel"                       | "Hotel %(hotel_name)s of id %(hotel_id)s is unknown to the planner. It is using the Dummy hotel placeholder" |
+| "BD_wrong_coordinates"                 | "Hotel %(hotel_name)s of id %(hotel_id)s has coordinates of 0,0. It is using the Dummy hotel placeholder" |
+| "BD_duplicated_locations"              | "Hotel %(hotel_name)s of id %(hotel_id)s has the same location of %(coordinates)s as some other hotels" |
+| "BD_dummy_flight"                      | "Flight %(flight_id)s of booking %(booking_id)s is unknown to the planner. It is using flight placeholder info" |
+| "BD_invalid_vehicle_type"              | "message": "Vehicle type %(vehicle_type)s does not exists."  |
+| "BD_too_large_for_hotel"               | "Listed with %(pax_amount)s seated passengers, but its hotel can only take buses of size %(hotel_capacity)s, vehicles constrained to capacity %(vehicle_capacity)s. Available seats are: %(available_seats)s" |
+| "BD_no_vehicle"                        | "There is no vehicle that can accommodate it."               |
+| "BD_split_needed"                      | "There is no vehicle that can accommodate it."               |
+| "BD_no_ferry"                          | "Unable to assign a ferry to booking %(booking_id)s"         |
+| "BD_hotel_invalid"                     | "booking's hotel order is in a circular"                     |
+| "BD_feeder_criteria_setup"             | "booking hotel area has two feeder criteria set"             |
+| "BD_between_hotels_same_hotels"        | "booking %(booking_id)s between hotels with same destination and origin" |
+| "PRIVATE_FEEDER_MAIN_DISCARDED"        | "Not using feeders with the following bookings as they are marked as exclusive: %(bookings)s" |
+| "BD_no_more_vehicles"                  | "Unable to satisfy vehicle quantity limits for booking %(booking_id)s" |
+| "BD_no_prev_next"                      | "Previous or next transfer booking discarded"                |
+| "BD_missing_feeder_booking"            | "Main booking is missing the associated feeder booking."     |
+| "BD_missing_main_booking"              | "Feeder booking is missing the associated main booking."     |
+| "BD_main_not_configured_for_feeder"    | "Feeder booking is missing a properly-configured main booking" |
+| "BD_ftaa_flaw"                         | "Some flaw with flight_terminal_airport_area."               |
 
 
 
@@ -129,7 +128,7 @@ After the freeze date that is configured for the relevant destination (e.g. <2 d
 | New Plan   | Create new vehicles to handle these bookings. Don’t affect anything already created. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/bookings/replan](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_replan_create) |
 | Full Plan  | Using existing vehicles, make as many changes as you want, domino effect is fine | Hub: ?<br />Airport: ?                                       | POST /tui-cps/v1/bookings/domino_replan                      |
 | Light Plan | System only inserts bookings into existing vehicles with enough space, but doesn't add vehicles or change existing bookings. | Airport: ?                                                   | POST /tui-cps/v1/bookings/insertion_replan                   |
-| TBD        | Replan all bookings for the rest of the day without changing vehicles, affecting only passengers & vehicles that have not yet arrived at the airport. | Airport: When a flight gets delayed, ensure the affected passengers get an updated transfer plan, moving other passengers around as needed while minimizing the need to request new vehicles. | TBD                                                          |
+| [TBD]      | Replan all bookings for the rest of the day without changing vehicles, affecting only passengers & vehicles that have not yet arrived at the airport. | Airport: When a flight gets delayed, ensure the affected passengers get an updated transfer plan, moving other passengers around as needed while minimizing the need to request new vehicles. | TBD                                                          |
 
 
 
@@ -146,9 +145,39 @@ If the replan buttons cannot meet TUI staff's needs in some circumstances, then 
 | Bulk Unassign                      | Unassign bookings from trips manually                        | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/bookings/bulk_unassign](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_bulk_unassign_create) |
 | Delete Trip                        | Delete a specific trip                                       | Hub: ?<br />Airport: ?                                       | [DELETE /tui-cps/v1/trips/{id}](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_destroy) |
 
-## Warnings
+## Invalid & Infeasible Messages
 
-## Errors
+When these APIs are called, there are 3 possible types of responses:
+
+- Success (200) - The API call succeeded and will take effect
+- Invalid (?) - The request cannot be completed, because a required field is missing or a critical constraint would be violated. More information about the specific issue will be provided in the response.
+- Infeasible (?) - The request will not be completed, because it violates business rules. If the request is re-sent with "force" set to True, the request can be completed. More information about the specific issue will be provided in the response.
+
+Success Example:
+
+Invalid Example:
+
+Infeasible Example:
+
+### Invalid Messages
+
+**[Internal note: We recently got feedback from Asela that she wants to change which category certain issues are in - is that completed? We should document the new state.]**
+
+| message_id  | Message                                                      | Description |
+| ----------- | ------------------------------------------------------------ | ----------- |
+| "T_ERR_020" | "Trip %(id)s does not have a vehicle."                       |             |
+| "T_ERR_033" | "Trip %(id)s has no start time."                             |             |
+| "T_ERR_039" | "Trip %(id)s visits a stop with no coordinates."             |             |
+| "T_ERR_029" | "Trip %(id)s does not have a correct route."                 |             |
+| "T_ERR_034" | "Trip %(id)s violates the presentation window for booking/s. Correct start time is %(correct_start_time)s given is %(real_start_time)s." |             |
+| "T_ERR_042" | "Trip %(id)s has stops that are out of order in time."       |             |
+| "T_ERR_030" | "Trip %(id)s does not match the departure/arrival type of its bookings." |             |
+| "T_ERR_035" | "Trip %(id)s violates the presentation window for booking %(booking_id)s. Correct latest time is %(correct_last_time)s given is %(real_last_time)s." |             |
+| "T_ERR_038" | "Trip %(id)s services %(terminal_amount)s terminal locations instead of 1." |             |
+| "T_ERR_043" | "Trip %(id)s has mixed ferry dropoff/pickup bookings."       |             |
+| "T_ERR_032" | "Trip %(id)s has booking/s not assigned a dropoff and pickup." |             |
+
+### Infeasible Messages
 
 # Master Data
 
