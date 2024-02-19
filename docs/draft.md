@@ -449,6 +449,35 @@ Plans are sent back as records in a AWS Kinesis data stream. Records include met
 
 {'Data': '{"metadata": {"content-type": "vnd.response-planning-event.v1", "operation": "saved"}, "payload": {"transfer_id": "8496be06-656f-4403-ae67-b38fa8c5874c", "date": "2024-01-25", "destination_id": 5006, "bookings": ["ASX-5006-1834847-3"], "vehicle_id": "5006-VAN 8-MX0-V-10080", "vehicle_sign": "29", "transfer_way": "arrival", "rules": ["233"], "duration": 55, "distance": 58922, **"routes": [{"stop_order": 0, "date_time": "2024-01-25T15:55:00+00:00", "stop_id": "b1db04fa-719f-470f-b06f-55b03af0c260", "feeder_meeting_point": false, "pickup_bookings": ["ASX-5006-1834847-3"], "point_type": "Terminal", "terminal_type": "Airport", "terminal_id": "CUN-NA", "distance_from_last_stop": 0}, {"stop_order": 1, "date_time": "2024-01-25T16:45:00+00:00", "stop_id": "3bf35cb0-7f14-485c-a73c-80c02a085ed7", "feeder_meeting_point": false, "dropoff_bookings": ["ASX-5006-1834847-3"], "point_type": "Hotel", "stop_hotel_id": "5006-15902", "distance_from_last_stop": 59}],** "remarks": [], "combinable": true, "welfare": false, "exclusive_to": false, "change_origin": "Dashboard", "username": "[tui-adfs_thamara.villagran@tui.com](mailto:tui-adfs_thamara.villagran@tui.com)", "locked": true, "feasible": true, "infeasibility_reason": [], "total_pax": 5, "free_seats": 3, "total_seats": 8, "available_seats": 3}
 
+### Master Data Processing Issues
+
+| message_id | Message | Description |
+| ---------- | ------- | ----------- |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+|            |         |             |
+
+
+
 # Next Tasks To Delegate
 
 - Flights (1 hour ish). Alice? Fields with type, description, example - call out if certain fields are required vs optional, and if there are any TUI sends us but does not use. Example flight.
