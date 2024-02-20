@@ -10,6 +10,8 @@ Planned structure of documentation:
 
 Plans are sent back as records in a AWS Kinesis data stream, each record representing a trip. Records include metadata and a payload. 
 
+^ A single kinesis message can have multiple trips
+
 Each trip has a unique transfer_id. If a trip is updated or deleted during regular planning or via API calls, a record will be sent with the same transfer_id as a trip that has been sent previously.
 
 **Metadata specifies:**
@@ -46,6 +48,7 @@ Each trip has a unique transfer_id. If a trip is updated or deleted during regul
 | total_seats          | int    | Total seats in the vehicle                                   | 8                                      |
 | available_seats      | int    | Number of free_seats available for passenger usage. When COVID-19 restrictions were in place limiting the % of capacity that could be filled, available_seats was less than free_seats. | 3                                      |
 
+^ Transfer way can also be "between hotels"
 
 
 **Routes include the following fields:**
