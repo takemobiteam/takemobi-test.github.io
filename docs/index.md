@@ -288,10 +288,15 @@ Currently, if multiple **kinesis_rejection** error messages are applicable, mult
 
 ## When Bookings Get Planned
 
-- When a booking comes in via the Kinesis stream, it gets ingested but not planned until the "planning window" for the relevant destination. 
+- When a booking comes in via the Kinesis stream, it gets ingested but not planned until the "planning window" for the relevant destination.
 - The planning window varies by destination. For many destinations, the planning window begins 7 days prior to the date of the transfer, and ends 24 hours before the transfer.
-- During the planning window for a particular destination & operation date, we check every 5 minutes if there have been any changes to bookings or flights. If we do see changes, we do a replan including all the bookings for the destination & operation date.
-- If a booking is locked, it will not be replanned. 
+- During the planning window for a particular destination & operation date, we check every 5 minutes if there have been any changes to bookings or flights. If we do see changes, we do a replan including the changed bookings as well as all related bookings that could conceivably be planned on the same trip (same destination, same operation date).
+- If a booking is locked, it will not be replanned as part of regular planning.
+- nce the planning window ends for a particular destination & operation date, regular planning no longer affects those bookings. However, changes to bookings or flights will have the following effects:
+  - If a booking changes, the booking will be dropped from the trip and the trip's schedule will adjust as needed. The changed booking will no longer be assigned to a trip, and will need to be assigned to a trip via an API call (either triggering a replan, or assigning to a specific trip directly).
+  - If a flight changes, all bookings involving that flight will be dropped from their trips, and those trips' schedules will adjust as needed. Those bookings will no longer be assigned to trips, and will need to be assigned to trips via an API call (either triggering a replan, or assigning to a specific trip directly).
+  - **Question for Jacob: is this true even if the change to booking or flight is minor, e.g. 5 min delay?**
+
 
 ## Where The Planning Window is Specified
 
@@ -309,14 +314,13 @@ Currently, if multiple **kinesis_rejection** error messages are applicable, mult
 ## Overview of How Planning Works
 
 1. Mobi collects data as it streams in via Kinesis (bookings & flights)
-2. Mobi performs data validation, making sure the data makes sense and is plannable. An error message will be sent if there is an issue with bookings such that they can't be planned.
+2. Mobi performs data validation, making sure the data makes sense and is plannable. An error message will be sent if there is an issue with bookings such that they can't be planned. Planning will continue with bookings that are plannable.
 3. Every 5 minutes, the solver will check to see if anything needs to be planned, and plan if needed. If the planning window for bookings begins, that will trigger those bookings to be planned. If there are changes to bookings or flights within their planning window, that will also trigger planning.
-4. The solver breaks the plan into “atomic” parts, so that it can use a divide-and-conquer approach to decrease runtime while also not compromising optimality.
-5. The solver makes an base initial solution that satisfies the business constraints
-6. The solver rapidly uses a mix of algorithms built from Mobi’s AI expertise and algorithms designed from insights from planning experts to make perturbations to the current solution, improving it until we can no longer do so
-7. Once we have the base plan, we fill out any auxiliary information such as timetables, pickup/dropoff data, etc
-8. We perform validation checks to ensure our solution meets basic functional requirements as well as conforms to the clients business constraints
-9. We send our updated plans live back to the client
+4. The solver makes an base initial solution that satisfies the business constraints
+5. The solver rapidly uses a mix of algorithms built from Mobi’s AI expertise and algorithms designed from insights from planning experts to make perturbations to the current solution, improving it until we can no longer do so
+6. Once we have the base plan, we fill out any auxiliary information such as timetables, pickup/dropoff data, etc
+7. We perform validation checks to ensure our solution meets basic functional requirements as well as conforms to the clients business constraints
+8. We send our updated plans live back to the client
 
 ## Pre-planning Data Validation
 
@@ -324,7 +328,7 @@ There are multiple categories of issues that will prevent planning. The endpoint
 
 At the start of planning, the system runs preprocessing checks to ensure that the bookings are viable for planning. If an error is found, a Booking Discard message is sent via AWS SNS. These messages generally begin with "BD_" where BD stands for Booking Discards.
 
-When a preprocessing error occurs & a Booking Discard message is sent, the booking is not actually discarded. The booking is ignored during regular planning until it is altered (an updated version is sent either via the Kinesis stream or via API call) or a related booking needs to be planned. **(TODO: define this, give example.**)
+When a preprocessing error occurs & a Booking Discard message is sent, the booking is ignored during regular planning until it is altered (an updated version is sent either via the Kinesis stream or via API call).
 
 
 
@@ -441,12 +445,12 @@ Each trip has a unique transfer_id. If a trip is updated or deleted during regul
 
 After the freeze date that is configured for the relevant destination (e.g. <2 days prior to planned date), Mobi will not replan automatically even if new bookings, changes to bookings, or changes to flights are received. If a replan is needed then it must be requested via an API call. These replan API calls are triggered by buttons in the Ermes interface.
 
-| Ermes Name | Description                                                  | Use Cases                                                    | API Call                                                     |
-| ---------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| New Plan   | Create new vehicles to handle these bookings. Don’t affect anything already created. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/bookings/replan](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_replan_create) |
-| Full Plan  | Using existing vehicles, make as many changes as you want, domino effect is fine | Hub: ?<br />Airport: ?                                       | POST /tui-cps/v1/bookings/domino_replan                      |
-| Light Plan | System only inserts bookings into existing vehicles with enough space, but doesn't add vehicles or change existing bookings. | Airport: ?                                                   | POST /tui-cps/v1/bookings/insertion_replan                   |
-| [TBD]      | Replan all bookings for the rest of the day without changing vehicles, affecting only passengers & vehicles that have not yet arrived at the airport. | Airport: When a flight gets delayed, ensure the affected passengers get an updated transfer plan, moving other passengers around as needed while minimizing the need to request new vehicles. | TBD                                                          |
+| Ermes Name | Mobi Name        | Description                                                  | Use Cases                                                    | API Call                                                     |
+| ---------- | ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| New Plan   | Replan           | Create new trips to handle these bookings, without affecting existing trips. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/bookings/replan](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_replan_create) |
+| Full Plan  | Domino Replan    | Solver will plan the selected bookings and may make any changes needed to the existing plan to maintain optimality. | Hub: ?<br />Airport: ?                                       | POST /tui-cps/v1/bookings/domino_replan                      |
+| Light Plan | Insertion Replan | To the extent possible, the solver will insert selected bookings into existing trips without changing the vehicles used. The remaining bookings will be planned seperately. | Airport: ?                                                   | POST /tui-cps/v1/bookings/insertion_replan                   |
+| [TBD]      | [TBD]            | Replan all bookings for the rest of the day without changing vehicles, affecting only passengers & vehicles that have not yet arrived at the airport. | Airport: When a flight gets delayed, ensure the affected passengers get an updated transfer plan, moving other passengers around as needed while minimizing the need to request new vehicles. | TBD                                                          |
 
 
 
@@ -456,20 +460,22 @@ If the replan buttons cannot meet TUI staff's needs in some circumstances, then 
 
 | Ermes Name                         | Description                                                  | Use Cases                                                    | API Call                                                     |
 | ---------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| Bulk Assign                        | Assign bookings to existing trips manually                   | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/trips/{id}/bulk_assign_bookings](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_bulk_assign_bookings_create) |
-| Edit Parking Number or Sign Number | Using existing vehicles, make as many changes as you want, domino effect is fine | Hub: ?<br />Airport: Assign parking number or change sign number when vehicle arrives to parking, so that airport employees in other places can direct guests to the right parking area and sign number. Especially useful for big airports, replaces the need for calling on walkie talkies and mobile phones to communicate things like this. | [PATCH /tui-cps/v1/trips/{id}](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_partial_update) |
-| Create trip                        | Create new trip                                              | Hub: When receiving new bookings or changes to bookings after the freeze date, create a new trip when needed then use bulk assign to assign bookings to that new trip.<br />Airport: ? | [POST /tui-cps/v1/trips](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_create) |
+| Bulk Assign                        | Assign bookings to existing trips manually. Mobi's solver will update the vehicle & optimize the route. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/trips/{id}/bulk_assign_bookings](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_bulk_assign_bookings_create) |
+| Edit parking number or sign number | Edit parking number or sign number                           | Hub: ?<br />Airport: Assign parking number or change sign number when vehicle arrives to parking, so that airport employees in other places can direct guests to the right parking area and sign number. Especially useful for big airports, replaces the need for calling on walkie talkies and mobile phones to communicate things like this. | [PATCH /tui-cps/v1/trips/{id}](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_partial_update) |
+| Create trip                        | Create new trip with specified bookings, vehicle, and sign number | Hub: When receiving new bookings or changes to bookings after the freeze date, create a new trip when needed then use bulk assign to assign bookings to that new trip.<br />Airport: ? | [POST /tui-cps/v1/trips](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_create) |
 | Lock                               | Lock a trip so that changes cannot be made by replans        | Hub: ?<br />Airport: ?                                       | POST /tui-cps/v1/trips/lock_trips                            |
-| Bulk Unassign                      | Unassign bookings from trips manually                        | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/bookings/bulk_unassign](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_bulk_unassign_create) |
+| Bulk Unassign                      | Unassign bookings from trips manually. Mobi's solver will update the vehicle & optimize the route. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/bookings/bulk_unassign](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_bulk_unassign_create) |
 | Delete Trip                        | Delete a specific trip                                       | Hub: ?<br />Airport: ?                                       | [DELETE /tui-cps/v1/trips/{id}](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_destroy) |
 
 ## Invalid & Infeasible Messages
 
 When these APIs are called, there are 3 possible types of responses:
 
-- Success (200) - The API call succeeded and will take effect
-- Invalid (?) - The request cannot be completed, because a required field is missing or a critical constraint would be violated. More information about the specific issue will be provided in the response.
-- Infeasible (?) - The request will not be completed, because it violates business rules. If the request is re-sent with "force" set to True, the request can be completed. More information about the specific issue will be provided in the response.
+- Success - The API call succeeded and will take effect
+- Invalid - The request cannot be completed, because a required field is missing or a critical constraint would be violated. More information about the specific issue will be provided in the response.
+- Infeasible - The request will not be completed, because it violates business rules. If the request is re-sent with "force_infeasible" set to True, the request can be completed. More information about the specific issue will be provided in the response.
+
+
 
 Success Example:
 
