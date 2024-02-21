@@ -36,6 +36,10 @@ Regular Planning
 
 AWS Kinesis
 
+Destination
+
+Solver
+
 # What We Optimize
 
 ## Cost Functions
@@ -66,9 +70,9 @@ The Continuous Planning System has been configured with business rules for each 
 
 ## Bookings & Flights Overview
 
-A **Booking** represents a need for a transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single **Booking** generally has booked a tour with TUI together, will be on the same flights, and will be staying at the same **Hotel**.
+A **Booking** represents a need for a transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single **Booking** generally has booked a tour together, will be on the same flights, and will be staying at the same **Hotel**.
 
-For every group who books a tour with TUI together, there will generally be 2 **Bookings** sent to Mobi because there are 2 transfers. For example, if the group is going to Cancun, there would be the following 2 **Bookings**:
+For every group who books a tour together, there will generally be 2 **Bookings** sent to Mobi because there are 2 transfers. For example, if the group is going to Cancun, there would be the following 2 one-way **Bookings**:
 
 - **Arrival to a destination:** a transfer picks up the group at the Cancun airport & brings them to their hotel
 - **Departure from a destination:** a transfer picks up the group at their hotel & brings them to the Cancun airport
@@ -83,7 +87,7 @@ Each **Flight** represents a real flight in the world that corresponds to an **A
 
 Bookings & Flights are sent as records in a AWS Kinesis data stream. Records include metadata and a payload. Fields within the record can be sent in any order. 
 
-When a booking comes in via the Kinesis stream, it gets ingested but not planned until the "planning window" for the relevant destination. See [When Bookings Get Planned](#when-bookings-get-planned) for further details.
+When a booking comes in via the Kinesis stream, it gets ingested but not planned until the "planning window" for the relevant destination. See [Regular Planning](#regular-planning) for further details.
 
 **Metadata specifies:**
 
@@ -96,9 +100,9 @@ When a booking comes in via the Kinesis stream, it gets ingested but not planned
     - If a booking or flight comes in with an existing booking_id or flight_id, it will be updated
     - Booking_id & flight_id are globally unique across destinations & dates
   - deleted (deleting a booking or flight) - requires just the booking_id or flight_id
-    - If a booking has already been assigned to a trip, deleting it will remove it from the relevant trip
+    - If a booking has already been assigned to a trip, deleting it will remove it from the relevant trip and will update the trip's route & schedule as needed
   - locked (locking a booking) - requires just the booking_id
-    - Locking a booking means it will not be replanned & assigned to a new trip
+    - Locking a booking means it will not be affected by [Regular Planning](#regular-planning)
   - unlocked (unlocking a booking) - requires just the booking_id
     - Unlocking a booking means it can be replanned & assigned to a new trip
 
@@ -133,14 +137,14 @@ When a booking comes in via the Kinesis stream, it gets ingested but not planned
 | Field               | Type   | Description                                                  | Example                                                      |
 | ------------------- | ------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | booking_id          | string | Unique id for each booking                                   | "ASX-5006-1813434-2"                                         |
-| ext_booking         | string | External booking id. If bookings share this value, then they will be grouped together. | "61902535"                                                   |
+| ext_booking         | string | External booking id                                          | "61902535"                                                   |
 | transfer_way        | enum   | Whether a booking is an arrival, a departure, or between hotels. Possible values: "Arrival", "Departure", "Between hotels" | "Departure"                                                  |
 | operation_date      | date   | Date of transfer (YYYY-MM-DD)                                | "2024-01-13"                                                 |
-| total_pax           | int    | Number of passengers as part of the booking who will need a seat? | 2                                                            |
-| destination_id      | string | Associated destination                                       | "5006"                                                       |
-| touroperator_id     | string | Associated tour operator, identifying rules this booking needs to obey in planning. Usually includes destination_id. | "5006-205747"                                                |
+| total_pax           | int    | Number of passengers as part of the booking, including infants who do not need a seat | 2                                                            |
+| destination_id      | string | Associated Destination for the tour. For an Arrival, this will be where the passengers are arriving to. For a Departure, this will be where the passengers are departing from. | "5006"                                                       |
+| touroperator_id     | string | Associated tour operator, identifying rules this booking needs to obey in planning. Each tour operator is specific to a Destination. | "5006-205747"                                                |
 | combinable          | bool   | Whether the booking can be combined with other bookings (e.g. VIP bookings cannot be combined) | "true"                                                       |
-| flight_exclusive    | bool   | Whether the flight cannot be combined with other flights (e.g. **TODO: provide example of when this is useful**) | "false"                                                      |
+| flight_exclusive    | bool   | Whether the flight cannot be combined with other flights. If operators think a flight is likely to be delayed, they may use this field to ensure a delay won't affect a large portion of the plan. | "false"                                                      |
 | welfare             | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to bookings where this field is set to true. | "false"                                                      |
 | booking_plan_status | enum   | "Pending" or "Planned" ***(This field is not used by Mobi - does TUI use it?)*** | "Pending"                                                    |
 | passengers          | dict   | Includes passenger_id (int starting from 1), name (string), & age (int). Upon ingestion of the booking, ages of passengers are checked against min_age (specified in master data per tour operator). By default passengers with age under 2 are assumed to be infants in arms and not require a seat. Mobi does not use the passenger information aside from this age check. | "passengers":[{"passenger_id":1,"name":"Hendrik Rauh","age":54},{"passenger_id":2,"name":"Grit Berghof","age":50}] |
@@ -212,11 +216,16 @@ If these fields are not sent as part of a booking, we will not send an error. **
 | Field                   | Type     | Description                                                  | Example                     |
 | ----------------------- | -------- | ------------------------------------------------------------ | --------------------------- |
 | flight_id               | string   | Unique id for each flight                                    | "10027"                     |
-| flight_number           | string   | Flight number used in the real world for this flight         | "VY3832"                    |
 | flight_way              | enum     | Whether a flight is an arrival to a Destination, or a departure from a Destination. Possible values: "Arrival", "Departure". | "Departure"                 |
 | flight_date             | datetime | Date/time of flight arrival or departure, depending on the flight_way | "2019-07-01T14:00:00+02:00" |
 | destination_terminal_id | string   | Terminal that flight arrives in. If an arrival, use this as the terminal for the booking. | "MUC"                       |
 | original_terminal_id    | string   | Terminal that flight departs from. If a departure, use this as the terminal for the booking. | "1"                         |
+
+### Fields TUI Sends but Mobi Does Not Use
+
+| Field         | Type   | Description                                          | Example  |
+| ------------- | ------ | ---------------------------------------------------- | -------- |
+| flight_number | string | Flight number used in the real world for this flight | "VY3832" |
 
 
 
@@ -236,8 +245,8 @@ If there is an error with a booking, the error is sent back to TUI via AWS SNS.
 
 Timing of errors depends on the type of error: 
 
-- An error may be sent immediately after the booking is received, if the booking could not be stored. These errors are specified in the next section, [Kinesis Rejection Errors](#kinesis-rejection-errors).
-- If the booking can be stored but an error occurs later during planning, the error will be sent when planning occurs. These errors are specified in [Regular Planning](#regular-planning).
+- An error may be sent during processing from Kinesis, if the booking could not be stored. These errors are specified in the next section, [Kinesis Rejection Errors](#kinesis-rejection-errors).
+- If the booking can be stored but the solver determines the booking to not be plannable, the error will be sent when planning occurs. These errors are specified in [Regular Planning](#regular-planning).
 
 ### Kinesis Rejection Errors
 
@@ -254,17 +263,17 @@ Currently, if multiple **kinesis_rejection** error messages are applicable, mult
 | message_id                      | Message                                                      | Description                                                  |
 | ------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | "KR_unsupported_transfer_type"  | "Kinesis record for booking %(booking_id)s discarded: booking has unsupported transfer type %(transfer_type)s" | transfer_type must be "Arrival", "Departure", or "Between Hotels". Any other value for transfer_type will cause this error message. |
-| "KR_no_existing_tour_operator"  | "Kinesis record for booking %(booking_id)s discarded: Touroperator %(tour_operator_id)s has not been defined in Master Data" | touroperator_id must match a touroperator_id that has been defined in the Master Data for the Destination. If it does not, that will cause this error message. |
+| "KR_no_existing_tour_operator"  | "Kinesis record for booking %(booking_id)s discarded: Touroperator %(tour_operator_id)s has not been defined in Master Data" | touroperator_id must match a touroperator object that has been defined in the Master Data for the Destination. If it does not, that will cause this error message. |
 | "KR_between_hotels_no_pickup"   | "Kinesis record for booking %(booking_id)s discarded: booking between hotels without specified pickup time." | A booking with transfer_way "Between Hotels" must have a specified pickup time. If it does not, that will cause this error message. |
 | "KR_between_hotels_same_hotels" | "Kinesis record for booking %(booking_id)s discarded: the origin and destination hotels are the same: %(hotel_id)s" | A booking with transfer_way "Between Hotels" must specify 2 different hotels, one as origin and one as destination. If the hotel_id is the same for the origin and destination, that will cause this error message. |
-| "KR_no_terminal_exists"         | "Kinesis record for flight %(flight_id)s discarded: the flight is non-existent and no flight can be created because no terminal is found in master data" | **TODO: revisit this error message, since this error seems to be a booking discard when we can't make a dummy flight. Not informative for TUI.** |
+| "KR_no_terminal_exists"         | "Kinesis record for flight %(flight_id)s discarded: the flight is non-existent and no flight can be created because no terminal is found in master data" | Sometimes bookings are sent before the corresponding flight record, so Mobi creates a placeholder flight in order to save the booking. Without a terminal in the booking, Mobi cannot create a placeholder flight and cannot save the booking. |
 
 ### Kinesis Rejection Errors for Flights
 
-| message_id                 | Message                                                      | Description                                            |
-| -------------------------- | ------------------------------------------------------------ | ------------------------------------------------------ |
-| "KR_non_existing_terminal" | "Kinesis record for flight %(flight_id)s discarded: Non-existing terminal %(terminal_id)s referenced" | Terminal_id did not match a terminal_id in master data |
-|                            |                                                              |                                                        |
+| message_id                 | Message                                                      | Description                                         |
+| -------------------------- | ------------------------------------------------------------ | --------------------------------------------------- |
+| "KR_non_existing_terminal" | "Kinesis record for flight %(flight_id)s discarded: Non-existing terminal %(terminal_id)s referenced" | Terminal_id did not match a terminal in Master Data |
+|                            |                                                              |                                                     |
 
 ### (Kinesis Rejection Error To Dos)
 
