@@ -89,6 +89,7 @@ Each trip has a unique transfer_id. If a trip is updated or deleted during regul
 ## When Bookings Get Planned
 
 - When a booking comes in via the Kinesis stream, it gets ingested but not planned until the "planning window" for the relevant destination.
+  ^ worth noting that when we receive a record we mark that it has changed - which is how we know what bookings to plan/replan
 - The start of the planning window is specified by the first_planning_time fields, as part of **Parameters**
   - First planning time pickups
   - First planning days pickups
@@ -100,7 +101,9 @@ Each trip has a unique transfer_id. If a trip is updated or deleted during regul
   - Stop free replan time dropoffs
   - Stop free replan time dropoffs
 - During the planning window for a particular destination & operation date, we check every 5 minutes if there have been any changes to bookings or flights. If we do see changes, we do a replan including all the bookings for the destination & operation date.
-- If a booking is locked, it will not be replanned. 
+^ Not all of the bookings. All bookings that have changed as well as bookings related to bookings that have changed (we had a long talk about what this means in teams - can try to say again but I have trouble giving a good explanation on this process)
+- If a booking is locked, it will not be replanned.
+^ Not be changed by any automated system? 
 
 **TODO: What are the most common values for the start & end of planning window?**
 
@@ -108,13 +111,15 @@ Each trip has a unique transfer_id. If a trip is updated or deleted during regul
 
 1. Mobi collects data as it streams in via Kinesis (bookings & flights)
 2. Mobi performs data validation, making sure the data makes sense and is plannable. An error message will be sent if there is an issue with bookings such that they can't be planned.
-3. Every 5 minutes, the solver will check to see if anything needs to be planned, and plan if needed. If the planning window for bookings begins, that will trigger those bookings to be planned. If there are changes to bookings or flights within their planning window, that will also trigger planning.
-4. The solver breaks the plan into “atomic” parts, so that it can use a divide-and-conquer approach to decrease runtime while also not compromising optimality.
-5. The solver makes an base initial solution that satisfies the business constraints
-6. The solver rapidly uses a mix of algorithms built from Mobi’s AI expertise and algorithms designed from insights from planning experts to make perturbations to the current solution, improving it until we can no longer do so
-7. Once we have the base plan, we fill out any auxiliary information such as timetables, pickup/dropoff data, etc
-8. We perform validation checks to ensure our solution meets basic functional requirements as well as conforms to the clients business constraints
-9. We send our updated plans live back to the client
+^ Planning will continue with bookings that ARE plannable
+4. Every 5 minutes, the solver will check to see if anything needs to be planned, and plan if needed. If the planning window for bookings begins, that will trigger those bookings to be planned. If there are changes to bookings or flights within their planning window, that will also trigger planning.
+5. The solver breaks the plan into “atomic” parts, so that it can use a divide-and-conquer approach to decrease runtime while also not compromising optimality.
+^ I would leave this part out of external documentation
+7. The solver makes a base initial solution that satisfies the business constraints
+8. The solver rapidly uses a mix of algorithms built from Mobi’s AI expertise and algorithms designed from insights from planning experts to make perturbations to the current solution, improving it until we can no longer do so
+9. Once we have the base plan, we fill out any auxiliary information such as timetables, pickup/dropoff data, etc
+10. We perform validation checks to ensure our solution meets basic functional requirements as well as conforms to the clients business constraints
+11. We send our updated plans live back to the client
 
 ## Pre-planning Data Validation
 
@@ -122,7 +127,10 @@ There are multiple categories of issues that will prevent planning. The endpoint
 
 At the start of planning, the system runs preprocessing checks to ensure that the bookings are viable for planning. If an error is found, a Booking Discard message is sent via AWS SNS. These messages generally begin with "BD_" where BD stands for Booking Discards.
 
+
 When a preprocessing error occurs & a Booking Discard message is sent, the booking is not actually discarded. The booking is ignored during regular planning until it is altered (an updated version is sent either via the Kinesis stream or via API call) or a related booking needs to be planned. **(TODO: define this, give example.**)
+^" Is not actually discarded - I find that part confusing
+^ Even if a related booking needs to be planned, until it is changed we will ignore it
 
 
 
@@ -155,11 +163,16 @@ When a preprocessing error occurs & a Booking Discard message is sent, the booki
 | "BD_main_not_configured_for_feeder"    | "Feeder booking is missing a properly-configured main booking" |
 | "BD_ftaa_flaw"                         | "Some flaw with flight_terminal_airport_area."               |
 
+^ "BD_zero_pax_booking" - they may complain about this bc it is only an issue sometimes
+^ "BD_split_needed" - we should clarify this - I believe that this occurs when they want a message sent back to them that the booking is too big for the vehicle reqired to be assigned to it and they need to split it up. This message is sent when the booking meets certain criteria they established
+
 # APIs: Requesting a Replan, Manual Changes, Warnings, & Errors
 
 ## Requesting a Replan
 
 After the freeze date that is configured for the relevant destination (e.g. <2 days prior to planned date), Mobi will not replan automatically even if new bookings, changes to bookings, or changes to flights are received. If a replan is needed then it must be requested via an API call. These replan API calls are triggered by buttons in the Ermes interface.
+
+^ It is probably worth speaking about how there are still some limited actions we do in response to changes post freeze time. For ex. if a booking changes we will drop it from it's trip and adjust the trips timetable if need be, but we wont "replan" anything beyond that
 
 | Ermes Name | Description                                                  | Use Cases                                                    | API Call                                                     |
 | ---------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -168,7 +181,9 @@ After the freeze date that is configured for the relevant destination (e.g. <2 d
 | Light Plan | System only inserts bookings into existing vehicles with enough space, but doesn't add vehicles or change existing bookings. | Airport: ?                                                   | POST /tui-cps/v1/bookings/insertion_replan                   |
 | [TBD]      | Replan all bookings for the rest of the day without changing vehicles, affecting only passengers & vehicles that have not yet arrived at the airport. | Airport: When a flight gets delayed, ensure the affected passengers get an updated transfer plan, moving other passengers around as needed while minimizing the need to request new vehicles. | TBD                                                          |
 
-
+^ I suggest we workshop the full plan description. I would say something along the lines of "Solver will plan the selected bookings and may make any changes needed to the existing plan to maintain optimality"
+^ I suggest we workshop the light plan description to - "To the extent possible, the solver will insert selected bookings into existing trips without changing the vehicles used. The remaining bookings will be planned seperately"
+^ Can we add the "Mobi Name" to this table as well? I think that would be helpful as we talk between orgs
 
 ## Manual Changes
 
@@ -183,6 +198,10 @@ If the replan buttons cannot meet TUI staff's needs in some circumstances, then 
 | Bulk Unassign                      | Unassign bookings from trips manually                        | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/bookings/bulk_unassign](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_bulk_unassign_create) |
 | Delete Trip                        | Delete a specific trip                                       | Hub: ?<br />Airport: ?                                       | [DELETE /tui-cps/v1/trips/{id}](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_destroy) |
 
+^ The description for Edit Parking Number or Sign Number is not right
+^ Create new trip - create a new trip with the given bookings, vehicle, and sign
+^ I think it would be good to call out that when they do these actions, for ex: bulk_assign and unassign, there is intelligence that goes into it on our end. We can update the vehicle, optimize the route, change feeder usage, etc.
+
 ## Invalid & Infeasible Messages
 
 When these APIs are called, there are 3 possible types of responses:
@@ -190,6 +209,8 @@ When these APIs are called, there are 3 possible types of responses:
 - Success (200) - The API call succeeded and will take effect
 - Invalid (?) - The request cannot be completed, because a required field is missing or a critical constraint would be violated. More information about the specific issue will be provided in the response.
 - Infeasible (?) - The request will not be completed, because it violates business rules. If the request is re-sent with "force" set to True, the request can be completed. More information about the specific issue will be provided in the response.
+
+^ We updated the api! I think it's force_infeasible now :) Hopefully thats what theyre using
 
 Success Example:
 
@@ -204,6 +225,8 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 ### Invalid Messages
 
 **[Internal note: We recently got feedback from Asela that she wants to change which category certain issues are in - is that completed? We should document the new state.]**
+
+^ This should have been done
 
 | message_id  | Message                                                      | Description |
 | ----------- | ------------------------------------------------------------ | ----------- |
