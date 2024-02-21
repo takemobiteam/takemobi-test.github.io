@@ -359,7 +359,7 @@ When a preprocessing error occurs & a Booking Discard message is sent, the booki
 
 ## Plan Output
 
-Plans are sent back as records in a AWS Kinesis data stream, each record representing a trip. Records include metadata and a payload. 
+Plans are sent back as records in a AWS Kinesis data stream, each record representing one or more trips. Records include metadata and a payload. 
 
 Each trip has a unique transfer_id. If a trip is updated or deleted during regular planning or via API calls, a record will be sent with the same transfer_id as a trip that has been sent previously.
 
@@ -378,7 +378,7 @@ Each trip has a unique transfer_id. If a trip is updated or deleted during regul
 | bookings             | list   | List of bookings, by booking_id                              | ["ASX-5006-1834847-3"]                 |
 | vehicle_id           | int    | Type of vehicle                                              | "5006-VAN 8-MX0-V-10080"               |
 | vehicle_sign         | string | Sign number for the vehicle (auto-generated 1-99)            | "29"                                   |
-| transfer_way         | enum   | Whether a flight is an arrival to a Destination, or a departure from a Destination. Possible values: "arrival", "departure". | "arrival"                              |
+| transfer_way         | enum   | Whether a flight is an arrival to a Destination, or a departure from a Destination. Possible values: "arrival", "departure", "between hotels" | "arrival"                              |
 | rules                | [int]  | The set of parameters applicable to this trip                | [233]                                  |
 | duration             | int    | Duration of trips in minutes, estimated based on local speed limits | 55                                     |
 | distance             | int    | Distance in meters                                           | 58922                                  |
