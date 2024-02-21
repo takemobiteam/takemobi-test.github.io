@@ -6,7 +6,7 @@
 
 [What We Optimize](#what-we-optimize)
 
-[Bookings & Flights](#bookings-&-flights)
+[Bookings and Flights](#bookings-and-flights)
 
 [Regular Planning](#regular-planning)
 
@@ -62,7 +62,7 @@ The Continuous Planning System has been configured with business rules for each 
 
 
 
-# Bookings & Flights
+# Bookings and Flights
 
 ## Bookings & Flights Overview
 
