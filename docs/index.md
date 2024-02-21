@@ -6,7 +6,15 @@ Planned structure of documentation:
 4. APIs (ready for review now)
 5. Master Data
 
-[TOC]
+# Table of Contents
+
+[Product Overview](#product-overview)
+
+[Glossary](#glossary)
+
+[What We're Optimizing For](#what-we're-optimizing-for)
+
+
 
 
 
@@ -16,7 +24,7 @@ The Continuous Planning Service enables TUI’s transfer service to operate effi
 
 **[Charlie: Insert product overview diagram]**
 
-# Glossary (in order of appearance)
+# Glossary
 
 Transfer Service
 
