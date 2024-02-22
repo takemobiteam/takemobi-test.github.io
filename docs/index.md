@@ -50,7 +50,7 @@ There are 2 types of Cost Functions for TUI's Transfer Service:
 | Cost Function | Definition                                                   | Usage                                                        | Example Destination |
 | ------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------- |
 | Distance      | Cost = distance travelled                                    | Destinations where most transfers use TUI's own fleet        | Mallorca            |
-| Cost          | Cost = (# of Vehicle A x cost of vehicle A) + (# of Vehicle B x cost of vehicle B) | Destinations where most transfers use vehicles contracted from suppliers | Zakynthos           |
+| Cost          | Cost = (# of Vehicle A x cost of Vehicle A) + (# of Vehicle B x cost of Vehicle B) + ... + (# of Vehicle Z x cost of Vehicle Z) | Destinations where most transfers use vehicles contracted from suppliers | Zakynthos           |
 
 
 
