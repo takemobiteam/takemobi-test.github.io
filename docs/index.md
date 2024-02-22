@@ -1,10 +1,12 @@
-# Table of Contents
+# Mobi Continuous Planning Service - Implementation for TUI
 
-[Product Overview](#product-overview)
+## Table of Contents
+
+[Overview](#overview)
 
 [Glossary](#glossary)
 
-[What We Optimize](#what-we-optimize)
+[Optimization Within Constraints](#optimization-within-constraints)
 
 [Bookings and Flights](#bookings-and-flights)
 
@@ -16,53 +18,55 @@
 
 
 
-# Product Overview
+# Overview
 
-The Continuous Planning Service enables TUI’s transfer service to operate efficiently by scheduling, optimizing, and routing TUI’s fleet from advanced pre-planning all the way to day-of operation. 
+**TUI's Transfer Service** provides guests with a ride from the airport to their hotel and back for most tours, to ports and back for cruises, and between hotels for multi-hotel vacations. Each one-way ride is a **Transfer**. Mobi's Continuous Planning Service enables TUI’s Transfer Service to operate efficiently by scheduling optimized trips with TUI’s fleet in advance and enabling on-the-fly changes in response to disruptions.
+
+
+
+TUI sends Mobi the following information:
+
+- Bookings 
+- Flights
+
+
+
+Mobi returns to TUI the following information:
+
+- Trips
+
+
 
 **[Charlie: Insert product overview diagram]**
 
-# Glossary
-
-Transfer Service
-
-Cost Function
-
-Business Rules
-
-**Master Data** includes information about physical places and the business rules that should apply to relevant bookings during planning. 
-
-Regular Planning
-
-AWS Kinesis
-
-Destination
-
-Solver
-
-# What We Optimize
+# Optimization Within Constraints
 
 ## Cost Functions
 
-The Continuous Planning System optimizes for cost while following business rules. In order to optimize for cost, we must first define what cost is. Each destination has a specific cost function, specified in the Destination in Master Data.
-
-Example 1: Mallorca
-
-Cost = distance travelled
+The Continuous Planning System optimizes for cost while following business rules. In order to optimize for cost, we must first define what cost is. TUI's Transfer Service operates in many **Destinations**, which tend to be either islands or broad regions surrounding a major city (e.g Mallorca, Zakynthos, Antalya, Cancún). Each Destination has a specific **Cost Function** that defines the cost to be minimized during planning. The cost function is specified for each Destination in **Master Data**, relatively static data that includes information about physical places and the business rules that should apply to relevant bookings during planning.
 
 
 
-Example 2: Zakynthos
+There are 2 types of Cost Functions for TUI's Transfer Service:
 
-Cost = (# of Vehicle A x cost of vehicle A) + (# of Vehicle B x cost of vehicle B)
+| Cost Function | Definition                                                   | Usage                                                        | Example Destination |
+| ------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------- |
+| Distance      | Cost = distance travelled                                    | Destinations where most transfers use TUI's own fleet        | Mallorca            |
+| Cost          | Cost = (# of Vehicle A x cost of vehicle A) + (# of Vehicle B x cost of vehicle B) | Destinations where most transfers use vehicles contracted from suppliers | Zakynthos           |
 
 
-
-In general, destinations where TUI owns their own fleet usually have a simple "distance traveled" cost function like Mallorca, and other destinations that are primarily relying on suppliers have the more complex cost function like Zakynthos.
 
 ## Business Rules
 
-The Continuous Planning System has been configured with business rules for each destination, in order to comply with local legislation, plan trips that are physically possible given the constraints of the geography, and ensure a great customer experience. Most of these rules are specified in Master Data, which includes information about physical places and the business rules that should apply to relevant bookings during planning. 
+The Continuous Planning System has been configured with **Business Rules** for each Destination, constraints that are in place to plan trips that are physically possible given the realities of the geography and fleets of vehicles, and ensure a great customer experience. Most Business Rules are specified in [Master Data](#master-data), and some are specified in [Bookings](#bookings-and-flights).
+
+Example Business Rules:
+
+| Category             | Business Rule                                       | Purpose                                                      |
+| -------------------- | --------------------------------------------------- | ------------------------------------------------------------ |
+| Customer Experience  | Maximum wait time in a vehicle after the first stop | Set a limit on how long passengers need to wait in the vehicle to be dropped off  or picked up after other passengers start getting dropped off or picked up |
+| Physical Constraints | Vehicle clearance for hotels                        | Prevent incompatible vehicles from being assigned to hotels with limited clearance |
+| Fleet Constraints    | Vehicle inventory limits                            | Ensure trips can be completed using the set of vehicles that exists in real life |
 
 
 
@@ -70,7 +74,7 @@ The Continuous Planning System has been configured with business rules for each 
 
 ## Bookings & Flights Overview
 
-A **Booking** represents a need for a transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single **Booking** generally has booked a tour together, will be on the same flights, and will be staying at the same **Hotel**.
+A **Booking** represents a need for a transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single Booking generally has booked a tour together, will be on the same flights, and will be staying at the same **Hotel**.
 
 For every group who books a tour together, there will generally be 2 **Bookings** sent to Mobi because there are 2 transfers. For example, if the group is going to Cancun, there would be the following 2 one-way **Bookings**:
 
@@ -565,7 +569,7 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 
 ## Overview
 
-Master Data includes information about physical places and the business rules that should apply to relevant bookings during planning. Business rules specified in the bookings themselves generally override business rules supplied in Master Data. 
+**Master Data** is relatively static data that includes information about physical places and the business rules that should apply to relevant bookings during planning. Business rules specified in the bookings themselves generally override business rules supplied in Master Data. 
 
 ## Key Concepts in Master Data
 
