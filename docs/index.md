@@ -732,33 +732,34 @@ The Parameters object groups several business rules together. Each tour operator
 
 ## Sending Master Data
 
-Mobi provides two ways for clients to send Master Data.
+Mobi provides two different mechanisms for clients to send Master Data.
 
-There is **master data import**--where customers provide a REST endpoint for each master data type for CPS to query.  And there is **master data update**--where customers push updates to a CPS stream whenever master data changes.
+1. Master Data Import via API Calls: Client provides a REST endpoint for each Master Data type for Mobi to query
+2. Master Data Update Stream via AWS Kinesis Data Streams: Client pushes an update to a data stream whenever there is a change
 
-### Master data import
+### Master Data Import via API Calls
 
-With master data import, the customer provides a REST endpoint for each type of master data.  
-
-Each endpoint must provide a REST API which returns every record of that type of master data as a list--where each line in the list is the JSON representation of a record.  Using the *QA rule* master data type as an example, the customer must provide a rest endpoint named something like `master-data/qa-rules` which returns a list something like the following:
+Each endpoint must provide a REST API which returns every record of that type of Master Data as a list. Each line in the list is the JSON representation of a record.  Using the Parameters Master Data type as an example, TUI provides a rest endpoint `master-data/qa-rules` which returns data like the following:
 
 ```
 {  "id": 77,  "boarding_fix": 1,  "boarding_per_person": 0.1,  "max_stops_arrival": 99,  "max_stops_departure": 99,  "max_num_grouped_flights_arrival": 99,  "max_num_grouped_flights_departure": 99,  "max_time_in_vehicle_arrival": 65,  "max_time_in_vehicle_departure": 65,  "max_time_span_arrival": 0,  "max_time_span_departure": 120,  "max_time_to_flight_arrival": 20,  "max_time_to_flight_departure": 40,  "percentage_capacity": 100.0,  "min_age_takes_place": 0,  "first_planning_days_pickups": 0,  "first_planning_days_dropoffs": 0,  "first_planning_time_pickups": "07:00:00Z",  "first_planning_time_dropoffs": "07:00:00Z" } {  "id": 119,  "boarding_fix": 1,  "boarding_per_person": 0.1,  "max_stops_arrival": 99,  "max_stops_departure": 99,  "max_num_grouped_flights_arrival": 99,  "max_num_grouped_flights_departure": 99,  "max_time_in_vehicle_arrival": 65,  "max_time_in_vehicle_departure": 65,  "max_time_span_arrival": 0,  "max_time_span_departure": 120,  "max_time_to_flight_arrival": 20,  "max_time_to_flight_departure": 30,  "percentage_capacity": 100.0,  "min_age_takes_place": 0,  "first_planning_days_pickups": 0,  "first_planning_days_dropoffs": 0,  "first_planning_time_pickups": "07:00:00Z",  "first_planning_time_dropoffs": "07:00:00Z" } ...
 ```
 
-Certain master data types also need to be filterable by destination--meaning that the REST API must provide a destination parameter, which when set causes the API to return records *only* for that destination.  Using the *area group* master data type as an example, the customer must provide and endpoint which looks like the following:
+
+
+Certain Master Data types also need to be filterable by Destination. The REST API must provide a Destination parameter, which when set causes the API to return records *only* for that destination.  Using the Area Group master data type as an example, TUI provides the following rest endpoint:
 
 ```
 master-data/area-groups?filters=destination_id==5181
 ```
 
-A running CPS system will collect up-to-date master data approximately once every fifteen minutes, by calling each of these endpoints, once per destination where applicable.
+Mobi collects up-to-date Master Data via this mechanism approximately once every fifteen minutes, by calling each of these endpoints, once per Destination where applicable.
 
-### Master data updates
+### Master Data Update Stream via AWS Kinesis Data Streams
 
-With master data updates, the customer still provides the master data import APIs as described above.  
+This mechanism for receiving Master Data updates still requires API Calls set up as specified above.
 
-But whenever the customer’s master data changes, it sends CPS a record through a stream that contains:
+But whenever the client’s Master Data changes, the client sends Mobi a record through a stream that contains:
 
 - The updated record--either the entire record, or just the part which is updated
 - (Optional) instructions telling CPS to replan certain bookings after the data update is processed
@@ -785,7 +786,7 @@ Or instead of a list of bookings, a **booking filter** may be specified, such as
 "booking_filter": {    "destination_id": "5083",    "operation_date_from_for_arrivals": "2023-04-01",    "operation_date_from_for_departures": "2023-03-31",    "transfer_way": "both" }
 ```
 
-This tells CPS to replan all arrival bookings for destination 5083 with a date equal to or after 2023-04-01, as well as all departure bookings for that destination with a date equal to or after 2023-03-31.
+This tells the planner to replan all arrival bookings for destination 5083 with a date equal to or after 2023-04-01, as well as all departure bookings for that destination with a date equal to or after 2023-03-31.
 
 
 
