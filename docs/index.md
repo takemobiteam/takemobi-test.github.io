@@ -4,8 +4,6 @@
 
 [Overview](#overview)
 
-[Glossary](#glossary)
-
 [Optimization Within Constraints](#optimization-within-constraints)
 
 [Bookings and Flights](#bookings-and-flights)
