@@ -74,7 +74,7 @@ Example Business Rules:
 
 ## Bookings & Flights Overview
 
-A **Booking** represents a need for a one-way Transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single Booking generally has booked a tour together, will be on the same flight, and will be staying at the same **Hotel**.
+A **Booking** represents a need for a one-way Transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single Booking generally has booked a tour together, will be on the same flight, and will be staying at the same hotel.
 
 For every group who books a tour together, there will generally be 2 one-way Bookings sent to Mobi because there are 2 one-way Transfers. For example, if the group is going to Cancún, there would be the following 2 one-way Bookings:
 
@@ -87,11 +87,11 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 
 
 
-## Sending Bookings & Flights via AWS Kinesis
+## Sending Bookings & Flights via AWS Kinesis Data Streams
 
-Bookings & Flights are sent as records in a AWS Kinesis data stream. Records include metadata and a payload. Fields within the record can be sent in any order. 
+Bookings & Flights are sent as records in an AWS Kinesis Data Stream. Records include metadata and a payload. Fields within the record can be sent in any order. 
 
-When a Booking comes in via the Kinesis stream, it gets ingested but not planned until the "planning window" for the relevant destination. See [Regular Planning](#regular-planning) for further details.
+When a Booking comes in via the Kinesis stream, it gets ingested but not planned until the Planning Window for the relevant destination. See [Regular Planning](#regular-planning) for further details.
 
 **Metadata specifies:**
 
@@ -138,54 +138,52 @@ When a Booking comes in via the Kinesis stream, it gets ingested but not planned
 
 ### Required Fields for All Bookings
 
-| Field               | Type   | Description                                                  | Example                                                      |
-| ------------------- | ------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| booking_id          | string | Unique id for each booking                                   | "ASX-5006-1813434-2"                                         |
-| ext_booking         | string | External booking id                                          | "61902535"                                                   |
-| transfer_way        | enum   | Whether a booking is an arrival, a departure, or between hotels. Possible values: "Arrival", "Departure", "Between hotels" | "Departure"                                                  |
-| operation_date      | date   | Date of transfer (YYYY-MM-DD)                                | "2024-01-13"                                                 |
-| total_pax           | int    | Number of passengers as part of the booking, including infants who do not need a seat | 2                                                            |
-| destination_id      | string | Associated Destination for the tour. For an Arrival, this will be where the passengers are arriving to. For a Departure, this will be where the passengers are departing from. | "5006"                                                       |
-| touroperator_id     | string | Associated tour operator, identifying rules this booking needs to obey in planning. Each tour operator is specific to a Destination. | "5006-205747"                                                |
-| combinable          | bool   | Whether the booking can be combined with other bookings (e.g. VIP bookings cannot be combined) | "true"                                                       |
-| flight_exclusive    | bool   | Whether the flight cannot be combined with other flights. If operators think a flight is likely to be delayed, they may use this field to ensure a delay won't affect a large portion of the plan. | "false"                                                      |
-| welfare             | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to bookings where this field is set to true. | "false"                                                      |
-| booking_plan_status | enum   | "Pending" or "Planned" ***(This field is not used by Mobi - does TUI use it?)*** | "Pending"                                                    |
-| passengers          | dict   | Includes passenger_id (int starting from 1), name (string), & age (int). Upon ingestion of the booking, ages of passengers are checked against min_age (specified in master data per tour operator). By default passengers with age under 2 are assumed to be infants in arms and not require a seat. Mobi does not use the passenger information aside from this age check. | "passengers":[{"passenger_id":1,"name":"Hendrik Rauh","age":54},{"passenger_id":2,"name":"Grit Berghof","age":50}] |
+| Field            | Type   | Description                                                  | Example                                                      |
+| ---------------- | ------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| booking_id       | string | Unique ID for each Booking                                   | "ASX-5006-1813434-2"                                         |
+| ext_booking      | string | External ID for the Booking                                  | "61902535"                                                   |
+| transfer_way     | enum   | Whether a Booking is an Arrival, a Departure, or between hotels. Possible values: "Arrival", "Departure", "Between hotels" | "Departure"                                                  |
+| operation_date   | date   | Date of Transfer (YYYY-MM-DD)                                | "2024-01-13"                                                 |
+| total_pax        | int    | Number of passengers as part of the Booking, including infants who do not need a seat | 2                                                            |
+| destination_id   | string | Associated Destination for the tour. For an Arrival, this will be where the passengers are arriving to. For a Departure, this will be where the passengers are departing from. | "5006"                                                       |
+| touroperator_id  | string | Associated tour operator, identifying rules this booking needs to obey in planning. Each tour operator is specific to a Destination. | "5006-205747"                                                |
+| combinable       | bool   | Whether the Booking can be combined with other Bookings (e.g. VIP Bookings cannot be combined) | "true"                                                       |
+| flight_exclusive | bool   | Whether the Flight cannot be combined with other Flights. If operators think a flight is likely to be delayed, they may use this field to ensure a delay won't affect a large portion of the plan. | "false"                                                      |
+| welfare          | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to Bookings where this field is set to true. | "false"                                                      |
+| passengers       | dict   | Includes passenger_id (int starting from 1), name (string), & age (int). Upon ingestion of the Booking, ages of passengers are checked against min_age (specified in master data per tour operator). By default passengers with age under 2 are assumed to be infants in arms and not require a seat. Mobi does not use the passenger information aside from this age check. | "passengers":[{"passenger_id":1,"name":"Hendrik Rauh","age":54},{"passenger_id":2,"name":"Grit Berghof","age":50}] |
 
 ### Required Fields for Arrivals
 
 | Field                     | Type   | Description                                                  | Example             |
 | ------------------------- | ------ | ------------------------------------------------------------ | ------------------- |
-| origin_flight_id          | string | Associated flight id. Usually includes destination_id.       | "ASX-5175-347722-1" |
-| destination_stop_hotel_id | string | Hotel id for the hotel where the transfer should drop the guests off. Usually includes destination_id. | "5175-64985"        |
+| origin_flight_id          | string | Associated Flight ID. String includes destination_id.        | "ASX-5175-347722-1" |
+| destination_stop_hotel_id | string | Hotel ID for the hotel where the transfer should drop the guests off. String includes destination_id. | "5175-64985"        |
 
 ### Required Fields for Departures
 
 | Field                    | Type   | Description                                                  | Example            |
 | ------------------------ | ------ | ------------------------------------------------------------ | ------------------ |
-| destination_flight_id    | string | Associated flight id. Usually includes destination_id.       | "ASX-5006-1333547" |
-| origin_stop_hotel_id     | string | Hotel id for the hotel where the transfer should pick up the guests. Usually includes destination_id. | "5006-7729"        |
-| presentation_window_from | int    | How many minutes **at most** the transfer can arrive at the airport before the flight departure time. e.g. 180 means the transfer can arrive at most 3 hours before the flight departure. | 180                |
-| presentation_window_to   | int    | How many minutes **at least** the transfer can arrive at the airport before the flight departure time. e.g. 120 means the transfer can arrive at most 2 hour before the flight departure. | 120                |
+| destination_flight_id    | string | Associated Flight ID. String includes destination_id.        | "ASX-5006-1333547" |
+| origin_stop_hotel_id     | string | Hotel id for the hotel where the Transfer should pick up the guests. String includes destination_id. | "5006-7729"        |
+| presentation_window_from | int    | How many minutes ***at most*** the transfer can arrive at the airport before the flight departure time. e.g. 180 means the transfer can arrive at most 3 hours before the flight departure. | 180                |
+| presentation_window_to   | int    | How many minutes ***at least*** the transfer can arrive at the airport before the flight departure time. e.g. 120 means the transfer can arrive at most 2 hour before the flight departure. | 120                |
 
 ### Optional Fields
 
 | Field                  | Type     | Description                                                  | Example                     |
 | ---------------------- | -------- | ------------------------------------------------------------ | --------------------------- |
-| force_pickup_datetime  | datetime | Force planning to use a specific time for pickup for this booking | "2024-05-05T18:15:00-04:00" |
-| force_dropoff_datetime | datetime | Force planning to use a specific time for dropoff for this booking | "2024-05-05T18:15:00-04:00" |
-| vehicle_type           | enum     | Force planning to use a specific type of vehicle for this booking. Any vehicle type specified in the master data for the associated destination is valid. | "Van / Minivan"             |
+| force_pickup_datetime  | datetime | Force planning to use a specific time for pickup for this Booking | "2024-05-05T18:15:00-04:00" |
+| force_dropoff_datetime | datetime | Force planning to use a specific time for dropoff for this Booking | "2024-05-05T18:15:00-04:00" |
+| vehicle_type           | enum     | Force planning to use a specific type of vehicle for this booking. Any vehicle type specified in the Master Data for the associated Destination is valid. | "Van / Minivan"             |
 
 ### Fields TUI Sends but Mobi Does Not Use
 
-If these fields are not sent as part of a booking, we will not send an error. **(TODO: need to check if this is true)**
-
 | Field                                           | Type   | Description                                                  |
 | ----------------------------------------------- | ------ | ------------------------------------------------------------ |
-| destination_guest_hotel_id                      | string | Hotel id for the hotel where the guests are staying, provided for arrivals. This is not used, because destination_stop_hotel_id is used instead. |
-| origin_guest_hotel_id                           | string | Hotel id for the hotel where the guests are staying, provided for departures. This is not used, because origin_stop_hotel_id is used instead. |
-| lead_pax_name                                   | string | Lead passenger for the booking                               |
+| booking_plan_status                             | enum   | "Pending" or "Planned"                                       |
+| destination_guest_hotel_id                      | string | Hotel ID for the hotel where the guests are staying, provided for Arrivals. This is not used, because destination_stop_hotel_id is used instead. |
+| origin_guest_hotel_id                           | string | Hotel id for the hotel where the guests are staying, provided for Departures. This is not used, because origin_stop_hotel_id is used instead. |
+| lead_pax_name                                   | string | Lead passenger for the Booking                               |
 | origin_point_type/destination_point_type        | enum   | "Hotel" or "Terminal". These are not used because transfer_way already defines what the origin & destination point types are. |
 | orgin_terminal_type / destination_terminal_type | enum   | "Airport"                                                    |
 
@@ -219,17 +217,17 @@ If these fields are not sent as part of a booking, we will not send an error. **
 
 | Field                   | Type     | Description                                                  | Example                     |
 | ----------------------- | -------- | ------------------------------------------------------------ | --------------------------- |
-| flight_id               | string   | Unique id for each flight                                    | "10027"                     |
-| flight_way              | enum     | Whether a flight is an arrival to a Destination, or a departure from a Destination. Possible values: "Arrival", "Departure". | "Departure"                 |
-| flight_date             | datetime | Date/time of flight arrival or departure, depending on the flight_way | "2019-07-01T14:00:00+02:00" |
-| destination_terminal_id | string   | Terminal that flight arrives in. If an arrival, use this as the terminal for the booking. | "MUC"                       |
-| original_terminal_id    | string   | Terminal that flight departs from. If a departure, use this as the terminal for the booking. | "1"                         |
+| flight_id               | string   | Unique id for each Flight                                    | "10027"                     |
+| flight_way              | enum     | Whether a Flight is an Arrival to a tour Destination, or a Departure from a tour Destination. Possible values: "Arrival", "Departure". | "Departure"                 |
+| flight_date             | datetime | Date/time of Flight Arrival or Departure, depending on the flight_way | "2019-07-01T14:00:00+02:00" |
+| destination_terminal_id | string   | Terminal that Flight arrives in. If an Arrival, use this as the terminal for the booking. | "MUC"                       |
+| original_terminal_id    | string   | Terminal that Flight departs from. If a Departure, use this as the terminal for the booking. | "1"                         |
 
 ### Fields TUI Sends but Mobi Does Not Use
 
 | Field         | Type   | Description                                          | Example  |
 | ------------- | ------ | ---------------------------------------------------- | -------- |
-| flight_number | string | Flight number used in the real world for this flight | "VY3832" |
+| flight_number | string | Flight number used in the real world for this Flight | "VY3832" |
 
 
 
@@ -245,12 +243,12 @@ If these fields are not sent as part of a booking, we will not send an error. **
 
 ## Booking & Flight Errors
 
-If there is an error with a booking, the error is sent back to TUI via AWS SNS. 
+If there is an error with a Booking, the error is sent back to TUI via AWS SNS. 
 
 Timing of errors depends on the type of error: 
 
-- An error may be sent during processing from Kinesis, if the booking could not be stored. These errors are specified in the next section, [Kinesis Rejection Errors](#kinesis-rejection-errors).
-- If the booking can be stored but the solver determines the booking to not be plannable, the error will be sent when planning occurs. These errors are specified in [Regular Planning](#regular-planning).
+- An error may be sent during processing from Kinesis, if the Booking could not be stored. These errors are specified in the next section, [Kinesis Rejection Errors](#kinesis-rejection-errors).
+- If the Booking can be stored but the solver determines the booking to not be plannable, the error will be sent when planning occurs. These errors are specified in [Regular Planning](#regular-planning).
 
 ### Kinesis Rejection Errors
 
@@ -277,7 +275,6 @@ Currently, if multiple **kinesis_rejection** error messages are applicable, mult
 | message_id                 | Message                                                      | Description                                         |
 | -------------------------- | ------------------------------------------------------------ | --------------------------------------------------- |
 | "KR_non_existing_terminal" | "Kinesis record for flight %(flight_id)s discarded: Non-existing terminal %(terminal_id)s referenced" | Terminal_id did not match a terminal in Master Data |
-|                            |                                                              |                                                     |
 
 ### (Kinesis Rejection Error To Dos)
 
@@ -301,8 +298,8 @@ Currently, if multiple **kinesis_rejection** error messages are applicable, mult
 
 ## When Bookings Get Planned
 
-- When a booking comes in via the Kinesis stream, it gets ingested but not planned until the "planning window" for the relevant destination.
-- The planning window varies by destination. For many destinations, the planning window begins 7 days prior to the date of the transfer, and ends 24 hours before the transfer.
+- When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the Planning Window for the relevant destination.
+- The Planning Window varies by destination. For many destinations, the planning window begins 7 days prior to the date of the transfer, and ends 24 hours before the transfer.
 - During the planning window for a particular destination & operation date, we check every 5 minutes if there have been any changes to bookings or flights. If we do see changes, we do a replan including the changed bookings as well as all related bookings that could conceivably be planned on the same trip (same destination, same operation date).
 - If a booking is locked, it will not be replanned as part of regular planning.
 - nce the planning window ends for a particular destination & operation date, regular planning no longer affects those bookings. However, changes to bookings or flights will have the following effects:
@@ -493,14 +490,6 @@ When these APIs are called, there are 3 possible types of responses:
 - Success - The API call succeeded and will take effect
 - Invalid - The request cannot be completed, because a required field is missing or a critical constraint would be violated. More information about the specific issue will be provided in the response.
 - Infeasible - The request will not be completed, because it violates business rules. If the request is re-sent with "force_infeasible" set to True, the request can be completed. More information about the specific issue will be provided in the response.
-
-
-
-Success Example:
-
-Invalid Example:
-
-Infeasible Example:
 
 
 
