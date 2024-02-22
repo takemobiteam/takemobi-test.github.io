@@ -43,7 +43,7 @@ Mobi returns to TUI the following information:
 
 ## Cost Functions
 
-The Continuous Planning System optimizes for cost while following business rules. In order to optimize for cost, we must first define what cost is. TUI's Transfer Service operates in many **Destinations**, which tend to be either islands or broad regions surrounding a major city (e.g Mallorca, Zakynthos, Antalya, Cancún). Each Destination has a specific **Cost Function** that defines the cost to be minimized during planning. The cost function is specified for each Destination in **Master Data**, relatively static data that includes information about physical places and the business rules that should apply to relevant bookings during planning.
+The Continuous Planning System optimizes for cost while following business rules. In order to optimize for cost, we must first define what cost is. TUI's Transfer Service operates in many tour **Destinations**, which tend to be either islands or broad regions surrounding a major city (e.g Mallorca, Zakynthos, Antalya, Cancún). Each Destination has a specific **Cost Function** that defines the cost to be minimized during planning. The cost function is specified for each Destination in **Master Data**, relatively static data that includes information about physical places and the business rules that should apply to relevant bookings during planning.
 
 
 
@@ -74,16 +74,16 @@ Example Business Rules:
 
 ## Bookings & Flights Overview
 
-A **Booking** represents a need for a transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single Booking generally has booked a tour together, will be on the same flights, and will be staying at the same **Hotel**.
+A **Booking** represents a need for a one-way Transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single Booking generally has booked a tour together, will be on the same flight, and will be staying at the same **Hotel**.
 
-For every group who books a tour together, there will generally be 2 **Bookings** sent to Mobi because there are 2 transfers. For example, if the group is going to Cancun, there would be the following 2 one-way **Bookings**:
+For every group who books a tour together, there will generally be 2 one-way Bookings sent to Mobi because there are 2 one-way Transfers. For example, if the group is going to Cancún, there would be the following 2 one-way Bookings:
 
-- **Arrival to a destination:** a transfer picks up the group at the Cancun airport & brings them to their hotel
-- **Departure from a destination:** a transfer picks up the group at their hotel & brings them to the Cancun airport
+- **Arrival** to a tour Destination: a transfer picks up the group at the Cancún airport & brings them to their hotel
+- **Departure** from a tour Destination: a transfer picks up the group at their hotel & brings them to the Cancún airport
 
-Guests that have itineraries involving multiple **Hotels** may have additional transfers, so they would have 1 or more additional **Bookings** with the "Between Hotels" type.
+Guests that have itineraries involving multiple Hotels may have additional transfers, so they would have 1 or more additional Bookings with the "Between Hotels" type.
 
-Each **Flight** represents a real flight in the world that corresponds to an **Arrival** to a destination or a **Departure** from a destination where 1 or more groups of passengers will need a transfer. Multiple **Bookings** may correspond to a given **Flight.**
+Each **Flight** represents a real flight in the world that corresponds to an Arrival to a tour Destination or a Departure from a tour Destination where 1 or more groups of passengers will need a transfer. Multiple Bookings may correspond to a given Flight.
 
 
 
