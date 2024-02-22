@@ -112,7 +112,7 @@ When a Booking comes in via the Kinesis stream, it gets ingested but not planned
 
 
 
-**Payload fields for bookings & flights are specified in the following sections:**
+Payload fields for bookings & flights are specified in the following sections:
 
 [Fields for Bookings](#fields-for-bookings)
 
@@ -120,13 +120,13 @@ When a Booking comes in via the Kinesis stream, it gets ingested but not planned
 
 
 
-**Example Booking record:**
+***Example Booking record:***
 
 ```
 {'metadata': {'content-type': 'vnd.booking-event.v1', 'X-B3-TraceId': '0', 'operation': 'saved'}, 'payload': {'booking_id': 'ASX-5082-5178600-1', 'touroperator_id': 'TOP 1', 'ext_booking': 'BETWEENHT', 'lead_pax_name': 'ASELA ASELA', 'destination_id': '1', 'total_pax': 2, 'combinable': True, 'transfer_way': 'between hotels', 'force_pickup_datetime': '2023-01-31T15:00:00+01:00', 'origin_point_type': 'Hotel', 'origin_guest_hotel_id': '1', 'origin_stop_hotel_id': '1', 'destination_point_type': 'Hotel', 'destination_guest_hotel_id': '2', 'destination_stop_hotel_id': '2', 'flight_exclusive': False, 'booking_plan_status': 'Pending', 'passengers': [{'passenger_id': 1, 'name': 'ASELA ASELA', 'age': 30}, {'passenger_id': 2, 'name': 'ASELA ASELA', 'age': 30}], 'operation_date': '2023-01-31', 'welfare': False}}
 ```
 
-**Example Flight record:**
+***Example Flight record:***
 
 ```
 {'metadata': {'content-type': 'vnd.flight-event.v1', 'operation': 'saved'}, 'payload': {'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'first_flight': False, 'destination_terminal_id': 'MUC'}}
@@ -172,8 +172,8 @@ When a Booking comes in via the Kinesis stream, it gets ingested but not planned
 
 | Field                  | Type     | Description                                                  | Example                     |
 | ---------------------- | -------- | ------------------------------------------------------------ | --------------------------- |
-| force_pickup_datetime  | datetime | Force planning to use a specific time for pickup for this Booking | "2024-05-05T18:15:00-04:00" |
-| force_dropoff_datetime | datetime | Force planning to use a specific time for dropoff for this Booking | "2024-05-05T18:15:00-04:00" |
+| force_pickup_datetime  | datetime | Force planning to use a specific time for pickup for this Booking. Used for Departures. | "2024-05-05T18:15:00-04:00" |
+| force_dropoff_datetime | datetime | Force planning to use a specific time for dropoff for this Booking. Used for Arrivals. | "2024-05-05T18:15:00-04:00" |
 | vehicle_type           | enum     | Force planning to use a specific type of vehicle for this booking. Any vehicle type specified in the Master Data for the associated Destination is valid. | "Van / Minivan"             |
 
 ### Fields TUI Sends but Mobi Does Not Use
@@ -191,19 +191,19 @@ When a Booking comes in via the Kinesis stream, it gets ingested but not planned
 
 ### Example Bookings
 
-**Arrival Booking**
+***Arrival Booking Example*** 
 
 ```
 {"booking_id":"ASX-5175-347722-1","touroperator_id":"5175-212553","ext_booking":"61902535","lead_pax_name":"HENDRIK,  RAUH","destination_id":"5175","total_pax":2,"combinable":true,"transfer_way":"Arrival","operation_date":"2024-01-24","origin_flight_id":"ASX-5175-31293","origin_point_type":"Terminal","origin_terminal_type":"Airport","destination_point_type":"Hotel","destination_guest_hotel_id":"5175-64985","destination_stop_hotel_id":"5175-64985","flight_exclusive":false,"presentation_window_from":0,"presentation_window_to":0,"booking_plan_status":"Pending","passengers":[{"passenger_id":1,"name":"Hendrik Rauh","age":54},{"passenger_id":2,"name":"Grit Berghof","age":50}],"welfare":false}}]}
 ```
 
-**Departure Booking**
+***Departure Booking Example***
 
 ```
 {"booking_id":"ASX-5006-1813434-2","touroperator_id":"5006-205747","ext_booking":"WRC1A1BU","lead_pax_name":"SR  NICOLE GRUSZYNSKI","destination_id":"5006","total_pax":2,"combinable":true,"transfer_way":"Departure","operation_date":"2024-01-13","origin_point_type":"Hotel","origin_guest_hotel_id":"5006-7729","origin_stop_hotel_id":"5006-7729","destination_flight_id":"ASX-5006-1333547","destination_point_type":"Terminal","destination_terminal_type":"Airport","flight_exclusive":false,"presentation_window_from":180,"presentation_window_to":180,"booking_plan_status":"Planned","passengers":[{"passenger_id":1,"name":"SR  NICOLE GRUSZYNSKI","age":30},{"passenger_id":2,"name":"SR  NICOLE GRUSZYNSKI","age":30}],"welfare":false}}]}
 ```
 
-**Between Hotels Booking**
+***Between Hotels Booking Example***
 
 ```
 {"booking_id":"ASX-5006-1835811-1","touroperator_id":"5006-42180","ext_booking":"22077510","lead_pax_name":"MALJONEN  EERO  (L)","destination_id":"5006","total_pax":2,"combinable":false,"transfer_way":"Between hotels","vehicle_type":"Van / Minivan","operation_date":"2024-01-12","origin_point_type":"Hotel","origin_guest_hotel_id":"5006-8183","origin_stop_hotel_id":"5006-8183","destination_point_type":"Hotel","destination_guest_hotel_id":"5006-61586","destination_stop_hotel_id":"5006-61586","flight_exclusive":false,"booking_plan_status":"Pending","passengers":[{"passenger_id":1,"name":"MALJONEN  EERO  (L)","age":30},{"passenger_id":2,"name":"MALJONEN  EERO  (L)","age":30}],"welfare":false}}]
@@ -233,7 +233,7 @@ When a Booking comes in via the Kinesis stream, it gets ingested but not planned
 
 ### Example Flights
 
-**Example Departure Flight:**
+***Departure Flight Example:***
 
 ```
 {'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'destination_terminal_id': 'MUC'}}
@@ -361,12 +361,12 @@ Plans are sent back as records in a AWS Kinesis data stream, each record represe
 
 Each trip has a unique transfer_id. If a trip is updated or deleted during regular planning or via API calls, a record will be sent with the same transfer_id as a trip that has been sent previously.
 
-**Metadata specifies:**
+Metadata specifies:
 
 - content-type: vnd.response-planning-event.v1
 - operation: saved or deleted
 
-**Data includes the following fields:**
+Data includes the following fields:
 
 | Field                | Type   | Description                                                  | Example                                |
 | -------------------- | ------ | ------------------------------------------------------------ | -------------------------------------- |
@@ -397,7 +397,7 @@ Each trip has a unique transfer_id. If a trip is updated or deleted during regul
 
 
 
-**Routes include the following fields:**
+Routes include the following fields:
 
 | Field                   | Type     | Description                                                  | Example                                |
 | ----------------------- | -------- | ------------------------------------------------------------ | -------------------------------------- |
@@ -415,7 +415,7 @@ Each trip has a unique transfer_id. If a trip is updated or deleted during regul
 
 
 
-**Example Plan Record With 1 Booking:**
+***Example Plan Record With One Booking:***
 
 ```
 {'Data': '{"metadata": {"content-type": "vnd.response-planning-event.v1", "operation": "saved"}, "payload": {"transfer_id": "8496be06-656f-4403-ae67-b38fa8c5874c", "date": "2024-01-25", "destination_id": 5006, "bookings": ["ASX-5006-1834847-3"], "vehicle_id": "5006-VAN 8-MX0-V-10080", "vehicle_sign": "29", "transfer_way": "arrival", "rules": ["233"], "duration": 55, "distance": 58922, **"routes": [{"stop_order": 0, "date_time": "2024-01-25T15:55:00+00:00", "stop_id": "b1db04fa-719f-470f-b06f-55b03af0c260", "feeder_meeting_point": false, "pickup_bookings": ["ASX-5006-1834847-3"], "point_type": "Terminal", "terminal_type": "Airport", "terminal_id": "CUN-NA", "distance_from_last_stop": 0}, {"stop_order": 1, "date_time": "2024-01-25T16:45:00+00:00", "stop_id": "3bf35cb0-7f14-485c-a73c-80c02a085ed7", "feeder_meeting_point": false, "dropoff_bookings": ["ASX-5006-1834847-3"], "point_type": "Hotel", "stop_hotel_id": "5006-15902", "distance_from_last_stop": 59}],** "remarks": [], "combinable": true, "welfare": false, "exclusive_to": false, "change_origin": "Dashboard", "username": "[tui-adfs_thamara.villagran@tui.com](mailto:tui-adfs_thamara.villagran@tui.com)", "locked": true, "feasible": true, "infeasibility_reason": [], "total_pax": 5, "free_seats": 3, "total_seats": 8, "available_seats": 3}
@@ -423,7 +423,7 @@ Each trip has a unique transfer_id. If a trip is updated or deleted during regul
 
 
 
-**Example Plan Record with Multiple Bookings:**
+***Example Plan Record with Multiple Bookings:***
 
 ```
 [{'Data': '{"metadata": {"content-type": "vnd.response-planning-event.v1", "operation": "saved"}, "payload": {"transfer_id": "26b4036c-4d43-437c-9df9-69b6dd4c1976", "date": "2024-02-01", "destination_id": 5006, "bookings": ["ASX-5006-1852517-1", "ASX-5006-1726004-4", "ASX-5006-1851818-2", "ASX-5006-1849003-2", "ASX-5006-1716845-2", "ASX-5006-1797645-2", "ASX-5006-1849895-2", "ASX-5006-1834914-2"], "vehicle_id": "5006-MINIVAN LUXE-MX0-W-5155", "vehicle_sign": "60", "transfer_way": "departure", "rules": ["236"], "duration": 65, "distance": 43128, **"routes": [{"stop_order": 0, "date_time": "2024-02-01T17:15:00+00:00", "stop_id": "802b983f-9895-42aa-a37c-812781a6afbe", "feeder_meeting_point": false, "pickup_bookings": ["ASX-5006-1726004-4", "ASX-5006-1852517-1"], "point_type": "Hotel", "stop_hotel_id": "5006-443319", "distance_from_last_stop": 0}, {"stop_order": 1, "date_time": "2024-02-01T17:25:00+00:00", "stop_id": "ad97a5c1-0236-48c5-a000-ee3ac0ef7a0a", "feeder_meeting_point": false, "pickup_bookings": ["ASX-5006-1716845-2", "ASX-5006-1797645-2", "ASX-5006-1849003-2", "ASX-5006-1851818-2"], "point_type": "Hotel", "stop_hotel_id": "5006-18925", "distance_from_last_stop": 1}, {"stop_order": 2, "date_time": "2024-02-01T17:35:00+00:00", "stop_id": "a89b5af1-1637-4aa9-9415-694b808bc77f", "feeder_meeting_point": false, "pickup_bookings": ["ASX-5006-1834914-2", "ASX-5006-1849895-2"], "point_type": "Hotel", "stop_hotel_id": "5006-89556", "distance_from_last_stop": 0}, {"stop_order": 3, "date_time": "2024-02-01T18:15:00+00:00", "stop_id": "d59dbae9-90a0-429e-8000-6aada3cced1e", "feeder_meeting_point": false, "dropoff_bookings": ["ASX-5006-1716845-2", "ASX-5006-1726004-4", "ASX-5006-1797645-2", "ASX-5006-1834914-2", "ASX-5006-1849003-2", "ASX-5006-1849895-2", "ASX-5006-1851818-2", "ASX-5006-1852517-1"], "point_type": "Terminal", "terminal_type": "Airport", "terminal_id": "SJD", "distance_from_last_stop": 42}],** "remarks": [], "cost": {"amount": 87.39, "currency_id": "USD"}, "combinable": true, "welfare": false, "exclusive_to": false, "change_origin": "Dashboard", "username": "[tui-adfs_ramon.estrada@ds.destinationservices.com](mailto:tui-adfs_ramon.estrada@ds.destinationservices.com)", "locked": true, "feasible": true, "infeasibility_reason": [], "total_pax": 15, "free_seats": 1, "total_seats": 16, "available_seats": 1}
@@ -431,7 +431,7 @@ Each trip has a unique transfer_id. If a trip is updated or deleted during regul
 
 
 
-**Example Plan Marked as Infeasible, with Infeasible Reasons:**
+***Example Plan Marked as Infeasible, with Infeasible Reasons:***
 
 ```
 [{'Data': '{"metadata": {"content-type": "vnd.response-planning-event.v1", "operation": "saved"}, "payload": {"transfer_id": "1b0b3358-f7fb-4d89-b736-a4fe33c1a4e7", "date": "2024-01-30", "destination_id": 5002, "bookings": ["ASX-5002-1573584-1", "ASX-5002-1615065-1", "ASX-5002-1475614-1", "ASX-5002-1552413-1"], "vehicle_id": "5002-PENDFLIGHT-DO0-B-4507", "vehicle_sign": "777", "transfer_way": "arrival", "rules": ["163"], "duration": 70, "distance": 39516, **"routes": [{"stop_order": 0, "date_time": "2024-01-30T04:00:00+00:00", "stop_id": "29c4717c-7e19-44ba-ba1b-dbfc73ef1507", "feeder_meeting_point": false, "pickup_bookings": ["ASX-5002-1475614-1", "ASX-5002-1552413-1", "ASX-5002-1573584-1", "ASX-5002-1615065-1"], "point_type": "Terminal", "terminal_type": "Airport", "terminal_id": "PUJ", "distance_from_last_stop": 0}, {"stop_order": 1, "date_time": "2024-01-30T04:20:00+00:00", "stop_id": "d1cee5b7-bacd-4d83-83a1-4779f7490509", "feeder_meeting_point": false, "dropoff_bookings": ["ASX-5002-1573584-1"], "point_type": "Hotel", "stop_hotel_id": "5002-110057", "distance_from_last_stop": 17}, {"stop_order": 2, "date_time": "2024-01-30T04:50:00+00:00", "stop_id": "4d1e6e06-5062-44bf-bdcb-1142f9ccba6c", "feeder_meeting_point": false, "dropoff_bookings": ["ASX-5002-1615065-1"], "point_type": "Hotel", "stop_hotel_id": "5002-89230", "distance_from_last_stop": 19}, {"stop_order": 3, "date_time": "2024-01-30T05:00:00+00:00", "stop_id": "8d040015-550e-474c-8010-70b4d39ea2ca", "feeder_meeting_point": false, "dropoff_bookings": ["ASX-5002-1475614-1", "ASX-5002-1552413-1"], "point_type": "Hotel", "stop_hotel_id": "5002-428818", "distance_from_last_stop": 3}]**, "remarks": [], "combinable": true, "welfare": false, "exclusive_to": false, "change_origin": "Dashboard", "username": "[tui-adfs_aneury.calderon@tui.com](mailto:tui-adfs_aneury.calderon@tui.com)", "locked": true, "feasible": false, "infeasibility_reason": ["T_ERR_015\\tBookings {\'ASX-5002-1475614-1\', \'ASX-5002-1615065-1\', \'ASX-5002-1552413-1\', \'ASX-5002-1573584-1\'} have incompatible areas.", "T_ERR_025\\tTrip 1b0b3358-f7fb-4d89-b736-a4fe33c1a4e7 with 4 flights violates maximum number of grouped flights"], "total_pax": 11, "free_seats": 766, "total_seats": 777, "available_seats": 766}
@@ -483,41 +483,41 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 
 **[Internal note: We recently got feedback from Asela that she wants to change which category certain issues are in - is that completed? We should document the new state.]**
 
-| message_id  | Message                                                      | Description |
-| ----------- | ------------------------------------------------------------ | ----------- |
-| "T_ERR_020" | "Trip %(id)s does not have a vehicle."                       |             |
-| "T_ERR_033" | "Trip %(id)s has no start time."                             |             |
-| "T_ERR_039" | "Trip %(id)s visits a stop with no coordinates."             |             |
-| "T_ERR_029" | "Trip %(id)s does not have a correct route."                 |             |
-| "T_ERR_034" | "Trip %(id)s violates the presentation window for booking/s. Correct start time is %(correct_start_time)s given is %(real_start_time)s." |             |
-| "T_ERR_042" | "Trip %(id)s has stops that are out of order in time."       |             |
-| "T_ERR_030" | "Trip %(id)s does not match the departure/arrival type of its bookings." |             |
-| "T_ERR_035" | "Trip %(id)s violates the presentation window for booking %(booking_id)s. Correct latest time is %(correct_last_time)s given is %(real_last_time)s." |             |
-| "T_ERR_038" | "Trip %(id)s services %(terminal_amount)s terminal locations instead of 1." |             |
-| "T_ERR_043" | "Trip %(id)s has mixed ferry dropoff/pickup bookings."       |             |
-| "T_ERR_032" | "Trip %(id)s has booking/s not assigned a dropoff and pickup." |             |
+| message_id  | Message                                                      |
+| ----------- | ------------------------------------------------------------ |
+| "T_ERR_020" | "Trip %(id)s does not have a vehicle."                       |
+| "T_ERR_033" | "Trip %(id)s has no start time."                             |
+| "T_ERR_039" | "Trip %(id)s visits a stop with no coordinates."             |
+| "T_ERR_029" | "Trip %(id)s does not have a correct route."                 |
+| "T_ERR_034" | "Trip %(id)s violates the presentation window for booking/s. Correct start time is %(correct_start_time)s given is %(real_start_time)s." |
+| "T_ERR_042" | "Trip %(id)s has stops that are out of order in time."       |
+| "T_ERR_030" | "Trip %(id)s does not match the departure/arrival type of its bookings." |
+| "T_ERR_035" | "Trip %(id)s violates the presentation window for booking %(booking_id)s. Correct latest time is %(correct_last_time)s given is %(real_last_time)s." |
+| "T_ERR_038" | "Trip %(id)s services %(terminal_amount)s terminal locations instead of 1." |
+| "T_ERR_043" | "Trip %(id)s has mixed ferry dropoff/pickup bookings."       |
+| "T_ERR_032" | "Trip %(id)s has booking/s not assigned a dropoff and pickup." |
 
 ### Infeasible Messages
 
-| message_id                    | Message                                                      | Description                                                  |
-| ----------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| "SAME_FLIGHT_HOTEL_VIOLATION" | "The combination %(flight)s %(hotel)s violates the same flight/hotel/trip constraint." | For each destination, you may specify whether all bookings with the same flight and the same hotel should be grouped together in the same trip, where possible. This message indicates that bookings with the same flight and hotel are spread across different trips. This issue should arise only when bookings are manually assigned to a trip. |
-| "T_ERR_024"                   | "Trip %(id)s with %(real_time)s violates maximum time limit %(max_time)s." |                                                              |
-| "T_ERR_020"                   | "Trip %(id)s does not have a vehicle."                       |                                                              |
-| "T_ERR_028"                   | "Trip %(id)s with non-combinable vehicle has combinable booking %(bookings_id)s." |                                                              |
-| "T_ERR_038"                   | "Bookings %(ids)s have different terminal locations."        |                                                              |
-| "T_ERR_021"                   | "Trip %(id)s has %(pax)s passengers but %(seats)s available seats" |                                                              |
-| "T_ERR_025"                   | "Trip %(id)s with %(flights)s flights violates maximum number of grouped flights" |                                                              |
-| "T_ERR_031"                   | "Trip %(id)s violates the first stop requirement for booking %(booking_id)s." |                                                              |
-| "T_ERR_027"                   | "Trip %(id)s with %(trip_type)s vehicle type and Booking %(booking_id)s requiring %(booking_type)s do not match." |                                                              |
-| "T_ERR_037"                   | "Trip %(id)s violates the force dropoff time for bookings %(booking_id)s." |                                                              |
-| "T_ERR_022"                   | "Trip %(id)s with %(real_stop)s stops violates the maximum %(max_stop)s stops constraint." |                                                              |
-| "T_ERR_026"                   | "Trip %(id)s has a welfare check vehicle but non-welfare bookings." |                                                              |
-| "T_ERR_036"                   | "Trip %(id)s violates the force pickup time for booking %(booking_id)s." |                                                              |
-| "T_ERR_023"                   | "Trip %(id)s with %(seats)s seats violates hotel %(hotels_name)s seat limit %(limits)s." |                                                              |
-| "Infeasible_Booking"          | "Booking %(bid)s in Trip %(tid)s is incompatible because of %(reasons)s" |                                                              |
+| message_id                    | Message                                                      |
+| ----------------------------- | ------------------------------------------------------------ |
+| "SAME_FLIGHT_HOTEL_VIOLATION" | "The combination %(flight)s %(hotel)s violates the same flight/hotel/trip constraint." |
+| "T_ERR_024"                   | "Trip %(id)s with %(real_time)s violates maximum time limit %(max_time)s." |
+| "T_ERR_020"                   | "Trip %(id)s does not have a vehicle."                       |
+| "T_ERR_028"                   | "Trip %(id)s with non-combinable vehicle has combinable booking %(bookings_id)s." |
+| "T_ERR_038"                   | "Bookings %(ids)s have different terminal locations."        |
+| "T_ERR_021"                   | "Trip %(id)s has %(pax)s passengers but %(seats)s available seats" |
+| "T_ERR_025"                   | "Trip %(id)s with %(flights)s flights violates maximum number of grouped flights" |
+| "T_ERR_031"                   | "Trip %(id)s violates the first stop requirement for booking %(booking_id)s." |
+| "T_ERR_027"                   | "Trip %(id)s with %(trip_type)s vehicle type and Booking %(booking_id)s requiring %(booking_type)s do not match." |
+| "T_ERR_037"                   | "Trip %(id)s violates the force dropoff time for bookings %(booking_id)s." |
+| "T_ERR_022"                   | "Trip %(id)s with %(real_stop)s stops violates the maximum %(max_stop)s stops constraint." |
+| "T_ERR_026"                   | "Trip %(id)s has a welfare check vehicle but non-welfare bookings." |
+| "T_ERR_036"                   | "Trip %(id)s violates the force pickup time for booking %(booking_id)s." |
+| "T_ERR_023"                   | "Trip %(id)s with %(seats)s seats violates hotel %(hotels_name)s seat limit %(limits)s." |
+| "Infeasible_Booking"          | "Booking %(bid)s in Trip %(tid)s is incompatible because of %(reasons)s" |
 
-### Incompatible Messages (a subset of Infeasible Messages)
+### Incompatible Messages (a subset of Infeasible Messages, where Bookings cannot be grouped)
 
 | message_id  | Message                                                      |
 | ----------- | ------------------------------------------------------------ |
