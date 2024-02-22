@@ -87,53 +87,6 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 
 
 
-## Sending Bookings & Flights via AWS Kinesis Data Streams
-
-Bookings & Flights are sent as records in an AWS Kinesis Data Stream. Records include metadata and a payload. Fields within the record can be sent in any order. 
-
-When a Booking comes in via the Kinesis stream, it gets ingested but not planned until the Planning Window for the relevant destination. See [Regular Planning](#regular-planning) for further details.
-
-**Metadata specifies:**
-
-- content-type
-  - 'vnd.booking-event.v1' for Bookings
-  - 'vnd.flight-event.v1' for Flights
-- operation
-  - saved (creating a new Booking or Flight, or updating it) - requires the Booking or Flight object with all required fields.
-    - If a Booking or Flight comes in with a new booking_id or flight_id, it will be created
-    - If a Booking or Flight comes in with an existing booking_id or flight_id, it will be updated
-    - The booking_id & flight_id are globally unique across destinations & dates
-  - deleted (deleting a Booking or Flight) - requires just the booking_id or flight_id
-    - If a Booking has already been assigned to a trip, deleting it will remove it from the relevant trip and will update the trip's schedule as needed
-  - locked (locking a Booking) - requires just the booking_id
-    - Locking a Booking means it will not be affected by [Regular Planning](#regular-planning)
-  - unlocked (unlocking a Booking) - requires just the booking_id
-    - Unlocking a Booking means it will be affected by [Regular Planning](#regular-planning)
-
-
-
-Payload fields for bookings & flights are specified in the following sections:
-
-[Fields for Bookings](#fields-for-bookings)
-
-[Fields for Flights](#fields-for-flights)
-
-
-
-***Example Booking record:***
-
-```
-{'metadata': {'content-type': 'vnd.booking-event.v1', 'X-B3-TraceId': '0', 'operation': 'saved'}, 'payload': {'booking_id': 'ASX-5082-5178600-1', 'touroperator_id': 'TOP 1', 'ext_booking': 'BETWEENHT', 'lead_pax_name': 'ASELA ASELA', 'destination_id': '1', 'total_pax': 2, 'combinable': True, 'transfer_way': 'between hotels', 'force_pickup_datetime': '2023-01-31T15:00:00+01:00', 'origin_point_type': 'Hotel', 'origin_guest_hotel_id': '1', 'origin_stop_hotel_id': '1', 'destination_point_type': 'Hotel', 'destination_guest_hotel_id': '2', 'destination_stop_hotel_id': '2', 'flight_exclusive': False, 'booking_plan_status': 'Pending', 'passengers': [{'passenger_id': 1, 'name': 'ASELA ASELA', 'age': 30}, {'passenger_id': 2, 'name': 'ASELA ASELA', 'age': 30}], 'operation_date': '2023-01-31', 'welfare': False}}
-```
-
-***Example Flight record:***
-
-```
-{'metadata': {'content-type': 'vnd.flight-event.v1', 'operation': 'saved'}, 'payload': {'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'first_flight': False, 'destination_terminal_id': 'MUC'}}
-```
-
-
-
 ## Fields for Bookings
 
 ### Required Fields for All Bookings
@@ -237,6 +190,53 @@ Payload fields for bookings & flights are specified in the following sections:
 
 ```
 {'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'destination_terminal_id': 'MUC'}}
+```
+
+
+
+## Sending Bookings & Flights via AWS Kinesis Data Streams
+
+Bookings & Flights are sent as records in an AWS Kinesis Data Stream. Records include metadata and a payload. Fields within the record can be sent in any order. 
+
+When a Booking comes in via the Kinesis stream, it gets ingested but not planned until the Planning Window for the relevant destination. See [Regular Planning](#regular-planning) for further details.
+
+**Metadata specifies:**
+
+- content-type
+  - 'vnd.booking-event.v1' for Bookings
+  - 'vnd.flight-event.v1' for Flights
+- operation
+  - saved (creating a new Booking or Flight, or updating it) - requires the Booking or Flight object with all required fields.
+    - If a Booking or Flight comes in with a new booking_id or flight_id, it will be created
+    - If a Booking or Flight comes in with an existing booking_id or flight_id, it will be updated
+    - The booking_id & flight_id are globally unique across destinations & dates
+  - deleted (deleting a Booking or Flight) - requires just the booking_id or flight_id
+    - If a Booking has already been assigned to a trip, deleting it will remove it from the relevant trip and will update the trip's schedule as needed
+  - locked (locking a Booking) - requires just the booking_id
+    - Locking a Booking means it will not be affected by [Regular Planning](#regular-planning)
+  - unlocked (unlocking a Booking) - requires just the booking_id
+    - Unlocking a Booking means it will be affected by [Regular Planning](#regular-planning)
+
+
+
+Payload fields for bookings & flights are specified in these sections:
+
+[Fields for Bookings](#fields-for-bookings)
+
+[Fields for Flights](#fields-for-flights)
+
+
+
+***Example Booking record:***
+
+```
+{'metadata': {'content-type': 'vnd.booking-event.v1', 'X-B3-TraceId': '0', 'operation': 'saved'}, 'payload': {'booking_id': 'ASX-5082-5178600-1', 'touroperator_id': 'TOP 1', 'ext_booking': 'BETWEENHT', 'lead_pax_name': 'ASELA ASELA', 'destination_id': '1', 'total_pax': 2, 'combinable': True, 'transfer_way': 'between hotels', 'force_pickup_datetime': '2023-01-31T15:00:00+01:00', 'origin_point_type': 'Hotel', 'origin_guest_hotel_id': '1', 'origin_stop_hotel_id': '1', 'destination_point_type': 'Hotel', 'destination_guest_hotel_id': '2', 'destination_stop_hotel_id': '2', 'flight_exclusive': False, 'booking_plan_status': 'Pending', 'passengers': [{'passenger_id': 1, 'name': 'ASELA ASELA', 'age': 30}, {'passenger_id': 2, 'name': 'ASELA ASELA', 'age': 30}], 'operation_date': '2023-01-31', 'welfare': False}}
+```
+
+***Example Flight record:***
+
+```
+{'metadata': {'content-type': 'vnd.flight-event.v1', 'operation': 'saved'}, 'payload': {'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'first_flight': False, 'destination_terminal_id': 'MUC'}}
 ```
 
 
@@ -726,17 +726,74 @@ The Parameters object groups several business rules together. Each tour operator
 
 
 
-## Master Data Format
+## Master Data Format Reference
 
-[Reference in .yaml format](https://musical-guide-gq4eyjv.pages.github.io/#/)
+[.yaml reference](https://musical-guide-gq4eyjv.pages.github.io/#/)
 
-## Request
 
-## Master Data Contents
 
-## Master Data Update Indicator
+## Sending Master Data
 
-### Master Data Processing Issues
+Mobi provides two ways for clients to send Master Data.
+
+There is **master data import**--where customers provide a REST endpoint for each master data type for CPS to query.  And there is **master data update**--where customers push updates to a CPS stream whenever master data changes.
+
+### Master data import
+
+With master data import, the customer provides a REST endpoint for each type of master data.  
+
+Each endpoint must provide a REST API which returns every record of that type of master data as a list--where each line in the list is the JSON representation of a record.  Using the *QA rule* master data type as an example, the customer must provide a rest endpoint named something like `master-data/qa-rules` which returns a list something like the following:
+
+```
+{  "id": 77,  "boarding_fix": 1,  "boarding_per_person": 0.1,  "max_stops_arrival": 99,  "max_stops_departure": 99,  "max_num_grouped_flights_arrival": 99,  "max_num_grouped_flights_departure": 99,  "max_time_in_vehicle_arrival": 65,  "max_time_in_vehicle_departure": 65,  "max_time_span_arrival": 0,  "max_time_span_departure": 120,  "max_time_to_flight_arrival": 20,  "max_time_to_flight_departure": 40,  "percentage_capacity": 100.0,  "min_age_takes_place": 0,  "first_planning_days_pickups": 0,  "first_planning_days_dropoffs": 0,  "first_planning_time_pickups": "07:00:00Z",  "first_planning_time_dropoffs": "07:00:00Z" } {  "id": 119,  "boarding_fix": 1,  "boarding_per_person": 0.1,  "max_stops_arrival": 99,  "max_stops_departure": 99,  "max_num_grouped_flights_arrival": 99,  "max_num_grouped_flights_departure": 99,  "max_time_in_vehicle_arrival": 65,  "max_time_in_vehicle_departure": 65,  "max_time_span_arrival": 0,  "max_time_span_departure": 120,  "max_time_to_flight_arrival": 20,  "max_time_to_flight_departure": 30,  "percentage_capacity": 100.0,  "min_age_takes_place": 0,  "first_planning_days_pickups": 0,  "first_planning_days_dropoffs": 0,  "first_planning_time_pickups": "07:00:00Z",  "first_planning_time_dropoffs": "07:00:00Z" } ...
+```
+
+Certain master data types also need to be filterable by destination--meaning that the REST API must provide a destination parameter, which when set causes the API to return records *only* for that destination.  Using the *area group* master data type as an example, the customer must provide and endpoint which looks like the following:
+
+```
+master-data/area-groups?filters=destination_id==5181
+```
+
+A running CPS system will collect up-to-date master data approximately once every fifteen minutes, by calling each of these endpoints, once per destination where applicable.
+
+### Master data updates
+
+With master data updates, the customer still provides the master data import APIs as described above.  
+
+But whenever the customer’s master data changes, it sends CPS a record through a stream that contains:
+
+- The updated record--either the entire record, or just the part which is updated
+- (Optional) instructions telling CPS to replan certain bookings after the data update is processed
+
+The record sent to CPS contains a list of fields which have changed, along with their update values.  This record looks like:
+
+```
+{  "id": "7fff22fe-d895-47bf-a844-a45bd6d58d40",  "type": "booking.replan.event.v1",  "specversion": "1.0",  "source": "http://transfer-master-data-rules-service.test.tui-dx.com",  "time": "2020-09-02T08:54:09.434Z",  "datacontenttype": "application/json",  "data": {      "changes": {          "entity_name": "hotel",          "entity_id": "5083-92",          "operation": "saved",          "changed_fields": [              {                  "field_name": "name",                  "field_type": "string",                  "value": "New name"              },              {                  "field_name": "max_seats",                  "field_type": "number",                  "value": 50              }            ]        },        "bookings": []       } }
+```
+
+This record instructs CPS to change two fields of the hotel record whose ID is `5083-92.` It is to change the `name`field to `New name`, and the `max_seats` field to 50.
+
+In addition to indicating that a master data record should be updated, the record sent to CPS can also instruct it to replan a set of bookings after the data change has been processed.  For example, the `bookings` field may be set to something like:
+
+```
+"bookings": ["XXX-5027-23457", "XXX-5027-23273"]
+```
+
+In this case, CPS would replan the two specified bookings after processing the data change described by the complete record.
+
+Or instead of a list of bookings, a **booking filter** may be specified, such as:
+
+```
+"booking_filter": {    "destination_id": "5083",    "operation_date_from_for_arrivals": "2023-04-01",    "operation_date_from_for_departures": "2023-03-31",    "transfer_way": "both" }
+```
+
+This tells CPS to replan all arrival bookings for destination 5083 with a date equal to or after 2023-04-01, as well as all departure bookings for that destination with a date equal to or after 2023-03-31.
+
+
+
+## Master Data Processing Issues
+
+There are multiple categories of errors. The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible error messages, across all categories. This section describes one category of errors: **pre-processing** errors.
 
 | message_id | Message | Description |
 | ---------- | ------- | ----------- |
