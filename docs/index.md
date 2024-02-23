@@ -2,6 +2,20 @@
 
 # Screenshots of Initial Diagrams
 
+Screenshot PNG
+
+![Bookings To Trips](./attachments/BookingsToTrips.png)
+
+
+
+Screenshot PNG
+
+![Flow In Time](./attachments/FlowInTime.png)
+
+Screenshot PNG with title
+
+
+
 
 
 # Destination Diagram Comparisons
