@@ -8,6 +8,8 @@
 
 [Regular Planning](#regular-planning)
 
+[Trips](#trips)
+
 [APIs](#apis)
 
 [Master Data](#master-data)
@@ -214,7 +216,7 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 
 | Field                   | Type     | Description                                                  | Example                     |
 | ----------------------- | -------- | ------------------------------------------------------------ | --------------------------- |
-| flight_id               | string   | Unique id for each Flight                                    | "10027"                     |
+| flight_id               | string   | Unique ID for each Flight                                    | "10027"                     |
 | flight_way              | enum     | Whether a Flight is an Arrival to a tour Destination, or a Departure from a tour Destination. Possible values: "Arrival", "Departure". | "Departure"                 |
 | flight_date             | datetime | Date/time of Flight Arrival or Departure, depending on the flight_way | "2019-07-01T14:00:00+02:00" |
 | destination_terminal_id | string   | Terminal that Flight arrives in. If an Arrival, use this as the terminal for the booking. | "MUC"                       |
@@ -287,11 +289,9 @@ Payload fields for bookings & flights are specified in these sections:
 
 ## Kinesis Ingestion Data Validation
 
-There are multiple categories of errors. The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible error messages, across all categories. This section describes one category of errors: **kinesis_rejection** errors.
+The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible messages that may be sent in AWS Kinesis Data Streams. This section describes one category of messages: **kinesis_rejection** messages.
 
-**kinesis_rejection** error messages indicate that a booking or a flight has been sent into the system, but the booking or flight has issues which would make it impossible to process. 
-
-These messages are sent out at the time that the booking or flight is sent in, via an AWS SNS topic.  
+**kinesis_rejection** messages indicate that a booking or a flight has been sent into the system, but data validation checks upon ingestion from Kinesis indicated that the Booking or Flight had issues which would make it impossible to process. 
 
 Currently, if multiple **kinesis_rejection** error messages are applicable, multiple SNS messages will be sent. ***In the future, a single SNS message will be sent with all the applicable error messages for the booking or flight.***
 
@@ -299,11 +299,11 @@ Currently, if multiple **kinesis_rejection** error messages are applicable, mult
 
 | message_id                      | Message                                                      | Description                                                  |
 | ------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| "KR_unsupported_transfer_type"  | "Kinesis record for booking %(booking_id)s discarded: booking has unsupported transfer type %(transfer_type)s" | transfer_type must be "Arrival", "Departure", or "Between Hotels". Any other value for transfer_type will cause this error message. |
-| "KR_no_existing_tour_operator"  | "Kinesis record for booking %(booking_id)s discarded: Touroperator %(tour_operator_id)s has not been defined in Master Data" | touroperator_id must match a touroperator object that has been defined in the Master Data for the Destination. If it does not, that will cause this error message. |
-| "KR_between_hotels_no_pickup"   | "Kinesis record for booking %(booking_id)s discarded: booking between hotels without specified pickup time." | A booking with transfer_way "Between Hotels" must have a specified pickup time. If it does not, that will cause this error message. |
-| "KR_between_hotels_same_hotels" | "Kinesis record for booking %(booking_id)s discarded: the origin and destination hotels are the same: %(hotel_id)s" | A booking with transfer_way "Between Hotels" must specify 2 different hotels, one as origin and one as destination. If the hotel_id is the same for the origin and destination, that will cause this error message. |
-| "KR_no_terminal_exists"         | "Kinesis record for flight %(flight_id)s discarded: the flight is non-existent and no flight can be created because no terminal is found in master data" | Sometimes bookings are sent before the corresponding flight record, so Mobi creates a placeholder flight in order to save the booking. Without a terminal in the booking, Mobi cannot create a placeholder flight and cannot save the booking. |
+| "KR_unsupported_transfer_type"  | "Kinesis record for booking %(booking_id)s discarded: booking has unsupported transfer type %(transfer_type)s" | transfer_type must be "Arrival", "Departure", or "Between Hotels". Any other value for transfer_type will cause this message. |
+| "KR_no_existing_tour_operator"  | "Kinesis record for booking %(booking_id)s discarded: Touroperator %(tour_operator_id)s has not been defined in Master Data" | touroperator_id must match a touroperator object that has been defined in the Master Data for the Destination. If it does not, that will cause this message. |
+| "KR_between_hotels_no_pickup"   | "Kinesis record for booking %(booking_id)s discarded: booking between hotels without specified pickup time." | A Booking with transfer_way "Between Hotels" must have a specified pickup time. If it does not, that will cause this message. |
+| "KR_between_hotels_same_hotels" | "Kinesis record for booking %(booking_id)s discarded: the origin and destination hotels are the same: %(hotel_id)s" | A Booking with transfer_way "Between Hotels" must specify 2 different hotels, one as origin and one as destination. If the hotel_id is the same for the origin and destination, that will cause this message. |
+| "KR_no_terminal_exists"         | "Kinesis record for flight %(flight_id)s discarded: the flight is non-existent and no flight can be created because no terminal is found in master data" | Sometimes Bookings are sent before the corresponding flight record, so Mobi creates a placeholder flight in order to save the booking. Without a terminal in the booking, Mobi cannot create a placeholder flight and cannot save the Booking. |
 
 ### Kinesis Rejection Errors for Flights
 
@@ -331,11 +331,11 @@ Currently, if multiple **kinesis_rejection** error messages are applicable, mult
 
 ## Pre-planning Data Validation
 
-There are multiple categories of issues that will prevent planning. The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible error messages, across all categories. This section describes one category of errors: **preprocessing** errors.
+The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible messages that may be sent via AWS SNS. This section describes one category: **preprocessing** messages.
 
 At the start of planning, the system runs preprocessing checks to ensure that the bookings are viable for planning. If an error is found, a Booking Discard message is sent via AWS SNS. These messages generally begin with "BD_" where BD stands for Booking Discards.
 
-When a preprocessing error occurs & a Booking Discard message is sent, the booking is ignored during regular planning until it is altered (an updated version is sent either via the Kinesis stream or via API call).
+When a preprocessing error occurs & a Booking Discard message is sent, the Booking is ignored during Regular Planning until it is altered (an updated version is sent either via the AWS Kinesis Data Stream or via API call).
 
 
 
@@ -368,9 +368,9 @@ When a preprocessing error occurs & a Booking Discard message is sent, the booki
 | "BD_main_not_configured_for_feeder"    | "Feeder booking is missing a properly-configured main booking" |
 | "BD_ftaa_flaw"                         | "Some flaw with flight_terminal_airport_area."               |
 
-## Trips
+# Trips
 
-Trips are sent back as records in a AWS Kinesis data stream, each record representing one or more trips. Records include metadata and a payload. 
+Trips are sent back as records in a AWS Kinesis Data Stream, each record representing one or more trips. Records include metadata and a payload. 
 
 Each Trip has a unique transfer_id. If a Trip is updated or deleted during regular planning or via API calls, a record will be sent with the same transfer_id as a trip that has been sent previously.
 
