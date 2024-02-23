@@ -764,7 +764,11 @@ Master Data Update Stream via AWS Kinesis Data Streams enables a change in Maste
 
 ### Master Data Import via API Calls
 
-Each endpoint must provide a REST API which returns every record of that type of Master Data as a list. Each line in the list is the JSON representation of a record.  Using the Parameters Master Data type as an example, TUI provides a rest endpoint `master-data/qa-rules` which returns data like the following:
+In this mechanism for Master Data, the client provides a REST endpoint for each Master Data type for Mobi to query. Mobi collects up-to-date Master Data via this mechanism approximately once every 15 minutes, by calling each of these endpoints, once per Destination where applicable.
+
+Each REST endpoint returns every record of that type of Master Data as a list. Each line in the list is the JSON representation of a record.  
+
+For example, for the Parameters Master Data type, TUI provides the REST endpoint `master-data/qa-rules` which returns data like the following:
 
 ```
 {  "id": 77,  "boarding_fix": 1,  "boarding_per_person": 0.1,  "max_stops_arrival": 99,  "max_stops_departure": 99,  "max_num_grouped_flights_arrival": 99,  "max_num_grouped_flights_departure": 99,  "max_time_in_vehicle_arrival": 65,  "max_time_in_vehicle_departure": 65,  "max_time_span_arrival": 0,  "max_time_span_departure": 120,  "max_time_to_flight_arrival": 20,  "max_time_to_flight_departure": 40,  "percentage_capacity": 100.0,  "min_age_takes_place": 0,  "first_planning_days_pickups": 0,  "first_planning_days_dropoffs": 0,  "first_planning_time_pickups": "07:00:00Z",  "first_planning_time_dropoffs": "07:00:00Z" } {  "id": 119,  "boarding_fix": 1,  "boarding_per_person": 0.1,  "max_stops_arrival": 99,  "max_stops_departure": 99,  "max_num_grouped_flights_arrival": 99,  "max_num_grouped_flights_departure": 99,  "max_time_in_vehicle_arrival": 65,  "max_time_in_vehicle_departure": 65,  "max_time_span_arrival": 0,  "max_time_span_departure": 120,  "max_time_to_flight_arrival": 20,  "max_time_to_flight_departure": 30,  "percentage_capacity": 100.0,  "min_age_takes_place": 0,  "first_planning_days_pickups": 0,  "first_planning_days_dropoffs": 0,  "first_planning_time_pickups": "07:00:00Z",  "first_planning_time_dropoffs": "07:00:00Z" } ...
@@ -772,13 +776,15 @@ Each endpoint must provide a REST API which returns every record of that type of
 
 
 
-Certain Master Data types also need to be filterable by Destination. The REST API must provide a Destination parameter, which when set causes the API to return records *only* for that destination.  Using the Area Group master data type as an example, TUI provides the following rest endpoint:
+Certain Master Data types also need to be filterable by Destination. The REST API must provide a Destination parameter, which when set causes the API to return records only for that Destination. 
+
+For example, for the Area Group Master Data type, TUI provides the following REST endpoint:
 
 ```
 master-data/area-groups?filters=destination_id==5181
 ```
 
-Mobi collects up-to-date Master Data via this mechanism approximately once every fifteen minutes, by calling each of these endpoints, once per Destination where applicable.
+
 
 ### Master Data Update Stream via AWS Kinesis Data Streams
 
