@@ -99,6 +99,19 @@ Example Business Rules:
 | Physical Constraints | Vehicle clearance for hotels                        | Prevent incompatible vehicles from being assigned to hotels with limited clearance |
 | Fleet Constraints    | Vehicle inventory limits                            | Ensure trips can be completed using the set of vehicles that exists in real life |
 
+## Additional Features
+
+### Ferries
+
+Some tours involve guests arriving in an airport on one island, then taking a ferry to another island to reach their hotel. The Continuous Planning System can handle this case, ensuring the guest has both a transfer from the airport to the port and also from the other port to their hotel.
+
+### Feeders
+
+The feeder feature is useful when there are small groups of hotels away from a main road.
+
+- Arrivals: A large vehicle picks up passengers from the airport and drops them off at a meeting point, so that smaller vehicles (feeders) can pick up smaller groups and take them to their hotels in different directions.
+- Departures: Smaller vehicles (feeders) drop passengers off at a meeting point, so that the entire group can be taken to the airport from that meeting point in a large vehicle.
+
 
 
 # Bookings and Flights
