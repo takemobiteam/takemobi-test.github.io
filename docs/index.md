@@ -754,6 +754,14 @@ Mobi provides two different mechanisms for clients to send Master Data.
 1. Master Data Import via API Calls: Client provides a REST endpoint for each Master Data type for Mobi to query
 2. Master Data Update Stream via AWS Kinesis Data Streams: Client pushes an update to a data stream whenever there is a change
 
+
+
+Master Data Import via API Calls can be used alone, and does not trigger any replanning.
+
+Master Data Update Stream via AWS Kinesis Data Streams enables a change in Master Data to take place more immediately, and enables specification of a replan to occur as a result of the change.
+
+
+
 ### Master Data Import via API Calls
 
 Each endpoint must provide a REST API which returns every record of that type of Master Data as a list. Each line in the list is the JSON representation of a record.  Using the Parameters Master Data type as an example, TUI provides a rest endpoint `master-data/qa-rules` which returns data like the following:
