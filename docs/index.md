@@ -4,8 +4,6 @@
 
 [Overview](#overview)
 
-[Optimization Within Constraints](#optimization-within-constraints)
-
 [Bookings and Flights](#bookings-and-flights)
 
 [Regular Planning](#regular-planning)
@@ -30,7 +28,7 @@ The Mobi Planner turns **Bookings** and **Flights** into **Trips**. For a single
 
 ## Data Flow Overview
 
-The image below shows the timing around how the Mobi Planner turns Bookings and Flights into Trips, as well as how planning staff can affect Trips more directly using buttons in their interface.
+The image below shows the timing around how the Mobi Planner turns Bookings and Flights into Trips, as well as how planning staff can affect Trips more directly using buttons in the client interface.
 
 ### Data Flow Diagram: 1 Date in 1 Destination
 
@@ -44,34 +42,37 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 
 ## Regular Planning Overview
 
-1. When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the **Planning Window** for the relevant destination. For most destinations, the Planning Window begins 7 days before the date of travel and ends 24 hours before the time of travel.
+1. When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the **Planning Window** for the relevant destination. For most Destinations, the Planning Window begins 7 days before the date of travel and ends 24 hours before the time of travel.
 2. Every 5 minutes, the Mobi Planner runs Regular Planning. First, it checks to see if any Bookings within their Planning Window are new, have been updated, or have had updates to their corresponding Flight. Then, it plans the changed Bookings and any other Bookings that could potentially be on the same Trip (e.g. Bookings in the same Destination on the same date of travel).
 3. The Mobi Planner starts by creating an initial solution that satisfies the client's Business Rules. It then rapidly uses a combination of AI algorithms to make changes to the initial solution, improving it until no more improvements can be made.
 4. The Continuous Planning System computes the timing for each stop within the trip based on Mobi's internal routing engine, then validates that the solution passes a set of criteria including the client's Business Rules (e.g. passengers don't spend more than the maximum time waiting at the airport)
 5. The Continous Planning System sends the Trips that have been planned to the client.
 
-## End of the Planning Window
+## After the Planning Window
 
 Once the Planning Window ends for a particular Destination & date of travel, Regular Planning no longer affects those Bookings. However, changes to Bookings or Flights will have the following effects:
 
 - If a Booking changes, the Booking will be dropped from the Trip and the Trip's schedule of stops will adjust as needed. The changed Booking will no longer be assigned to a Trip, and API calls will need to be used to assign it to a Trip.
 - If a Flight changes, all Bookings involving that flight will be dropped from their Trips, and those Trips' schedules will adjust as needed. Those Bookings will no longer be assigned to Trips, and API calls will need to be used to assign it to a Trip.
 
-
-
 ## API Overview
 
-If a booking is locked via API call, it will not be planned as part of Regular Planning.
+API calls enable planning staff to make adjustments to plans as needed. These API calls can be triggered via the client's interface for staff, e.g. via buttons in a web portal that shows the Trips. 
 
+### Example API Use Cases
 
+- After the Planning Window, if Bookings have changed and have been unassigned from Trips, they need to be assigned for those guests to have a ride
+  - Multiple types of automated replan APIs are available, which will run the Mobi Planner to assign selected Bookings to Trips. The different types of replan vary in how much they can affect other Bookings.
+  - Bookings can be assigned to existing Trips manually, if planning staff have a specific idea of what will work best. New Trips can also be created as needed to support this manual adjustment.
+
+- Guests on a Booking are VIPs who need special treatment and planning staff want to keep the plan the same
+  - A Booking can be locked so it is not affected by Regular Planning
 
 ## Optimization Overview
 
 ### Cost Functions
 
 The Continuous Planning System optimizes for cost while following business rules. In order to optimize for cost, we must first define what cost is. TUI's Transfer Service operates in many tour **Destinations**, which tend to be either islands or broad regions surrounding a major city (e.g Mallorca, Zakynthos, Antalya, Cancún). Each Destination has a specific **Cost Function** that defines the cost to be minimized during planning. The cost function is specified for each Destination in **Master Data**, relatively static data that includes information about physical places and the business rules that should apply to relevant bookings during planning.
-
-
 
 There are 2 types of Cost Functions for TUI's Transfer Service:
 
@@ -100,7 +101,7 @@ Example Business Rules:
 
 # Bookings and Flights
 
-## Bookings & Flights Overview
+## Bookings & Flights Introduction
 
 A **Booking** represents a need for a one-way Transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single Booking generally has booked a tour together, will be on the same flight, and will be staying at the same hotel.
 
@@ -307,16 +308,6 @@ Currently, if multiple **kinesis_rejection** error messages are applicable, mult
 
 
 # Regular Planning
-
-## When Bookings Get Planned
-
-- When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the Planning Window for the relevant destination.
-- The Planning Window varies by destination. For many destinations, the planning window begins 7 days prior to the date of the transfer, and ends 24 hours before the transfer.
-- During the planning window for a particular destination & operation date, we check every 5 minutes if there have been any changes to bookings or flights. If we do see changes, we do a replan including the changed bookings as well as all related bookings that could conceivably be planned on the same trip (same destination, same operation date).
-- If a booking is locked, it will not be replanned as part of regular planning.
-- nce the planning window ends for a particular destination & operation date, regular planning no longer affects those bookings. However, changes to bookings or flights will have the following effects:
-  - If a booking changes, the booking will be dropped from the trip and the trip's schedule will adjust as needed. The changed booking will no longer be assigned to a trip, and will need to be assigned to a trip via an API call (either triggering a replan, or assigning to a specific trip directly).
-  - If a flight changes, all bookings involving that flight will be dropped from their trips, and those trips' schedules will adjust as needed. Those bookings will no longer be assigned to trips, and will need to be assigned to trips via an API call (either triggering a replan, or assigning to a specific trip directly).
 
 
 ## Where The Planning Window is Specified
