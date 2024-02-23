@@ -24,7 +24,7 @@ The Mobi Planner turns **Bookings** and **Flights** into **Trips**. For a single
 
 ### Example Bookings, Flights, and Trip for 3 Arrivals to Palma de Mallorca
 
-![Bookings To Trips](./attachments/BookingsToTrips.png)
+![Bookings To Trips](./attachments/BookingsToTrips2.png)
 
 ## Data Flow Overview
 
