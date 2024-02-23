@@ -39,8 +39,8 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 - **Inputs:** [Bookings and Flights](#bookings-and-flights) are streamed to Mobi via an AWS Kinesis Data Stream
 - **Outputs:** [Trips](#trips) are streamed back to the client via an AWS Data Stream
 - **Data Validation:** Any data issues identified in data validation checks are reported via AWS SNS. This includes [Kinesis Ingestion Data Validation](#kinesis-ingestion-data-validation) and [Pre-planning Data Validation](#pre-planning-data-validation).
-- **APIs:** Mobi REST [APIs](#apis) can be called by the client in order to make adjustments to plans as needed. These API calls can be triggered via the client's interface for staff, e.g. via buttons in a web portal that shows the Trips. Data validation issues for API calls are sent (***TODO: add how***).
-- **Master Data:** [Master Data](#master-data) is relatively static data that includes information about physical places and the business rules that should apply to relevant bookings during planning. The client can provide REST APIs for Mobi to call regularly to update Master Data, and can optionally send updates via an AWS Data Stream as well with specific information about what Bookings should be updated. Data validation issues for Master Data are sent (***TODO: add how***).
+- **APIs:** Mobi REST [APIs](#apis) can be called by the client in order to make adjustments to plans as needed. These API calls can be triggered via the client's interface for staff, e.g. via buttons in a web portal that shows the Trips. If requests cannot be parsed, then they will return an error code in the API response. If requests are parsed successfully but an issue prevents the Mobi Planner from acting on the API call, [Invalid and Infeasible Messages](#invalid-and-infeasible-messages) will be sent via AWS SNS.
+- **Master Data:** [Master Data](#master-data) is relatively static data that includes information about physical places and the business rules that should apply to relevant bookings during planning. The client can provide REST APIs for Mobi to call regularly to update Master Data, and can optionally send updates via an AWS Data Stream as well with specific information about what Bookings should be updated.
 
 ## Regular Planning Overview
 
@@ -480,7 +480,7 @@ If the replan buttons cannot meet TUI staff's needs in some circumstances, then 
 | Bulk Unassign                      | Unassign bookings from trips manually. Mobi's solver will update the vehicle & optimize the route. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/bookings/bulk_unassign](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_bulk_unassign_create) |
 | Delete Trip                        | Delete a specific trip                                       | Hub: ?<br />Airport: ?                                       | [DELETE /tui-cps/v1/trips/{id}](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_destroy) |
 
-## Invalid & Infeasible Messages
+## Invalid and Infeasible Messages
 
 When these APIs are called, there are 3 possible types of responses:
 
