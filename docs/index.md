@@ -32,7 +32,7 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 
 ### Data Flow Diagram: 1 Date in 1 Destination
 
-![Flow In Time](./attachments/FlowInTime3.png)
+![Flow In Time](./attachments/FlowInTime4.png)
 
 ## Amazon Web Services (AWS) and API Interfaces
 
