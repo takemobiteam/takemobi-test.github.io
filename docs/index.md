@@ -30,7 +30,7 @@ The Mobi Planner turns Bookings and Flights into Trips, as shown in the image be
 
 The image below shows the timing around how the Mobi Planner turns Bookings and Flights into Trips, as well as how planning staff can affect Trips more directly using buttons in their interface.
 
-![Flow In Time](./attachments/FlowInTime.png)
+![Flow In Time](./attachments/FlowInTime2.png)
 
 # Optimization Within Constraints
 
