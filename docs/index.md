@@ -20,11 +20,15 @@
 
 **TUI's Transfer Service** provides guests with a ride from the airport to their hotel and back for most tours, to ports and back for cruises, and between hotels for multi-hotel vacations. Each one-way ride is a **Transfer**. Mobi's Continuous Planning Service enables TUI’s Transfer Service to operate efficiently by scheduling optimized trips with TUI’s fleet in advance and enabling on-the-fly changes in response to disruptions.
 
-### The Mobi Planner Turns Bookings and Flights into Trips
+## Inputs and Outputs
+
+The Mobi Planner turns Bookings and Flights into Trips, as shown in the image below.
 
 ![Bookings To Trips](./attachments/BookingsToTrips.png)
 
-### Data Flow Overview: 1 Travel Date in 1 Destination
+## Data Flow Overview: 1 Travel Date in 1 Destination
+
+The image below shows the timing around how the Mobi Planner turns Bookings and Flights into Trips, as well as how planning staff can affect Trips more directly using buttons in their interface.
 
 ![Flow In Time](./attachments/FlowInTime.png)
 
