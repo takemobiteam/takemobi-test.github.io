@@ -18,23 +18,56 @@
 
 # Overview
 
-**TUI's Transfer Service** provides guests with a ride from the airport to their hotel and back for most tours, to ports and back for cruises, and between hotels for multi-hotel vacations. Each one-way ride is a **Transfer**. Mobi's Continuous Planning Service enables TUI’s Transfer Service to operate efficiently by scheduling optimized trips with TUI’s fleet in advance and enabling on-the-fly changes in response to disruptions.
+**TUI's Transfer Service** provides guests with a ride from the airport to their hotel and back for most tours, to ports and back for cruises, and between hotels for multi-hotel vacations. Each one-way ride is a **Transfer**. Mobi's Continuous Planning Service enables TUI’s Transfer Service to operate efficiently by scheduling optimized trips with TUI’s fleet in advance and enabling fast on-the-fly adjustments in response to disruptions like flight delays or vehicle breakdowns.
 
 ## Inputs and Outputs
 
-The Mobi Planner turns Bookings and Flights into Trips, as shown in the image below.
+The Mobi Planner turns **Bookings** and **Flights** into **Trips**. For a single tour, a group of guests will have 2 separate Bookings for their **Arrival** to the tour **Destination** and their **Departure** from the tour Destination.
+
+### Example Bookings, Flights, and Trip for 3 Arrivals to Palma de Mallorca
 
 ![Bookings To Trips](./attachments/BookingsToTrips.png)
 
-## Data Flow Overview: 1 Travel Date in 1 Destination
+## Data Flow Overview
 
 The image below shows the timing around how the Mobi Planner turns Bookings and Flights into Trips, as well as how planning staff can affect Trips more directly using buttons in their interface.
 
+### Data Flow Diagram: 1 Date in 1 Destination
+
 ![Flow In Time](./attachments/FlowInTime2.png)
 
-# Optimization Within Constraints
+## Amazon Web Services (AWS) Interfaces
 
-## Cost Functions
+- Bookings and Flights are streamed to Mobi via an AWS Kinesis Data Stream
+- Trips are streamed back to the client via an AWS Data Stream
+- Any data issues identified in data validation checks are reported via AWS SNS
+
+## Regular Planning Overview
+
+1. When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the **Planning Window** for the relevant destination. For most destinations, the Planning Window begins 7 days before the date of travel and ends 24 hours before the time of travel.
+2. Every 5 minutes, the Mobi Planner runs Regular Planning. First, it checks to see if any Bookings within their Planning Window are new, have been updated, or have had updates to their corresponding Flight. Then, it plans the changed Bookings and any other Bookings that could potentially be on the same Trip (e.g. Bookings in the same Destination on the same date of travel).
+3. The Mobi Planner starts by creating an initial solution that satisfies the client's Business Rules. It then rapidly uses a combination of AI algorithms to make changes to the initial solution, improving it until no more improvements can be made.
+4. The Continuous Planning System computes the timing for each stop within the trip based on Mobi's internal routing engine, then validates that the solution passes a set of criteria including the client's Business Rules (e.g. passengers don't spend more than the maximum time waiting at the airport)
+5. The Continous Planning System sends the Trips that have been planned to the client.
+
+## End of the Planning Window
+
+Once the Planning Window ends for a particular Destination & date of travel, Regular Planning no longer affects those Bookings. However, changes to Bookings or Flights will have the following effects:
+
+- If a Booking changes, the Booking will be dropped from the Trip and the Trip's schedule of stops will adjust as needed. The changed Booking will no longer be assigned to a Trip, and API calls will need to be used to assign it to a Trip.
+- If a Flight changes, all Bookings involving that flight will be dropped from their Trips, and those Trips' schedules will adjust as needed. Those Bookings will no longer be assigned to Trips, and API calls will need to be used to assign it to a Trip.
+
+
+
+## API Overview
+
+If a booking is locked via API call, it will not be planned as part of Regular Planning.
+
+
+
+## Optimization Overview
+
+### Cost Functions
 
 The Continuous Planning System optimizes for cost while following business rules. In order to optimize for cost, we must first define what cost is. TUI's Transfer Service operates in many tour **Destinations**, which tend to be either islands or broad regions surrounding a major city (e.g Mallorca, Zakynthos, Antalya, Cancún). Each Destination has a specific **Cost Function** that defines the cost to be minimized during planning. The cost function is specified for each Destination in **Master Data**, relatively static data that includes information about physical places and the business rules that should apply to relevant bookings during planning.
 
@@ -49,7 +82,7 @@ There are 2 types of Cost Functions for TUI's Transfer Service:
 
 
 
-## Business Rules
+### Business Rules
 
 The Continuous Planning System has been configured with **Business Rules** for each Destination, constraints that are in place to plan trips that are physically possible given the realities of the geography and fleets of vehicles, and ensure a great customer experience. Most Business Rules are specified in [Master Data](#master-data), and some are specified in [Bookings](#bookings-and-flights).
 
@@ -60,6 +93,8 @@ Example Business Rules:
 | Customer Experience  | Maximum wait time in a vehicle after the first stop | Set a limit on how long passengers need to wait in the vehicle to be dropped off  or picked up after other passengers start getting dropped off or picked up |
 | Physical Constraints | Vehicle clearance for hotels                        | Prevent incompatible vehicles from being assigned to hotels with limited clearance |
 | Fleet Constraints    | Vehicle inventory limits                            | Ensure trips can be completed using the set of vehicles that exists in real life |
+
+## Master Data Overview
 
 
 
@@ -296,17 +331,6 @@ Currently, if multiple **kinesis_rejection** error messages are applicable, mult
   - Stop free replan days pickups
   - Stop free replan time dropoffs
   - Stop free replan time dropoffs
-
-## Overview of How Planning Works
-
-1. Mobi collects data as it streams in via Kinesis (bookings & flights)
-2. Mobi performs data validation, making sure the data makes sense and is plannable. An error message will be sent if there is an issue with bookings such that they can't be planned. Planning will continue with bookings that are plannable.
-3. Every 5 minutes, the solver will check to see if anything needs to be planned, and plan if needed. If the planning window for bookings begins, that will trigger those bookings to be planned. If there are changes to bookings or flights within their planning window, that will also trigger planning.
-4. The solver makes an base initial solution that satisfies the business constraints
-5. The solver rapidly uses a mix of algorithms built from Mobi’s AI expertise and algorithms designed from insights from planning experts to make perturbations to the current solution, improving it until we can no longer do so
-6. Once we have the base plan, we fill out any auxiliary information such as timetables, pickup/dropoff data, etc
-7. We perform validation checks to ensure our solution meets basic functional requirements as well as conforms to the clients business constraints
-8. We send our updated plans live back to the client
 
 ## Pre-planning Data Validation
 
