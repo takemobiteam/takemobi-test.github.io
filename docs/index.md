@@ -550,7 +550,23 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 
 ## Key Concepts in Master Data
 
-![Data Exchange Diagram 1](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/CPSDiagram1.jpg)
+Original
+
+![Master Data Diagram](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/CPSDiagram1.jpg)
+
+Screenshot
+
+![Master Data Diagram 1](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/MasterDataScreenshot.png)
+
+Download PNG
+
+![Master Data Diagram 1](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/MasterDataDownload.png)
+
+Download JPG
+
+![Master Data Diagram 1](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/MasterDataDownload.jpg)
+
+
 
 As shown in the image above, one **Destination** can have multiple **Area Groups**. One **Area Group** can have multiple **Areas**, but an **Area** does not have to belong to an **Area Group**. One **Area** can have multiple **Airports** and multiple **Hotels**. **Vehicles** are specified per Destination.
 
