@@ -554,19 +554,19 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 
 Original
 
-![Master Data Diagram](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/CPSDiagram1.jpg)
+![Master Data Diagram 1](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/CPSDiagram1.jpg)
 
 Screenshot
 
-![Master Data Diagram 1](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/MasterDataScreenshot.png)
+![Master Data Diagram 2](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/MasterDataScreenshot.png)
 
 Download PNG
 
-![Master Data Diagram 1](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/MasterDataDownload.png)
+![Master Data Diagram 3](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/MasterDataDownload.png)
 
 Download JPG
 
-![Master Data Diagram 1](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/MasterDataDownload.jpg)
+![Master Data Diagram 4](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/MasterDataDownload.jpg)
 
 
 
