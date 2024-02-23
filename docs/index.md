@@ -20,11 +20,7 @@
 
 **TUI's Transfer Service** provides guests with a ride from the airport to their hotel and back for most tours, to ports and back for cruises, and between hotels for multi-hotel vacations. Each one-way ride is a **Transfer**. Mobi's Continuous Planning Service enables TUI’s Transfer Service to operate efficiently by scheduling optimized trips with TUI’s fleet in advance and enabling on-the-fly changes in response to disruptions.
 
-![Screenshot](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/MasterDataScreenshot.png)
-
-![Data Exchange Diagram 1](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/CPSDiagram2.jpg)
-
-
+![MasterData](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/MasterDataDownload.jpg)
 
 TUI sends Mobi the following information:
 
@@ -553,24 +549,6 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 **Master Data** is relatively static data that includes information about physical places and the business rules that should apply to relevant bookings during planning. Business rules specified in the bookings themselves generally override business rules supplied in Master Data. 
 
 ## Key Concepts in Master Data
-
-Original
-
-![Master Data Diagram 1](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/CPSDiagram1.jpg)
-
-Screenshot
-
-![Master Data Diagram 2](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/MasterDataScreenshot.png)
-
-Download PNG
-
-![Master Data Diagram 3](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/MasterDataDownload.png)
-
-Download JPG
-
-![Master Data Diagram 4](/Users/charliefarison/git/takemobi-test-doc/docs/attachments/MasterDataDownload.jpg)
-
-
 
 As shown in the image above, one **Destination** can have multiple **Area Groups**. One **Area Group** can have multiple **Areas**, but an **Area** does not have to belong to an **Area Group**. One **Area** can have multiple **Airports** and multiple **Hotels**. **Vehicles** are specified per Destination.
 
