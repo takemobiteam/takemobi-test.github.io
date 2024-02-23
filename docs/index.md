@@ -34,11 +34,13 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 
 ![Flow In Time](./attachments/FlowInTime2.png)
 
-## Amazon Web Services (AWS) Interfaces
+## Amazon Web Services (AWS) and API Interfaces
 
-- Bookings and Flights are streamed to Mobi via an AWS Kinesis Data Stream
-- Trips are streamed back to the client via an AWS Data Stream
-- Any data issues identified in data validation checks are reported via AWS SNS
+- **Inputs:** [Bookings and Flights](#bookings-and-flights) are streamed to Mobi via an AWS Kinesis Data Stream
+- **Outputs:** [Trips](#trips) are streamed back to the client via an AWS Data Stream
+- **Data Validation:** Any data issues identified in data validation checks are reported via AWS SNS. This includes [Kinesis Ingestion Data Validation](#kinesis-ingestion-data-validation) and [Pre-planning Data Validation](#pre-planning-data-validation).
+- **APIs:** Mobi REST [APIs](#apis) can be called by the client in order to make adjustments to plans as needed. These API calls can be triggered via the client's interface for staff, e.g. via buttons in a web portal that shows the Trips. Data validation issues for API calls are sent (***TODO: add how***).
+- **Master Data:** [Master Data](#master-data) is relatively static data that includes information about physical places and the business rules that should apply to relevant bookings during planning. The client can provide REST APIs for Mobi to call regularly to update Master Data, and can optionally send updates via an AWS Data Stream as well with specific information about what Bookings should be updated. Data validation issues for Master Data are sent (***TODO: add how***).
 
 ## Regular Planning Overview
 
@@ -47,6 +49,8 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 3. The Mobi Planner starts by creating an initial solution that satisfies the client's Business Rules. It then rapidly uses a combination of AI algorithms to make changes to the initial solution, improving it until no more improvements can be made.
 4. The Continuous Planning System computes the timing for each stop within the trip based on Mobi's internal routing engine, then validates that the solution passes a set of criteria including the client's Business Rules (e.g. passengers don't spend more than the maximum time waiting at the airport)
 5. The Continous Planning System sends the Trips that have been planned to the client.
+
+*Plan output format, data validation during planning, and how the planning window is specified are covered in more detail in [Regular Planning](#regular-planning).*
 
 ## After the Planning Window
 
@@ -68,6 +72,8 @@ API calls enable planning staff to make adjustments to plans as needed. These AP
 - Guests on a Booking are VIPs who need special treatment and planning staff want to keep the plan the same
   - A Booking can be locked so it is not affected by Regular Planning
 
+*Available APIs and use cases are described in more detail in [APIs](#apis).*
+
 ## Optimization Overview
 
 ### Cost Functions
@@ -81,8 +87,6 @@ There are 2 types of Cost Functions for TUI's Transfer Service:
 | Distance      | Cost = distance travelled                                    | Destinations where most transfers use TUI's own fleet        | Mallorca            |
 | Cost          | Cost = (# of Vehicle A x cost of Vehicle A) + (# of Vehicle B x cost of Vehicle B) + ... + (# of Vehicle Z x cost of Vehicle Z) | Destinations where most transfers use vehicles contracted from suppliers | Zakynthos           |
 
-
-
 ### Business Rules
 
 The Continuous Planning System has been configured with **Business Rules** for each Destination, constraints that are in place to plan trips that are physically possible given the realities of the geography and fleets of vehicles, and ensure a great customer experience. Most Business Rules are specified in [Master Data](#master-data), and some are specified in [Bookings](#bookings-and-flights).
@@ -94,8 +98,6 @@ Example Business Rules:
 | Customer Experience  | Maximum wait time in a vehicle after the first stop | Set a limit on how long passengers need to wait in the vehicle to be dropped off  or picked up after other passengers start getting dropped off or picked up |
 | Physical Constraints | Vehicle clearance for hotels                        | Prevent incompatible vehicles from being assigned to hotels with limited clearance |
 | Fleet Constraints    | Vehicle inventory limits                            | Ensure trips can be completed using the set of vehicles that exists in real life |
-
-## Master Data Overview
 
 
 
@@ -270,16 +272,7 @@ Payload fields for bookings & flights are specified in these sections:
 
 
 
-## Booking & Flight Errors
-
-If there is an error with a Booking, the error is sent back to TUI via AWS SNS. 
-
-Timing of errors depends on the type of error: 
-
-- An error may be sent during processing from Kinesis, if the Booking could not be stored. These errors are specified in the next section, [Kinesis Rejection Errors](#kinesis-rejection-errors).
-- If the Booking can be stored but the solver determines the booking to not be plannable, the error will be sent when planning occurs. These errors are specified in [Regular Planning](#regular-planning).
-
-### Kinesis Rejection Errors
+## Kinesis Ingestion Data Validation
 
 There are multiple categories of errors. The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible error messages, across all categories. This section describes one category of errors: **kinesis_rejection** errors.
 
@@ -312,12 +305,12 @@ Currently, if multiple **kinesis_rejection** error messages are applicable, mult
 
 ## Where The Planning Window is Specified
 
-- The start of the planning window for a particular destination is specified by the first_planning_time fields, as part of **Parameters**
+- The start of the planning window for a particular destination is specified by the first_planning_time fields, as part of **Parameters** in Master Data
   - First planning time pickups
   - First planning days pickups
   - First planning time dropoffs
   - First planning days dropoffs
-- The end of the planning window for a particular destination is specified by the stop_free_replan fields, as part of the **Destination**
+- The end of the planning window for a particular destination is specified by the stop_free_replan fields, as part of the **Destination** in Master Data
   - Stop free replan time pickups
   - Stop free replan days pickups
   - Stop free replan time dropoffs
@@ -362,11 +355,11 @@ When a preprocessing error occurs & a Booking Discard message is sent, the booki
 | "BD_main_not_configured_for_feeder"    | "Feeder booking is missing a properly-configured main booking" |
 | "BD_ftaa_flaw"                         | "Some flaw with flight_terminal_airport_area."               |
 
-## Plan Output
+## Trips
 
-Plans are sent back as records in a AWS Kinesis data stream, each record representing one or more trips. Records include metadata and a payload. 
+Trips are sent back as records in a AWS Kinesis data stream, each record representing one or more trips. Records include metadata and a payload. 
 
-Each trip has a unique transfer_id. If a trip is updated or deleted during regular planning or via API calls, a record will be sent with the same transfer_id as a trip that has been sent previously.
+Each Trip has a unique transfer_id. If a Trip is updated or deleted during regular planning or via API calls, a record will be sent with the same transfer_id as a trip that has been sent previously.
 
 Metadata specifies:
 
