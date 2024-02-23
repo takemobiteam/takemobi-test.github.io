@@ -295,7 +295,7 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 
 Currently, if multiple **kinesis_rejection** error messages are applicable, multiple SNS messages will be sent. ***In the future, a single SNS message will be sent with all the applicable error messages for the booking or flight.***
 
-### Kinesis Rejection Errors for Bookings
+### Kinesis Rejection Messages for Bookings
 
 | message_id                      | Message                                                      | Description                                                  |
 | ------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -305,7 +305,7 @@ Currently, if multiple **kinesis_rejection** error messages are applicable, mult
 | "KR_between_hotels_same_hotels" | "Kinesis record for booking %(booking_id)s discarded: the origin and destination hotels are the same: %(hotel_id)s" | A Booking with transfer_way "Between Hotels" must specify 2 different hotels, one as origin and one as destination. If the hotel_id is the same for the origin and destination, that will cause this message. |
 | "KR_no_terminal_exists"         | "Kinesis record for flight %(flight_id)s discarded: the flight is non-existent and no flight can be created because no terminal is found in master data" | Sometimes Bookings are sent before the corresponding flight record, so Mobi creates a placeholder flight in order to save the booking. Without a terminal in the booking, Mobi cannot create a placeholder flight and cannot save the Booking. |
 
-### Kinesis Rejection Errors for Flights
+### Kinesis Rejection Messages for Flights
 
 | message_id                 | Message                                                      | Description                                         |
 | -------------------------- | ------------------------------------------------------------ | --------------------------------------------------- |
@@ -823,28 +823,23 @@ This tells the Mobi Planner to replan all arrival bookings for Destination 5083 
 
 ## Master Data Processing Issues
 
-The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible messages that may be sent via AWS SNS. This section describes one category of errors: **pre-processing** errors.
+The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible messages that may be sent via AWS SNS. This section describes one category of messages: **processors** messages.
 
-| message_id | Message | Description |
-| ---------- | ------- | ----------- |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
-|            |         |             |
+| message_id                               | Message                                                      |
+| ---------------------------------------- | ------------------------------------------------------------ |
+| "AREA_EXTRANEOUS_MEETING_POINT"          | "Area record %(area_id)s specifies a meeting point but its feeder field is not set to true--the meeting point will be ignored" |
+| "AREA_MISSING_MEETING_POINT"             | "Area %(area_id)s discarded because it supports a feeder but the meeting point is not specified" |
+| "CONFLICTING_TERMINAL_IDS"               | "Terminal has conflicting ids: entity_id is \"%(entity_id)s\" and terminal_id is \"%(terminal_id)s\" |
+| "MD_UPDATE_MISSING_FIELD"                | "Data record %(id)s of type %(type_)s is missing required field(s) %(field)s" |
+| "MD_UPDATE_MISSING_INCOMPATIBILITY_AREA" | "Attempted to add non-existent area %(area_id)s to area_incompatibility %(area_incompatibility_id)s" |
+| "MISSING_VEHICLE_REFERENCE"              | "Vehicle %(id)s dropped because it is missing its vehicle reference" |
+| "MISSING_VEHICLE_TYPE"                   | "Vehicle %(id)s dropped because it is missing its vehicle type reference" |
+| "DESTINATION_MISSING_TRANSPORT_STATION"  | "Attempted to add non-existent transport station %(id)s to destination %(destination_id)s" |
+| "CONFLICTING_PRICE_IDS"                  | "Price has conflicting ids: entity_id is \"%(entity_id)s\" and price_id is \"%(price_id)s\" |
+| "MULTIPLE_MD_ISSUES"                     | "Multiple issues encountered performing MD update: %(issues)s" |
+| "VEHICLE_BAD_REFERENCE"                  | "Attempted to add non-existent %(ref_type)s %(id)s to vehicle %(vehicle_id)s" |
+| "IMPROPER_JSON"                          | "The message passed in to the MD update processor failed validation: %(message)s" |
+| "CANNOT_CONNECT_TO_DATA_ENDPOINT"        | "Received status code %(status_code)s for endpoint %(endpoint)s and destination id %(dest_id)s" |
+| "VEHICLE_TYPE_MISSING_FIELDS"            | "Vehicle type id: %(vehicle_id)s dropped from processing due to missing fields [%(missing_fields)s]" |
+| "MD_NONEXISTENT_INSTANCE"                | "Cannot perform update as object with id \"%(entity_id)s\" does not exist" |
+| "INVALID_MD_OPERATION"                   | "A message passed to the MD update process has an invalid operation %(op)s" |
