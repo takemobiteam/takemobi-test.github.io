@@ -293,7 +293,7 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 
 **kinesis_rejection** messages indicate that a booking or a flight has been sent into the system, but data validation checks upon ingestion from Kinesis indicated that the Booking or Flight had issues which would make it impossible to process. 
 
-Currently, if multiple **kinesis_rejection** error messages are applicable, multiple SNS messages will be sent. ***In the future, a single SNS message will be sent with all the applicable error messages for the booking or flight.***
+Currently, if multiple **kinesis_rejection** messages are applicable, multiple SNS messages will be sent. ***In the future, a single SNS message will be sent with all the applicable messages for the booking or flight.***
 
 ### Kinesis Rejection Messages for Bookings
 
@@ -333,9 +333,9 @@ Currently, if multiple **kinesis_rejection** error messages are applicable, mult
 
 The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible messages that may be sent via AWS SNS. This section describes one category: **preprocessing** messages.
 
-At the start of planning, the system runs preprocessing checks to ensure that the bookings are viable for planning. If an error is found, a Booking Discard message is sent via AWS SNS. These messages generally begin with "BD_" where BD stands for Booking Discards.
+At the start of planning, the system runs preprocessing checks to ensure that the bookings are viable for planning. If an issue is found, a Booking Discard message is sent via AWS SNS. These messages generally begin with "BD_" where BD stands for Booking Discards.
 
-When a preprocessing error occurs & a Booking Discard message is sent, the Booking is ignored during Regular Planning until it is altered (an updated version is sent either via the AWS Kinesis Data Stream or via API call).
+When a preprocessing issue occurs & a Booking Discard message is sent, the Booking is ignored during Regular Planning until it is altered (an updated version is sent either via the AWS Kinesis Data Stream or via API call).
 
 
 
@@ -490,7 +490,7 @@ When these APIs are called, there are 3 possible types of responses:
 
 
 
-The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible error messages, across all categories.
+The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible messages that may be sent via AWS SNS.
 
 ### Invalid Messages
 
