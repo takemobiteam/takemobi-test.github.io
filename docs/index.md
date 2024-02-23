@@ -282,7 +282,6 @@ Currently, if multiple **kinesis_rejection** error messages are applicable, mult
 - nce the planning window ends for a particular destination & operation date, regular planning no longer affects those bookings. However, changes to bookings or flights will have the following effects:
   - If a booking changes, the booking will be dropped from the trip and the trip's schedule will adjust as needed. The changed booking will no longer be assigned to a trip, and will need to be assigned to a trip via an API call (either triggering a replan, or assigning to a specific trip directly).
   - If a flight changes, all bookings involving that flight will be dropped from their trips, and those trips' schedules will adjust as needed. Those bookings will no longer be assigned to trips, and will need to be assigned to trips via an API call (either triggering a replan, or assigning to a specific trip directly).
-  - **Question for Jacob: is this true even if the change to booking or flight is minor, e.g. 5 min delay?**
 
 
 ## Where The Planning Window is Specified
