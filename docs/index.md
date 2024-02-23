@@ -390,7 +390,7 @@ Data includes the following fields:
 | vehicle_id           | int    | Type of vehicle                                              | "5006-VAN 8-MX0-V-10080"               |
 | vehicle_sign         | string | Sign number for the vehicle (auto-generated 1-99)            | "29"                                   |
 | transfer_way         | enum   | Whether a flight is an arrival to a Destination, or a departure from a Destination. Possible values: "arrival", "departure", "between hotels" | "arrival"                              |
-| rules                | [int]  | The set of parameters applicable to this trip                | [233]                                  |
+| rules                | [int]  | The Parameters object applicable to this trip                | [233]                                  |
 | duration             | int    | Duration of trips in minutes, estimated based on local speed limits | 55                                     |
 | distance             | int    | Distance in meters                                           | 58922                                  |
 | routes               | list   | List of routes. Routes are defined below.                    |                                        |
@@ -561,7 +561,7 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 
 ## Overview
 
-**Master Data** is relatively static data that includes information about physical places and the business rules that should apply to relevant bookings during planning. Business rules specified in the bookings themselves generally override business rules supplied in Master Data. 
+**Master Data** is relatively static data that includes information about physical places and the Business Rules that should apply to relevant bookings during planning. Business rules specified in the Bookings themselves generally override Business Rules supplied in Master Data. 
 
 ## Key Concepts in Master Data
 
@@ -571,7 +571,7 @@ As shown in the image above, one **Destination** can have multiple **Area Groups
 
 ## Destinations
 
-Destinations tend to be either islands or broad regions surrounding a major city. Island destinations include Mallorca and Zakynthos. Other destinations include Antalya and Cancún.
+Destinations tend to be either islands or broad regions surrounding a major city. Island destinations include Mallorca and Zakynthos. Other destinations include Cancún and Antalya.
 
 **Destination Example:** 
 
@@ -583,7 +583,7 @@ Destinations tend to be either islands or broad regions surrounding a major city
 
 ## Transport Stations: Airports & Ports
 
-Airports & ports map to airports & ports in the real world. There may be multiple airports & ports in one destination, but many have just one airport. These are specified as "transport stations" in the master data.
+Airports & ports map to airports & ports in the real world. There may be multiple airports & ports in one tour Destination, but many have just one airport. These are specified as "transport stations" in the Master Data.
 
 **Airport Example:**
 
@@ -611,7 +611,7 @@ Terminals map to airport terminals in the real world. One airport can have multi
 
 ## Hotels
 
-Hotels map to hotels in the real world. There are generally many hotels per destination.
+Hotels map to hotels in the real world. There are generally many hotels per Destination.
 
 **Hotel Example:**
 
@@ -619,7 +619,7 @@ Hotels map to hotels in the real world. There are generally many hotels per dest
 {'id': '5016-100393', 'area_id': '5016-LAGANAS', 'name': 'Majestic Spa', 'address': ', LAGANAS, 291 00 ZAKYNTHOS, GRECIA', 'destination_id': '5016', 'cmd_id': 'AC18743631', 'transport_setup': {'location': [37.72782089288549, 20.86380683604017], 'exclusive_hotel': False, 'first_stop': False, 'hotel_pickup_setups': [], 'audit_date': '2023-07-26T06:51:40.487941Z'}}
 ```
 
-**Hotel Group**: destination-level. One hotelGroup can have multiple hotels but hotel does not have to belong to a HotelGroup. It specifies hotel's wait time.
+**Hotel Group**: destination-level. One Hotel Group can have multiple hotels but hotel does not have to belong to a Hotel Group.
 
 **Hotel Group Example:**
 
@@ -641,7 +641,7 @@ Hotels map to hotels in the real world. There are generally many hotels per dest
 
 **Vehicles** map to vehicles available for transporting passengers in the real world, either part of TUI's fleet or available from suppliers.
 
-Each **Destination** has **Vehicles** specified separately. Attributes of a vehicle include type of vehicle, number of seats, quantity of vehicles available. When quantity equals to -1, it means we can consider there are "unlimited" number of this vehicle.
+Each Destination has vehicles specified separately. Attributes of a vehicle include type of vehicle, number of seats, quantity of vehicles available. When quantity is set to -1, the vehicle quantity can be considered unlimited.
 
 **Vehicle Example:**
 
@@ -653,7 +653,7 @@ Each **Destination** has **Vehicles** specified separately. Attributes of a vehi
 
 Each vehicle has one supplier, and suppliers generally have multiple vehicles.
 
-Suppliers are specified per destination. If the same supplier provides vehicles in multiple destinations, it is specified as a spearate supplier per destination.
+Suppliers are specified per Destination. If the same supplier provides vehicles in multiple Destinations, it is specified as a spearate supplier per Destination.
 
 **Supplier Example:**
 
@@ -663,13 +663,15 @@ Suppliers are specified per destination. If the same supplier provides vehicles 
 
 ### Prices
 
-Many Destinations have cost functions structured like so:
+As described in [Optimization Overview](#optimization-overview), many destinations have a cost function like the following:
 
-Cost = (# of Vehicle A x cost of vehicle A) + (# of Vehicle B x cost of vehicle B)
+Cost = (# of Vehicle A x cost of Vehicle A) + (# of Vehicle B x cost of Vehicle B) + ... + (# of Vehicle Z x cost of Vehicle Z)
 
-In this case, Mobi needs a price for each vehicle. These prices are per X.
+In this case, Mobi needs a price for each vehicle. These prices are per **(TODO: per kilometer?)**
 
-Vehicle can have multiple prices while price can also belong to multiple vehicles. It shows price for the linked vehicle to hold passengers (number of the passengers is greater than pax_min and less than pax_max) from origin_point to destination_point (usually area object or terminal object). 
+A price object shows price for the associated vehicle when it holds greater than pax_min passengers and less than pax_max passengers, from origin_point to destination_point (usually area object or terminal object). 
+
+A vehicle can have multiple price objects, and a price object can belong to multiple vehicles. 
 
 **Price Example:**
 
@@ -687,7 +689,7 @@ Vehicle can have multiple prices while price can also belong to multiple vehicle
 
 
 
-**Area Incompatibilities**: destination-level. Determine which areas are incompatible with each other when planning a certain transfer_way trip associated with a certain terminal.
+**Area Incompatibilities**: Destination-level. Determines which areas are incompatible with each other when planning a certain transfer_way trip associated with a certain terminal.
 
 **Area Incompatibilities Example:**
 
@@ -697,7 +699,7 @@ Vehicle can have multiple prices while price can also belong to multiple vehicle
 
 
 
-**Area Stop Priorities**: destination-level. Determine which areas are prioritized and visited earlier than other areas in a certain transfer_way trip.
+**Area Stop Priorities**: Destination-level. Determines which areas are prioritized and visited earlier than other areas in a certain transfer_way trip.
 
 **Area Stop Priorities Example:**
 
@@ -709,7 +711,7 @@ Vehicle can have multiple prices while price can also belong to multiple vehicle
 
 ## Tour Operators
 
-Tour Operators are organizations that run tours in a specific destination. Business rules are primarily set on a tour operator level, by specifying a set of parameters by qa_rule_id for a given tour operator.
+Tour Operators are organizations that run tours in a specific destination. Business Rules are primarily set on a tour operator level, by specifying a set of Parameters by qa_rule_id for a given tour operator.
 
 **Tour Operator Example:**
 
@@ -719,7 +721,7 @@ Tour Operators are organizations that run tours in a specific destination. Busin
 
 ### Tour Operator Hotel Configurations
 
-An optional piece of master data that can be sent to specify if this hotel is exclusive (not combinable with bookings from other hotels) or first_stop (the hotel should be prioritized).
+An optional piece of Master Data that can be used to specify if this hotel is exclusive (not combinable with Bookings from other hotels) or first_stop (the hotel should be prioritized).
 
 **Tour Operator Hotel Configurations Example:**
 
