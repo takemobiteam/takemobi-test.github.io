@@ -41,8 +41,8 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 - **Inputs:** [Bookings and Flights](#bookings-and-flights) are streamed to Mobi via an AWS Kinesis Data Stream
 - **Outputs:** [Trips](#trips) are streamed back to the client via an AWS Data Stream
 - **Data Validation:** Any data issues identified in data validation checks are reported via AWS SNS. This includes [Kinesis Ingestion Data Validation](#kinesis-ingestion-data-validation) and [Pre-planning Data Validation](#pre-planning-data-validation).
-- **APIs:** Mobi REST [APIs](#apis) can be called by the client in order to make adjustments to plans as needed. These API calls can be triggered via the client's interface for staff, e.g. via buttons in a web portal that shows the Trips. If requests cannot be parsed, then they will return an error code in the API response. If requests are parsed successfully but an issue prevents the Mobi Planner from acting on the API call, [Invalid and Infeasible Messages](#invalid-and-infeasible-messages) will be sent via AWS SNS.
-- **Master Data:** [Master Data](#master-data) is relatively static data that includes information about physical places and the business rules that should apply to relevant bookings during planning. The client can provide REST APIs for Mobi to call regularly to update Master Data, and can optionally send updates via an AWS Data Stream as well with specific information about what Bookings should be updated.
+- **APIs:** Mobi REST [APIs](#apis) can be called by the client in order to make adjustments to plans as needed. These API calls can be triggered via the client's interface for staff, e.g. via buttons in a web portal that shows the Trips. If requests cannot be parsed, then they will return an error code in the API response. If requests are parsed successfully but an issue prevents the Mobi Planner from acting on the API call, [Invalid and Infeasible Messages](#invalid-and-infeasible-messages) will be sent via AWS Simple Notification Service (SNS).
+- **Master Data:** [Master Data](#master-data) is relatively static data that includes information about physical places and the business rules that should apply to relevant bookings during planning. The client can provide REST APIs for Mobi to call regularly to update Master Data, and can optionally send updates via an AWS Data Stream as well with specific information about what Bookings should be updated. These mechanisms are described further in [Sending Master Data](#sending-master-data).
 
 ## Regular Planning Overview
 
@@ -790,40 +790,40 @@ master-data/area-groups?filters=destination_id==5181
 
 This mechanism for receiving Master Data updates still requires API Calls set up as specified above.
 
-But whenever the client’s Master Data changes, the client sends Mobi a record through a stream that contains:
+But whenever the client’s Master Data changes, the client additionally sends Mobi a record through an AWS Kinesis Data Stream containing the following:
 
-- The updated record--either the entire record, or just the part which is updated
-- (Optional) instructions telling CPS to replan certain bookings after the data update is processed
+- The updated record - either the entire record, or just the part which is updated
+- (Optional) instructions telling the Mobi Planner to replan certain Bookings after the Master Data update is processed
 
-The record sent to CPS contains a list of fields which have changed, along with their update values.  This record looks like:
+The record contains a list of fields which have changed, along with their update values. This example record instructs the Mobi Planner to change two fields of the hotel record whose ID is `5083-92.` It specifies changing the `name`field to `New name`, and the `max_seats` field to 50.
 
 ```
 {  "id": "7fff22fe-d895-47bf-a844-a45bd6d58d40",  "type": "booking.replan.event.v1",  "specversion": "1.0",  "source": "http://transfer-master-data-rules-service.test.tui-dx.com",  "time": "2020-09-02T08:54:09.434Z",  "datacontenttype": "application/json",  "data": {      "changes": {          "entity_name": "hotel",          "entity_id": "5083-92",          "operation": "saved",          "changed_fields": [              {                  "field_name": "name",                  "field_type": "string",                  "value": "New name"              },              {                  "field_name": "max_seats",                  "field_type": "number",                  "value": 50              }            ]        },        "bookings": []       } }
 ```
 
-This record instructs CPS to change two fields of the hotel record whose ID is `5083-92.` It is to change the `name`field to `New name`, and the `max_seats` field to 50.
 
-In addition to indicating that a master data record should be updated, the record sent to CPS can also instruct it to replan a set of bookings after the data change has been processed.  For example, the `bookings` field may be set to something like:
+
+In addition to indicating that a Master Data record should be updated, the record can also instruct the Mobi Planner to replan a set of bookings after the data change has been processed.  For example, the `bookings` field may be set to something like:
 
 ```
 "bookings": ["XXX-5027-23457", "XXX-5027-23273"]
 ```
 
-In this case, CPS would replan the two specified bookings after processing the data change described by the complete record.
+In this case, the Mobi Planner would replan the two specified Bookings after processing the Master Data change described by the complete record.
 
-Or instead of a list of bookings, a **booking filter** may be specified, such as:
+Instead of a list of Bookings, a **Booking Filter** may be specified, such as:
 
 ```
 "booking_filter": {    "destination_id": "5083",    "operation_date_from_for_arrivals": "2023-04-01",    "operation_date_from_for_departures": "2023-03-31",    "transfer_way": "both" }
 ```
 
-This tells the planner to replan all arrival bookings for destination 5083 with a date equal to or after 2023-04-01, as well as all departure bookings for that destination with a date equal to or after 2023-03-31.
+This tells the Mobi Planner to replan all arrival bookings for Destination 5083 with a date equal to or after 2023-04-01, as well as all Departure Bookings for that Destination with a date equal to or after 2023-03-31.
 
 
 
 ## Master Data Processing Issues
 
-There are multiple categories of errors. The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible error messages, across all categories. This section describes one category of errors: **pre-processing** errors.
+The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible messages that may be sent via AWS SNS. This section describes one category of errors: **pre-processing** errors.
 
 | message_id | Message | Description |
 | ---------- | ------- | ----------- |
