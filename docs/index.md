@@ -20,6 +20,8 @@
 
 **TUI's Transfer Service** provides guests with a ride from the airport to their hotel and back for most tours, to ports and back for cruises, and between hotels for multi-hotel vacations. Each one-way ride is a **Transfer**. Mobi's Continuous Planning Service enables TUI’s Transfer Service to operate efficiently by scheduling optimized trips with TUI’s fleet in advance and enabling fast on-the-fly adjustments in response to disruptions like flight delays or vehicle breakdowns.
 
+^ The first sentance here is just a little awkward.
+
 ## Inputs and Outputs
 
 The Mobi Planner turns **Bookings** and **Flights** into **Trips**. For a single tour, a group of guests will have separate Bookings for their **Arrival** to the tour **Destination** and their **Departure** from the tour Destination.
@@ -27,6 +29,8 @@ The Mobi Planner turns **Bookings** and **Flights** into **Trips**. For a single
 ### Example Bookings, Flights, and Trip for 3 Arrivals to Palma de Mallorca
 
 ![Bookings To Trips](./attachments/BookingsToTrips2.png)
+
+^ Love this image
 
 ## Data Flow Overview
 
@@ -36,6 +40,9 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 
 ![Flow In Time](./attachments/FlowInTime4.png)
 
+^ API calls do happy in the 1-7 day range
+^ I think this image would be more clear if it showed a distinction between trips that are generated via the automated planner and those generated in response to API calls
+
 ## Amazon Web Services (AWS) and API Interfaces
 
 - **Inputs:** [Bookings and Flights](#bookings-and-flights) are streamed to Mobi via an AWS Kinesis Data Stream
@@ -44,10 +51,12 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 - **APIs:** Mobi REST [APIs](#apis) can be called by the client in order to make adjustments to plans as needed. These API calls can be triggered via the client's interface for staff, e.g. via buttons in a web portal that shows the Trips. If requests cannot be parsed, then they will return a relevant HTTP response status code. If requests are parsed successfully but an issue prevents the Mobi Planner from acting on the API call, [Invalid and Infeasible Messages](#invalid-and-infeasible-messages) will be sent via AWS Simple Notification Service (SNS).
 - **Master Data:** [Master Data](#master-data) is relatively static data that includes information about physical places and the Business Rules that should apply to relevant Bookings during planning. The client can provide REST APIs for Mobi to call regularly to update Master Data, and can optionally send updates via an AWS Data Stream as well with specific information about what Bookings should be updated. These mechanisms are described further in [Sending Master Data](#sending-master-data).
 
+^ This section is great
+
 ## Regular Planning Overview
 
-1. When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the **Planning Window** for the relevant destination. For most Destinations, the Planning Window begins 7 days before the date of travel and ends 24 hours before the time of travel.
-2. Every 5 minutes, the Mobi Planner runs Regular Planning. First, it checks to see if any Bookings within their Planning Window are new, have been updated, or have had updates to their corresponding Flight. Then, it plans the changed Bookings and any other Bookings that could potentially be on the same Trip (e.g. Bookings in the same Destination on the same date of travel).
+1. When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the **Planning Window** for the relevant destination and day. For most Destinations, the Planning Window begins 7 days before the date of travel and ends 24 hours before the time of travel.
+2. Every 5 minutes, the Mobi Planner runs Regular Planning. First, it checks to see if any Bookings within their Planning Window are new, have been updated, or have had updates to their corresponding Flight. Then, it plans the changed Bookings and any other Bookings that could potentially be on the same Trip (e.g. Bookings in the same Destination on the same date of travel). < This isn't quite right. It can plan more than just what *might* be on the same trip
 3. The Mobi Planner starts by creating an initial solution that satisfies the client's Business Rules. It then rapidly uses a combination of AI algorithms to make changes to the initial solution, improving it until no more improvements can be made.
 4. The Continuous Planning System computes the timing for each stop within the trip based on Mobi's internal routing engine, then validates that the solution passes a set of criteria including the client's Business Rules (e.g. passengers don't spend more than the maximum time waiting at the airport)
 5. The Continous Planning System sends the Trips that have been planned to the client.
@@ -60,6 +69,8 @@ Once the Planning Window ends for a particular Destination & date of travel, Reg
 
 - If a Booking changes, the Booking will be dropped from the Trip and the Trip's schedule of stops will adjust as needed. The changed Booking will no longer be assigned to a Trip, and API calls will need to be used to assign it to a Trip.
 - If a Flight changes, all Bookings involving that flight will be dropped from their Trips, and those Trips' schedules will adjust as needed. Those Bookings will no longer be assigned to Trips, and API calls will need to be used to assign it to a Trip.
+
+^ This is good
 
 ## API Overview
 
@@ -76,6 +87,8 @@ API calls enable planning staff to make adjustments to plans as needed. These AP
 
 *Available APIs and use cases are described in more detail in [APIs](#apis).*
 
+^ The wording/logic in this section feels a little awkward...
+
 ## Optimization Overview
 
 ### Cost Functions
@@ -88,6 +101,8 @@ There are 2 types of Cost Functions for TUI's Transfer Service:
 | ------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------- |
 | Distance      | Cost = distance travelled                                    | Destinations where most transfers use TUI's own fleet        | Mallorca            |
 | Cost          | Cost = (# of Vehicle A x cost of Vehicle A) + (# of Vehicle B x cost of Vehicle B) + ... + (# of Vehicle Z x cost of Vehicle Z) | Destinations where most transfers use vehicles contracted from suppliers | Zakynthos           |
+
+^ The cost section isn't correct - the pricing structure is richer than what is expressed here. Cost's can vary based on vehicle, capacity, and areas serviced
 
 ### Business Rules
 
@@ -102,6 +117,8 @@ Example Business Rules:
 | Fleet Constraints    | Vehicle inventory limits                            | Ensure trips can be completed using the set of vehicles that exists in real life |
 
 ## Additional Features
+
+^ Maybe name this something like "multi-leg travel"?
 
 ### Ferries
 
@@ -131,6 +148,8 @@ Guests that have itineraries involving multiple Hotels may have additional trans
 
 Each **Flight** represents a real flight in the world that corresponds to an Arrival to a tour Destination or a Departure from a tour Destination where 1 or more groups of passengers will need a transfer. Multiple Bookings may correspond to a given Flight.
 
+^ This part is good
+
 
 
 ## Fields for Bookings
@@ -150,6 +169,8 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 | flight_exclusive | bool   | Whether the Flight cannot be combined with other Flights. If operators think a flight is likely to be delayed, they may use this field to ensure a delay won't affect a large portion of the plan. | "false"                                                      |
 | welfare          | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to Bookings where this field is set to true. | "false"                                                      |
 | passengers       | dict   | Includes passenger_id (int starting from 1), name (string), & age (int). Upon ingestion of the Booking, ages of passengers are checked against min_age (specified in master data per tour operator). By default passengers with age under 2 are assumed to be infants in arms and not require a seat. Mobi does not use the passenger information aside from this age check. | "passengers":[{"passenger_id":1,"name":"Hendrik Rauh","age":54},{"passenger_id":2,"name":"Grit Berghof","age":50}] |
+
+^ I hope thats not real passenger data we copied in - if so pls pls delete/change the names. Might be a good idea to make it obviously fake...
 
 ### Required Fields for Arrivals
 
@@ -186,7 +207,7 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 | origin_point_type/destination_point_type        | enum   | "Hotel" or "Terminal". These are not used because transfer_way already defines what the origin & destination point types are. |
 | orgin_terminal_type / destination_terminal_type | enum   | "Airport"                                                    |
 
-
+^ Do we really need this section? I'm curious what the objective with it is. It might be weird for other groups reading this doc, but idk what the audience plan is
 
 ### Example Bookings
 
@@ -208,7 +229,7 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 {"booking_id":"ASX-5006-1835811-1","touroperator_id":"5006-42180","ext_booking":"22077510","lead_pax_name":"MALJONEN  EERO  (L)","destination_id":"5006","total_pax":2,"combinable":false,"transfer_way":"Between hotels","vehicle_type":"Van / Minivan","operation_date":"2024-01-12","origin_point_type":"Hotel","origin_guest_hotel_id":"5006-8183","origin_stop_hotel_id":"5006-8183","destination_point_type":"Hotel","destination_guest_hotel_id":"5006-61586","destination_stop_hotel_id":"5006-61586","flight_exclusive":false,"booking_plan_status":"Pending","passengers":[{"passenger_id":1,"name":"MALJONEN  EERO  (L)","age":30},{"passenger_id":2,"name":"MALJONEN  EERO  (L)","age":30}],"welfare":false}}]
 ```
 
-
+^ Same concerns here as above. We should probably make them obviously fake
 
 ## Fields for Flights
 
@@ -238,6 +259,7 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 {'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'destination_terminal_id': 'MUC'}}
 ```
 
+^ I think there are some optional fields here we didnt mention. Like flight.exclusive
 
 
 ## Sending Bookings & Flights via AWS Kinesis Data Streams
@@ -315,6 +337,7 @@ Currently, if multiple **kinesis_rejection** messages are applicable, multiple S
 
 # Regular Planning
 
+^ It might be late in the game to mention this, but maybe something like "automated planning" is a better label than "regular planning"
 
 ## Where The Planning Window is Specified
 
@@ -393,24 +416,26 @@ Data includes the following fields:
 | rules                | [int]  | The Parameters object applicable to this trip                | [233]                                  |
 | duration             | int    | Duration of trips in minutes, estimated based on local speed limits | 55                                     |
 | distance             | int    | Distance in meters                                           | 58922                                  |
-| routes               | list   | List of routes. Routes are defined below.                    |                                        |
+| routes               | list   | List of stops. stops are defined below.                    |                                        |
 | remarks              |        |                                                              |                                        |
 | combinable           | bool   | Whether this trip contains combinable bookings               | "true"                                 |
 | welfare              | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to bookings where this field is set to true. | "false"                                |
-| exclusive_to         | bool   | Indicates if the trip was planned by an exclusive tour operator | "false"                                |
+| exclusive_to         | bool   | Indicates if the trip was planned for an exclusive tour operator | "false"                                |
 | change_origin        | enum   | What triggered the planning that output this plan. Options: Solver, Solver-trigger, Solver-replan, Insertion-replan, Dashboard, Supplier, Booking change response, Flight change response | "Dashboard"                            |
 | username             | string | Username that made the change that triggered the plan, if applicable | "tui-adfs thamara.villagran@tui.com"   |
 | locked               | bool   | Whether this trip is locked and will not be changed in regular planning | "false"                                |
-| feasible             | bool   | Whether the trip conforms to applicable business rules. Trips can be made that violate business rules using force_infeasible. | "false"                                |
+| feasible             | bool   | Whether the trip conforms to applicable business rules. Trips can be made that violate business rules via the API using force_infeasible. | "false"                                |
 | infeasibility_reason | string | Infeasible messages relevant to this trip                    | see example below                      |
 | total_pax            | int    | Total passengers on this trip                                | 5                                      |
 | free_seats           | int    | Number of seats not occupied in vehicle                      | 3                                      |
 | total_seats          | int    | Total seats in the vehicle                                   | 8                                      |
-| available_seats      | int    | Number of free_seats available for passenger usage. When COVID-19 restrictions were in place limiting the % of capacity that could be filled, available_seats was less than free_seats. | 3                                      |
+| available_seats      | int    | Number of free_seats available for passenger usage. For example when COVID-19 restrictions were in place limiting the % of capacity that could be filled, available_seats was less than free_seats. | 3                                      |
+
+^ We have an email in the username field - maybe we should make it fake? don't want to dox anyway
+^ In general we might want to do a once over and filter out any personal data that could b ein here
 
 
-
-Routes include the following fields:
+Stops include the following fields:
 
 | Field                   | Type     | Description                                                  | Example                                |
 | ----------------------- | -------- | ------------------------------------------------------------ | -------------------------------------- |
@@ -465,11 +490,11 @@ After the freeze date that is configured for the relevant destination (e.g. <2 d
 | Light Plan | Insertion Replan | To the extent possible, the solver will insert selected bookings into existing trips without changing the vehicles used. The remaining bookings will be planned seperately. | Airport: ?                                                   | POST /tui-cps/v1/bookings/insertion_replan                   |
 | [TBD]      | [TBD]            | Replan all bookings for the rest of the day without changing vehicles, affecting only passengers & vehicles that have not yet arrived at the airport. | Airport: When a flight gets delayed, ensure the affected passengers get an updated transfer plan, moving other passengers around as needed while minimizing the need to request new vehicles. | TBD                                                          |
 
-
+^ This section is great! I appreciate you left the name as TBD
 
 ## Manual Changes
 
-If the replan buttons cannot meet TUI staff's needs in some circumstances, then they can make manual changes to bookings & trips. These manual changes are made via API calls, which are triggered by buttons & other actions in Ermes.
+If the TUI staff wants fine-grain control, to make small adjustments, or override rules, then they can make manual changes to bookings & trips. These manual changes are made via API calls, which are triggered by buttons & other actions in Ermes.
 
 | Ermes Name                         | Description                                                  | Use Cases                                                    | API Call                                                     |
 | ---------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -479,6 +504,8 @@ If the replan buttons cannot meet TUI staff's needs in some circumstances, then 
 | Lock                               | Lock a trip so that changes cannot be made by replans        | Hub: ?<br />Airport: ?                                       | POST /tui-cps/v1/trips/lock_trips                            |
 | Bulk Unassign                      | Unassign bookings from trips manually. Mobi's solver will update the vehicle & optimize the route. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/bookings/bulk_unassign](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_bulk_unassign_create) |
 | Delete Trip                        | Delete a specific trip                                       | Hub: ?<br />Airport: ?                                       | [DELETE /tui-cps/v1/trips/{id}](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_destroy) |
+
+^ They also have the PATCH endpoint for changing the vehicle (I think that is the only remaining use of it)
 
 ## Invalid and Infeasible Messages
 
@@ -495,6 +522,8 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 ### Invalid Messages
 
 **[Internal note: We recently got feedback from Asela that she wants to change which category certain issues are in - is that completed? We should document the new state.]**
+
+^ I belive this is completed
 
 | message_id  | Message                                                      |
 | ----------- | ------------------------------------------------------------ |
@@ -567,6 +596,8 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 
 ![Master Data Download](./attachments/MasterDataDownload.jpg)
 
+^ I like this figure! My one worry is that I don't people to think this is the extend of the MD. Theres also prices, tour operators, terminals, etc etc
+
 As shown in the image above, one **Destination** can have multiple **Area Groups**. One **Area Group** can have multiple **Areas**, but an **Area** does not have to belong to an **Area Group**. One **Area** can have multiple **Airports** and multiple **Hotels**. **Vehicles** are specified per Destination.
 
 ## Destinations
@@ -583,7 +614,7 @@ Destinations tend to be either islands or broad regions surrounding a major city
 
 ## Transport Stations: Airports & Ports
 
-Airports & ports map to airports & ports in the real world. There may be multiple airports & ports in one tour Destination, but many have just one airport. These are specified as "transport stations" in the Master Data.
+Transport stations (?) map to airports & ports in the real world. There may be multiple airports & ports in one tour Destination, but many have just one airport. These are specified as "transport stations" in the Master Data.
 
 **Airport Example:**
 
@@ -599,7 +630,7 @@ Airports & ports map to airports & ports in the real world. There may be multipl
 
 ### Terminals
 
-Terminals map to airport terminals in the real world. One airport can have multiple terminals, while one terminal can only belong to one airport (specified as transport_station_id).
+Terminals map to airport, port, or transit terminals in the real world. A given airport/port/station can have multiple terminals, while one terminal can only belong to one station (specified as transport_station_id).
 
 **Terminal Example:** 
 
@@ -619,7 +650,7 @@ Hotels map to hotels in the real world. There are generally many hotels per Dest
 {'id': '5016-100393', 'area_id': '5016-LAGANAS', 'name': 'Majestic Spa', 'address': ', LAGANAS, 291 00 ZAKYNTHOS, GRECIA', 'destination_id': '5016', 'cmd_id': 'AC18743631', 'transport_setup': {'location': [37.72782089288549, 20.86380683604017], 'exclusive_hotel': False, 'first_stop': False, 'hotel_pickup_setups': [], 'audit_date': '2023-07-26T06:51:40.487941Z'}}
 ```
 
-**Hotel Group**: destination-level. One Hotel Group can have multiple hotels but hotel does not have to belong to a Hotel Group.
+**Hotel Group**: destination-level. One Hotel Group can have multiple hotels but a hotel does not have to belong to a Hotel Group.
 
 **Hotel Group Example:**
 
@@ -627,7 +658,7 @@ Hotels map to hotels in the real world. There are generally many hotels per Dest
 {'id': 18, 'name': 'CABINA CASA DE CAMPO', 'destination_id': '5002', 'checkpoint_waiting_time_arrival': 3, 'checkpoint_waiting_time_departure': 5}
 ```
 
-**Hotel Stop Priorities**: Specified per Destination and transfer_way. Determine which hotels are prioritized to be visited earlier than other areas.
+**Hotel Stop Priorities**: Specified per Destination and transfer_way. Can determine orders or partial orders in which hotels must be serviced.
 
 **Hotel Stop Priorities Example:**
 
@@ -642,6 +673,8 @@ Hotels map to hotels in the real world. There are generally many hotels per Dest
 **Vehicles** map to vehicles available for transporting passengers in the real world, either part of TUI's fleet or available from suppliers.
 
 Each Destination has vehicles specified separately. Attributes of a vehicle include type of vehicle, number of seats, quantity of vehicles available. When quantity is set to -1, the vehicle quantity can be considered unlimited.
+
+^ In TUI's data, vehicles are split up into several parts. Do we want to address that here?
 
 **Vehicle Example:**
 
@@ -667,7 +700,9 @@ As described in [Optimization Overview](#optimization-overview), many destinatio
 
 Cost = (# of Vehicle A x cost of Vehicle A) + (# of Vehicle B x cost of Vehicle B) + ... + (# of Vehicle Z x cost of Vehicle Z)
 
-In this case, Mobi needs a price for each vehicle. These prices are per **(TODO: per kilometer?)**
+^ Reminder that this cost structure is not quite correct
+
+In this case, Mobi needs a price for each vehicle. These prices are per **(TODO: per kilometer?)** < Would just remove this last part
 
 A price object shows price for the associated vehicle when it holds greater than pax_min passengers and less than pax_max passengers, from origin_point to destination_point (usually area object or terminal object). 
 
@@ -699,7 +734,7 @@ A vehicle can have multiple price objects, and a price object can belong to mult
 
 
 
-**Area Stop Priorities**: Destination-level. Determines which areas are prioritized and visited earlier than other areas in a certain transfer_way trip.
+**Area Stop Priorities**: Destination-level. Can determine orders or partial orders in which areas must be serviced.
 
 **Area Stop Priorities Example:**
 
@@ -711,7 +746,7 @@ A vehicle can have multiple price objects, and a price object can belong to mult
 
 ## Tour Operators
 
-Tour Operators are organizations that run tours in a specific destination. Business Rules are primarily set on a tour operator level, by specifying a set of Parameters by qa_rule_id for a given tour operator.
+Tour Operators are organizations that run tours in a specific destination. Business Rules are primarily set on a tour operator level by specifying a set of Parameters by qa_rule_id for a given tour operator.
 
 **Tour Operator Example:**
 
@@ -734,6 +769,8 @@ An optional piece of Master Data that can be used to specify if this hotel is ex
 ## Parameters 
 
 The Parameters object groups several business rules together. Each tour operator maps to a set of Parameters, via the qa_rule_id field.
+
+^ Not every tour operator has its own parameters
 
 ```
 {'id': 77, 'boarding_fix': 1, 'boarding_per_person': 0.1, 'max_stops_arrival': 99, 'max_stops_departure': 99, 'max_num_grouped_flights_arrival': 99, 'max_num_grouped_flights_departure': 99, 'max_time_in_vehicle_arrival': 65, 'max_time_in_vehicle_departure': 65, 'max_time_span_arrival': 0, 'max_time_span_departure': 120, 'max_time_to_flight_arrival': 20, 'max_time_to_flight_departure': 40, 'percentage_capacity': 100.0, 'min_age_takes_place': 0, 'first_planning_days_pickups': 0, 'first_planning_days_dropoffs': 0, 'first_planning_time_pickups': '07:00:00Z', 'first_planning_time_dropoffs': '07:00:00Z'}
@@ -824,6 +861,8 @@ This tells the Mobi Planner to replan all arrival bookings for Destination 5083 
 ## Master Data Processing Issues
 
 The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible messages that may be sent via AWS SNS. This section describes one category of messages: **processors** messages.
+
+^ Do we actually send these to TUI? I feel like we don't but maybe I'm out of the loop
 
 | message_id                               | Message                                                      |
 | ---------------------------------------- | ------------------------------------------------------------ |
