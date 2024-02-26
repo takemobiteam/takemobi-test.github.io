@@ -20,6 +20,8 @@
 
 **TUI's Transfer Service** provides guests with a ride from the airport to their hotel and back for most tours, to ports and back for cruises, and between hotels for multi-hotel vacations. Each one-way ride is a **Transfer**. Mobi's Continuous Planning Service enables TUI’s Transfer Service to operate efficiently by scheduling optimized trips with TUI’s fleet in advance and enabling fast on-the-fly adjustments in response to disruptions like flight delays or vehicle breakdowns.
 
+^ The first sentance here is just a little awkward.
+
 ## Inputs and Outputs
 
 The Mobi Planner turns **Bookings** and **Flights** into **Trips**. For a single tour, a group of guests will have 2 separate Bookings for their **Arrival** to the tour **Destination** and their **Departure** from the tour Destination.
@@ -27,6 +29,8 @@ The Mobi Planner turns **Bookings** and **Flights** into **Trips**. For a single
 ### Example Bookings, Flights, and Trip for 3 Arrivals to Palma de Mallorca
 
 ![Bookings To Trips](./attachments/BookingsToTrips2.png)
+
+^ Love this image
 
 ## Data Flow Overview
 
@@ -36,6 +40,9 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 
 ![Flow In Time](./attachments/FlowInTime4.png)
 
+^ API calls do happy in the 1-7 day range
+^ I think this image would be more clear if it showed a distinction between trips that are generated via the automated planner and those generated in response to API calls
+
 ## Amazon Web Services (AWS) and API Interfaces
 
 - **Inputs:** [Bookings and Flights](#bookings-and-flights) are streamed to Mobi via an AWS Kinesis Data Stream
@@ -44,10 +51,12 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 - **APIs:** Mobi REST [APIs](#apis) can be called by the client in order to make adjustments to plans as needed. These API calls can be triggered via the client's interface for staff, e.g. via buttons in a web portal that shows the Trips. If requests cannot be parsed, then they will return a relevant HTTP response status code. If requests are parsed successfully but an issue prevents the Mobi Planner from acting on the API call, [Invalid and Infeasible Messages](#invalid-and-infeasible-messages) will be sent via AWS Simple Notification Service (SNS).
 - **Master Data:** [Master Data](#master-data) is relatively static data that includes information about physical places and the business rules that should apply to relevant bookings during planning. The client can provide REST APIs for Mobi to call regularly to update Master Data, and can optionally send updates via an AWS Data Stream as well with specific information about what Bookings should be updated. These mechanisms are described further in [Sending Master Data](#sending-master-data).
 
+^ This section is great
+
 ## Regular Planning Overview
 
-1. When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the **Planning Window** for the relevant destination. For most Destinations, the Planning Window begins 7 days before the date of travel and ends 24 hours before the time of travel.
-2. Every 5 minutes, the Mobi Planner runs Regular Planning. First, it checks to see if any Bookings within their Planning Window are new, have been updated, or have had updates to their corresponding Flight. Then, it plans the changed Bookings and any other Bookings that could potentially be on the same Trip (e.g. Bookings in the same Destination on the same date of travel).
+1. When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the **Planning Window** for the relevant destination and day. For most Destinations, the Planning Window begins 7 days before the date of travel and ends 24 hours before the time of travel.
+2. Every 5 minutes, the Mobi Planner runs Regular Planning. First, it checks to see if any Bookings within their Planning Window are new, have been updated, or have had updates to their corresponding Flight. Then, it plans the changed Bookings and any other Bookings that could potentially be on the same Trip (e.g. Bookings in the same Destination on the same date of travel). < This isn't quite right. It can plan more than just what *might* be on the same trip
 3. The Mobi Planner starts by creating an initial solution that satisfies the client's Business Rules. It then rapidly uses a combination of AI algorithms to make changes to the initial solution, improving it until no more improvements can be made.
 4. The Continuous Planning System computes the timing for each stop within the trip based on Mobi's internal routing engine, then validates that the solution passes a set of criteria including the client's Business Rules (e.g. passengers don't spend more than the maximum time waiting at the airport)
 5. The Continous Planning System sends the Trips that have been planned to the client.
@@ -60,6 +69,8 @@ Once the Planning Window ends for a particular Destination & date of travel, Reg
 
 - If a Booking changes, the Booking will be dropped from the Trip and the Trip's schedule of stops will adjust as needed. The changed Booking will no longer be assigned to a Trip, and API calls will need to be used to assign it to a Trip.
 - If a Flight changes, all Bookings involving that flight will be dropped from their Trips, and those Trips' schedules will adjust as needed. Those Bookings will no longer be assigned to Trips, and API calls will need to be used to assign it to a Trip.
+
+^ This is good
 
 ## API Overview
 
@@ -76,6 +87,8 @@ API calls enable planning staff to make adjustments to plans as needed. These AP
 
 *Available APIs and use cases are described in more detail in [APIs](#apis).*
 
+^ The wording/logic in this section feels a little awkward...
+
 ## Optimization Overview
 
 ### Cost Functions
@@ -88,6 +101,8 @@ There are 2 types of Cost Functions for TUI's Transfer Service:
 | ------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------- |
 | Distance      | Cost = distance travelled                                    | Destinations where most transfers use TUI's own fleet        | Mallorca            |
 | Cost          | Cost = (# of Vehicle A x cost of Vehicle A) + (# of Vehicle B x cost of Vehicle B) + ... + (# of Vehicle Z x cost of Vehicle Z) | Destinations where most transfers use vehicles contracted from suppliers | Zakynthos           |
+
+^ The cost section isn't correct - the pricing structure is richer than what is expressed here. Cost's can vary based on vehicle, capacity, and areas serviced
 
 ### Business Rules
 
@@ -102,6 +117,8 @@ Example Business Rules:
 | Fleet Constraints    | Vehicle inventory limits                            | Ensure trips can be completed using the set of vehicles that exists in real life |
 
 ## Additional Features
+
+^ Maybe name this something like "multi-leg travel"?
 
 ### Ferries
 
