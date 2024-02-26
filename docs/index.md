@@ -22,7 +22,7 @@
 
 ## Inputs and Outputs
 
-The Mobi Planner turns **Bookings** and **Flights** into **Trips**. For a single tour, a group of guests will have 2 separate Bookings for their **Arrival** to the tour **Destination** and their **Departure** from the tour Destination.
+The Mobi Planner turns **Bookings** and **Flights** into **Trips**. For a single tour, a group of guests will have separate Bookings for their **Arrival** to the tour **Destination** and their **Departure** from the tour Destination.
 
 ### Example Bookings, Flights, and Trip for 3 Arrivals to Palma de Mallorca
 
@@ -42,7 +42,7 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 - **Outputs:** [Trips](#trips) are streamed back to the client via an AWS Data Stream
 - **Data Validation:** Any data issues identified in data validation checks are reported via AWS SNS. This includes [Kinesis Ingestion Data Validation](#kinesis-ingestion-data-validation) and [Pre-planning Data Validation](#pre-planning-data-validation).
 - **APIs:** Mobi REST [APIs](#apis) can be called by the client in order to make adjustments to plans as needed. These API calls can be triggered via the client's interface for staff, e.g. via buttons in a web portal that shows the Trips. If requests cannot be parsed, then they will return a relevant HTTP response status code. If requests are parsed successfully but an issue prevents the Mobi Planner from acting on the API call, [Invalid and Infeasible Messages](#invalid-and-infeasible-messages) will be sent via AWS Simple Notification Service (SNS).
-- **Master Data:** [Master Data](#master-data) is relatively static data that includes information about physical places and the business rules that should apply to relevant bookings during planning. The client can provide REST APIs for Mobi to call regularly to update Master Data, and can optionally send updates via an AWS Data Stream as well with specific information about what Bookings should be updated. These mechanisms are described further in [Sending Master Data](#sending-master-data).
+- **Master Data:** [Master Data](#master-data) is relatively static data that includes information about physical places and the Business Rules that should apply to relevant Bookings during planning. The client can provide REST APIs for Mobi to call regularly to update Master Data, and can optionally send updates via an AWS Data Stream as well with specific information about what Bookings should be updated. These mechanisms are described further in [Sending Master Data](#sending-master-data).
 
 ## Regular Planning Overview
 
