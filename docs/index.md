@@ -148,6 +148,8 @@ Guests that have itineraries involving multiple Hotels may have additional trans
 
 Each **Flight** represents a real flight in the world that corresponds to an Arrival to a tour Destination or a Departure from a tour Destination where 1 or more groups of passengers will need a transfer. Multiple Bookings may correspond to a given Flight.
 
+^ This part is good
+
 
 
 ## Fields for Bookings
@@ -167,6 +169,8 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 | flight_exclusive | bool   | Whether the Flight cannot be combined with other Flights. If operators think a flight is likely to be delayed, they may use this field to ensure a delay won't affect a large portion of the plan. | "false"                                                      |
 | welfare          | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to Bookings where this field is set to true. | "false"                                                      |
 | passengers       | dict   | Includes passenger_id (int starting from 1), name (string), & age (int). Upon ingestion of the Booking, ages of passengers are checked against min_age (specified in master data per tour operator). By default passengers with age under 2 are assumed to be infants in arms and not require a seat. Mobi does not use the passenger information aside from this age check. | "passengers":[{"passenger_id":1,"name":"Hendrik Rauh","age":54},{"passenger_id":2,"name":"Grit Berghof","age":50}] |
+
+^ I hope thats not real passenger data we copied in - if so pls pls delete/change the names. Might be a good idea to make it obviously fake...
 
 ### Required Fields for Arrivals
 
@@ -203,7 +207,7 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 | origin_point_type/destination_point_type        | enum   | "Hotel" or "Terminal". These are not used because transfer_way already defines what the origin & destination point types are. |
 | orgin_terminal_type / destination_terminal_type | enum   | "Airport"                                                    |
 
-
+^ Do we really need this section? I'm curious what the objective with it is. It might be weird for other groups reading this doc, but idk what the audience plan is
 
 ### Example Bookings
 
@@ -225,7 +229,7 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 {"booking_id":"ASX-5006-1835811-1","touroperator_id":"5006-42180","ext_booking":"22077510","lead_pax_name":"MALJONEN  EERO  (L)","destination_id":"5006","total_pax":2,"combinable":false,"transfer_way":"Between hotels","vehicle_type":"Van / Minivan","operation_date":"2024-01-12","origin_point_type":"Hotel","origin_guest_hotel_id":"5006-8183","origin_stop_hotel_id":"5006-8183","destination_point_type":"Hotel","destination_guest_hotel_id":"5006-61586","destination_stop_hotel_id":"5006-61586","flight_exclusive":false,"booking_plan_status":"Pending","passengers":[{"passenger_id":1,"name":"MALJONEN  EERO  (L)","age":30},{"passenger_id":2,"name":"MALJONEN  EERO  (L)","age":30}],"welfare":false}}]
 ```
 
-
+^ Same concerns here as above. We should probably make them obviously fake
 
 ## Fields for Flights
 
@@ -255,6 +259,7 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 {'flight_id': '10027', 'flight_number': 'VY3832', 'flight_date': '2019-07-01T14:00:00+02:00', 'flight_way': 'Departure', 'origin_terminal_id': '1', 'destination_terminal_id': 'MUC'}}
 ```
 
+^ I think there are some optional fields here we didnt mention. Like flight.exclusive
 
 
 ## Sending Bookings & Flights via AWS Kinesis Data Streams
