@@ -337,6 +337,7 @@ Currently, if multiple **kinesis_rejection** messages are applicable, multiple S
 
 # Regular Planning
 
+^ It might be late in the game to mention this, but maybe something like "automated planning" is a better label than "regular planning"
 
 ## Where The Planning Window is Specified
 
@@ -415,24 +416,26 @@ Data includes the following fields:
 | rules                | [int]  | The Parameters object applicable to this trip                | [233]                                  |
 | duration             | int    | Duration of trips in minutes, estimated based on local speed limits | 55                                     |
 | distance             | int    | Distance in meters                                           | 58922                                  |
-| routes               | list   | List of routes. Routes are defined below.                    |                                        |
+| routes               | list   | List of stops. stops are defined below.                    |                                        |
 | remarks              |        |                                                              |                                        |
 | combinable           | bool   | Whether this trip contains combinable bookings               | "true"                                 |
 | welfare              | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to bookings where this field is set to true. | "false"                                |
-| exclusive_to         | bool   | Indicates if the trip was planned by an exclusive tour operator | "false"                                |
+| exclusive_to         | bool   | Indicates if the trip was planned for an exclusive tour operator | "false"                                |
 | change_origin        | enum   | What triggered the planning that output this plan. Options: Solver, Solver-trigger, Solver-replan, Insertion-replan, Dashboard, Supplier, Booking change response, Flight change response | "Dashboard"                            |
 | username             | string | Username that made the change that triggered the plan, if applicable | "tui-adfs thamara.villagran@tui.com"   |
 | locked               | bool   | Whether this trip is locked and will not be changed in regular planning | "false"                                |
-| feasible             | bool   | Whether the trip conforms to applicable business rules. Trips can be made that violate business rules using force_infeasible. | "false"                                |
+| feasible             | bool   | Whether the trip conforms to applicable business rules. Trips can be made that violate business rules via the API using force_infeasible. | "false"                                |
 | infeasibility_reason | string | Infeasible messages relevant to this trip                    | see example below                      |
 | total_pax            | int    | Total passengers on this trip                                | 5                                      |
 | free_seats           | int    | Number of seats not occupied in vehicle                      | 3                                      |
 | total_seats          | int    | Total seats in the vehicle                                   | 8                                      |
-| available_seats      | int    | Number of free_seats available for passenger usage. When COVID-19 restrictions were in place limiting the % of capacity that could be filled, available_seats was less than free_seats. | 3                                      |
+| available_seats      | int    | Number of free_seats available for passenger usage. For example when COVID-19 restrictions were in place limiting the % of capacity that could be filled, available_seats was less than free_seats. | 3                                      |
+
+^ We have an email in the username field - maybe we should make it fake? don't want to dox anyway
+^ In general we might want to do a once over and filter out any personal data that could b ein here
 
 
-
-Routes include the following fields:
+Stops include the following fields:
 
 | Field                   | Type     | Description                                                  | Example                                |
 | ----------------------- | -------- | ------------------------------------------------------------ | -------------------------------------- |
@@ -487,11 +490,11 @@ After the freeze date that is configured for the relevant destination (e.g. <2 d
 | Light Plan | Insertion Replan | To the extent possible, the solver will insert selected bookings into existing trips without changing the vehicles used. The remaining bookings will be planned seperately. | Airport: ?                                                   | POST /tui-cps/v1/bookings/insertion_replan                   |
 | [TBD]      | [TBD]            | Replan all bookings for the rest of the day without changing vehicles, affecting only passengers & vehicles that have not yet arrived at the airport. | Airport: When a flight gets delayed, ensure the affected passengers get an updated transfer plan, moving other passengers around as needed while minimizing the need to request new vehicles. | TBD                                                          |
 
-
+^ This section is great! I appreciate you left the name as TBD
 
 ## Manual Changes
 
-If the replan buttons cannot meet TUI staff's needs in some circumstances, then they can make manual changes to bookings & trips. These manual changes are made via API calls, which are triggered by buttons & other actions in Ermes.
+If the TUI staff wants fine-grain control, to make small adjustments, or override rules, then they can make manual changes to bookings & trips. These manual changes are made via API calls, which are triggered by buttons & other actions in Ermes.
 
 | Ermes Name                         | Description                                                  | Use Cases                                                    | API Call                                                     |
 | ---------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -501,6 +504,8 @@ If the replan buttons cannot meet TUI staff's needs in some circumstances, then 
 | Lock                               | Lock a trip so that changes cannot be made by replans        | Hub: ?<br />Airport: ?                                       | POST /tui-cps/v1/trips/lock_trips                            |
 | Bulk Unassign                      | Unassign bookings from trips manually. Mobi's solver will update the vehicle & optimize the route. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/bookings/bulk_unassign](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_bulk_unassign_create) |
 | Delete Trip                        | Delete a specific trip                                       | Hub: ?<br />Airport: ?                                       | [DELETE /tui-cps/v1/trips/{id}](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_destroy) |
+
+^ They also have the PATCH endpoint for changing the vehicle (I think that is the only remaining use of it)
 
 ## Invalid and Infeasible Messages
 
@@ -517,6 +522,8 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 ### Invalid Messages
 
 **[Internal note: We recently got feedback from Asela that she wants to change which category certain issues are in - is that completed? We should document the new state.]**
+
+^ I belive this is completed
 
 | message_id  | Message                                                      |
 | ----------- | ------------------------------------------------------------ |
@@ -589,6 +596,8 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 
 ![Master Data Download](./attachments/MasterDataDownload.jpg)
 
+^ I like this figure! My one worry is that I don't people to think this is the extend of the MD. Theres also prices, tour operators, terminals, etc etc
+
 As shown in the image above, one **Destination** can have multiple **Area Groups**. One **Area Group** can have multiple **Areas**, but an **Area** does not have to belong to an **Area Group**. One **Area** can have multiple **Airports** and multiple **Hotels**. **Vehicles** are specified per Destination.
 
 ## Destinations
@@ -605,7 +614,7 @@ Destinations tend to be either islands or broad regions surrounding a major city
 
 ## Transport Stations: Airports & Ports
 
-Airports & ports map to airports & ports in the real world. There may be multiple airports & ports in one tour Destination, but many have just one airport. These are specified as "transport stations" in the Master Data.
+Transport stations (?) map to airports & ports in the real world. There may be multiple airports & ports in one tour Destination, but many have just one airport. These are specified as "transport stations" in the Master Data.
 
 **Airport Example:**
 
@@ -621,7 +630,7 @@ Airports & ports map to airports & ports in the real world. There may be multipl
 
 ### Terminals
 
-Terminals map to airport terminals in the real world. One airport can have multiple terminals, while one terminal can only belong to one airport (specified as transport_station_id).
+Terminals map to airport, port, or transit terminals in the real world. A given airport/port/station can have multiple terminals, while one terminal can only belong to one station (specified as transport_station_id).
 
 **Terminal Example:** 
 
@@ -641,7 +650,7 @@ Hotels map to hotels in the real world. There are generally many hotels per Dest
 {'id': '5016-100393', 'area_id': '5016-LAGANAS', 'name': 'Majestic Spa', 'address': ', LAGANAS, 291 00 ZAKYNTHOS, GRECIA', 'destination_id': '5016', 'cmd_id': 'AC18743631', 'transport_setup': {'location': [37.72782089288549, 20.86380683604017], 'exclusive_hotel': False, 'first_stop': False, 'hotel_pickup_setups': [], 'audit_date': '2023-07-26T06:51:40.487941Z'}}
 ```
 
-**Hotel Group**: destination-level. One Hotel Group can have multiple hotels but hotel does not have to belong to a Hotel Group.
+**Hotel Group**: destination-level. One Hotel Group can have multiple hotels but a hotel does not have to belong to a Hotel Group.
 
 **Hotel Group Example:**
 
@@ -649,7 +658,7 @@ Hotels map to hotels in the real world. There are generally many hotels per Dest
 {'id': 18, 'name': 'CABINA CASA DE CAMPO', 'destination_id': '5002', 'checkpoint_waiting_time_arrival': 3, 'checkpoint_waiting_time_departure': 5}
 ```
 
-**Hotel Stop Priorities**: Specified per Destination and transfer_way. Determine which hotels are prioritized to be visited earlier than other areas.
+**Hotel Stop Priorities**: Specified per Destination and transfer_way. Can determine orders or partial orders in which hotels must be serviced.
 
 **Hotel Stop Priorities Example:**
 
@@ -664,6 +673,8 @@ Hotels map to hotels in the real world. There are generally many hotels per Dest
 **Vehicles** map to vehicles available for transporting passengers in the real world, either part of TUI's fleet or available from suppliers.
 
 Each Destination has vehicles specified separately. Attributes of a vehicle include type of vehicle, number of seats, quantity of vehicles available. When quantity is set to -1, the vehicle quantity can be considered unlimited.
+
+^ In TUI's data, vehicles are split up into several parts. Do we want to address that here?
 
 **Vehicle Example:**
 
@@ -689,7 +700,9 @@ As described in [Optimization Overview](#optimization-overview), many destinatio
 
 Cost = (# of Vehicle A x cost of Vehicle A) + (# of Vehicle B x cost of Vehicle B) + ... + (# of Vehicle Z x cost of Vehicle Z)
 
-In this case, Mobi needs a price for each vehicle. These prices are per **(TODO: per kilometer?)**
+^ Reminder that this cost structure is not quite correct
+
+In this case, Mobi needs a price for each vehicle. These prices are per **(TODO: per kilometer?)** < Would just remove this last part
 
 A price object shows price for the associated vehicle when it holds greater than pax_min passengers and less than pax_max passengers, from origin_point to destination_point (usually area object or terminal object). 
 
@@ -721,7 +734,7 @@ A vehicle can have multiple price objects, and a price object can belong to mult
 
 
 
-**Area Stop Priorities**: Destination-level. Determines which areas are prioritized and visited earlier than other areas in a certain transfer_way trip.
+**Area Stop Priorities**: Destination-level. Can determine orders or partial orders in which areas must be serviced.
 
 **Area Stop Priorities Example:**
 
@@ -733,7 +746,7 @@ A vehicle can have multiple price objects, and a price object can belong to mult
 
 ## Tour Operators
 
-Tour Operators are organizations that run tours in a specific destination. Business Rules are primarily set on a tour operator level, by specifying a set of Parameters by qa_rule_id for a given tour operator.
+Tour Operators are organizations that run tours in a specific destination. Business Rules are primarily set on a tour operator level by specifying a set of Parameters by qa_rule_id for a given tour operator.
 
 **Tour Operator Example:**
 
@@ -756,6 +769,8 @@ An optional piece of Master Data that can be used to specify if this hotel is ex
 ## Parameters 
 
 The Parameters object groups several business rules together. Each tour operator maps to a set of Parameters, via the qa_rule_id field.
+
+^ Not every tour operator has its own parameters
 
 ```
 {'id': 77, 'boarding_fix': 1, 'boarding_per_person': 0.1, 'max_stops_arrival': 99, 'max_stops_departure': 99, 'max_num_grouped_flights_arrival': 99, 'max_num_grouped_flights_departure': 99, 'max_time_in_vehicle_arrival': 65, 'max_time_in_vehicle_departure': 65, 'max_time_span_arrival': 0, 'max_time_span_departure': 120, 'max_time_to_flight_arrival': 20, 'max_time_to_flight_departure': 40, 'percentage_capacity': 100.0, 'min_age_takes_place': 0, 'first_planning_days_pickups': 0, 'first_planning_days_dropoffs': 0, 'first_planning_time_pickups': '07:00:00Z', 'first_planning_time_dropoffs': '07:00:00Z'}
@@ -846,6 +861,8 @@ This tells the Mobi Planner to replan all arrival bookings for Destination 5083 
 ## Master Data Processing Issues
 
 The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible messages that may be sent via AWS SNS. This section describes one category of messages: **processors** messages.
+
+^ Do we actually send these to TUI? I feel like we don't but maybe I'm out of the loop
 
 | message_id                               | Message                                                      |
 | ---------------------------------------- | ------------------------------------------------------------ |
