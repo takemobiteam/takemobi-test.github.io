@@ -469,7 +469,7 @@ After the freeze date that is configured for the relevant destination (e.g. <2 d
 
 ## Manual Changes
 
-If the replan buttons cannot meet TUI staff's needs in some circumstances, then they can make manual changes to bookings & trips. These manual changes are made via API calls, which are triggered by buttons & other actions in Ermes.
+If TUI staff want to make specific adjustments or override Business Rules, then they can make manual changes to Bookings & Trips. These manual changes are made via API calls, which are triggered by buttons & other actions in TUI's web portal.
 
 | Ermes Name                         | Description                                                  | Use Cases                                                    | API Call                                                     |
 | ---------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -493,8 +493,6 @@ When these APIs are called, there are 3 possible types of responses:
 The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible messages that may be sent via AWS SNS.
 
 ### Invalid Messages
-
-**[Internal note: We recently got feedback from Asela that she wants to change which category certain issues are in - is that completed? We should document the new state.]**
 
 | message_id  | Message                                                      |
 | ----------- | ------------------------------------------------------------ |
@@ -569,6 +567,8 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 
 As shown in the image above, one **Destination** can have multiple **Area Groups**. One **Area Group** can have multiple **Areas**, but an **Area** does not have to belong to an **Area Group**. One **Area** can have multiple **Airports** and multiple **Hotels**. **Vehicles** are specified per Destination.
 
+Master Data includes several other concepts as well, which are all described in this section.
+
 ## Destinations
 
 Destinations tend to be either islands or broad regions surrounding a major city. Island destinations include Mallorca and Zakynthos. Other destinations include Cancún and Antalya.
@@ -583,7 +583,7 @@ Destinations tend to be either islands or broad regions surrounding a major city
 
 ## Transport Stations: Airports & Ports
 
-Airports & ports map to airports & ports in the real world. There may be multiple airports & ports in one tour Destination, but many have just one airport. These are specified as "transport stations" in the Master Data.
+Transport stations map to airports & ports in the real world. There may be multiple airports & ports in one tour Destination, but many have just one airport.
 
 **Airport Example:**
 
@@ -599,7 +599,7 @@ Airports & ports map to airports & ports in the real world. There may be multipl
 
 ### Terminals
 
-Terminals map to airport terminals in the real world. One airport can have multiple terminals, while one terminal can only belong to one airport (specified as transport_station_id).
+Terminals map to airport, port, or transit terminals in the real world. A given transport station can have multiple terminals, while one terminal can only belong to one transport station (specified as transport_station_id).
 
 **Terminal Example:** 
 
@@ -619,7 +619,7 @@ Hotels map to hotels in the real world. There are generally many hotels per Dest
 {'id': '5016-100393', 'area_id': '5016-LAGANAS', 'name': 'Majestic Spa', 'address': ', LAGANAS, 291 00 ZAKYNTHOS, GRECIA', 'destination_id': '5016', 'cmd_id': 'AC18743631', 'transport_setup': {'location': [37.72782089288549, 20.86380683604017], 'exclusive_hotel': False, 'first_stop': False, 'hotel_pickup_setups': [], 'audit_date': '2023-07-26T06:51:40.487941Z'}}
 ```
 
-**Hotel Group**: destination-level. One Hotel Group can have multiple hotels but hotel does not have to belong to a Hotel Group.
+**Hotel Group**: Destination-level. One Hotel Group can have multiple hotels but a hotel does not have to belong to a Hotel Group.
 
 **Hotel Group Example:**
 
@@ -627,7 +627,7 @@ Hotels map to hotels in the real world. There are generally many hotels per Dest
 {'id': 18, 'name': 'CABINA CASA DE CAMPO', 'destination_id': '5002', 'checkpoint_waiting_time_arrival': 3, 'checkpoint_waiting_time_departure': 5}
 ```
 
-**Hotel Stop Priorities**: Specified per Destination and transfer_way. Determine which hotels are prioritized to be visited earlier than other areas.
+**Hotel Stop Priorities**: Specified per Destination and transfer_way. Can determine order in which hotels are visited.
 
 **Hotel Stop Priorities Example:**
 
@@ -697,7 +697,7 @@ A vehicle can have multiple price objects, and a price object can belong to mult
 
 
 
-**Area Stop Priorities**: Destination-level. Determines which areas are prioritized and visited earlier than other areas in a certain transfer_way trip.
+**Area Stop Priorities**: Destination-level. Can determine order in which areas are visited.
 
 **Area Stop Priorities Example:**
 
@@ -709,7 +709,7 @@ A vehicle can have multiple price objects, and a price object can belong to mult
 
 ## Tour Operators
 
-Tour Operators are organizations that run tours in a specific destination. Business Rules are primarily set on a tour operator level, by specifying a set of Parameters by qa_rule_id for a given tour operator.
+Tour Operators are organizations that run tours in a specific destination. Business Rules are primarily set on a tour operator level by specifying a set of Parameters by qa_rule_id for a given tour operator.
 
 **Tour Operator Example:**
 
@@ -731,7 +731,7 @@ An optional piece of Master Data that can be used to specify if this hotel is ex
 
 ## Parameters 
 
-The Parameters object groups several business rules together. Each tour operator maps to a set of Parameters, via the qa_rule_id field.
+The Parameters object groups several business rules together. Each tour operator can map to a set of Parameters, via the qa_rule_id field.
 
 ```
 {'id': 77, 'boarding_fix': 1, 'boarding_per_person': 0.1, 'max_stops_arrival': 99, 'max_stops_departure': 99, 'max_num_grouped_flights_arrival': 99, 'max_num_grouped_flights_departure': 99, 'max_time_in_vehicle_arrival': 65, 'max_time_in_vehicle_departure': 65, 'max_time_span_arrival': 0, 'max_time_span_departure': 120, 'max_time_to_flight_arrival': 20, 'max_time_to_flight_departure': 40, 'percentage_capacity': 100.0, 'min_age_takes_place': 0, 'first_planning_days_pickups': 0, 'first_planning_days_dropoffs': 0, 'first_planning_time_pickups': '07:00:00Z', 'first_planning_time_dropoffs': '07:00:00Z'}
@@ -821,7 +821,7 @@ This tells the Mobi Planner to replan all arrival bookings for Destination 5083 
 
 ## Master Data Processing Issues
 
-The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible messages that may be sent via AWS SNS. This section describes one category of messages: **processors** messages.
+These messages are not currently sent to TUI, but are flagged within the Continous Planning System.
 
 | message_id                               | Message                                                      |
 | ---------------------------------------- | ------------------------------------------------------------ |
