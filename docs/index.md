@@ -18,19 +18,19 @@
 
 # Overview
 
-**TUI's Transfer Service** provides guests with rides between places during tours: from the airport to their hotel and back, to ports and back for cruises, and between hotels for multi-hotel vacations. Each one-way ride is a **Transfer**. Mobi's Continuous Planning Service enables TUI’s Transfer Service to operate efficiently by scheduling optimized trips with TUI’s fleet in advance and enabling fast on-the-fly adjustments in response to disruptions like flight delays or vehicle breakdowns.
+**TUI's Transfer Service** provides guests with rides between places during tours: from the airport to their hotel and back, to ports and back for cruises, and between hotels for multi-hotel vacations. Each one-way ride is a **Transfer**. Mobi's Continuous Planning Service enables TUI’s Transfer Service to operate efficiently by planning optimized trips in advance and enabling fast on-the-fly adjustments in response to disruptions like flight delays or vehicle breakdowns.
 
 ## Inputs and Outputs
 
 The Mobi Planner turns **Bookings** and **Flights** into **Trips**. For a single tour, a group of guests will have separate Bookings for their **Arrival** to the tour **Destination** and their **Departure** from the tour Destination.
 
-### Example Bookings, Flights, and Trip for 3 Arrivals to Palma de Mallorca
+### Example Bookings, Flights, and Trip for 3 Arrivals to Mallorca
 
 ![Bookings To Trips](./attachments/BookingsToTrips2.png)
 
 ## Data Flow Overview
 
-The image below shows the timing around how the Mobi Planner turns Bookings and Flights into Trips, as well as how planning staff can affect Trips more directly using buttons in the client interface.
+The image below shows the timing around how the Mobi Planner turns Bookings and Flights into Trips, as well as how planning staff can affect Trips more directly using buttons in TUI's web portal.
 
 ### Data Flow Diagram: 1 Date in 1 Destination
 
@@ -80,7 +80,7 @@ API calls enable planning staff to make adjustments to plans as needed. These AP
 
 ### Cost Functions
 
-The Continuous Planning System optimizes for cost while following business rules. In order to optimize for cost, we must first define what cost is. TUI's Transfer Service operates in many tour **Destinations**, which tend to be either islands or broad regions surrounding a major city (e.g Mallorca, Zakynthos, Antalya, Cancún). Each Destination has a specific **Cost Function** that defines the cost to be minimized during planning. The cost function is specified for each Destination in **Master Data**, relatively static data that includes information about physical places and the business rules that should apply to relevant bookings during planning.
+The Continuous Planning System optimizes for cost while following business rules. In order to optimize for cost, we must first define what cost is. TUI's Transfer Service operates in many tour **Destinations**, which tend to be either islands or broad regions surrounding a major city (e.g Mallorca, Zakynthos, Antalya, Cancún). Each Destination has a specific **Cost Function** that defines the cost to be minimized during planning. The cost function is specified for each Destination in **Master Data**, relatively static data that includes information about physical places and the business rules that should apply to relevant Bookings during planning.
 
 There are 2 types of Cost Functions for TUI's Transfer Service:
 
@@ -105,7 +105,7 @@ Example Business Rules:
 
 ### Ferries
 
-Some tours involve guests arriving in an airport on one island, then taking a ferry to another island to reach their hotel. The Continuous Planning System can handle this case, ensuring the guest has both a transfer from the airport to the port and also from the other port to their hotel.
+Some tours involve guests arriving in an airport on one island, then taking a ferry to another island to reach their hotel. The Continuous Planning System can handle this case, ensuring the guest has both a Transfer from the airport to the port and also from the other port to their hotel.
 
 ### Feeders
 
@@ -124,8 +124,8 @@ A **Booking** represents a need for a one-way Transfer (a ride in a vehicle) for
 
 For every group who books a tour together, there will generally be 2 one-way Bookings sent to Mobi because there are 2 one-way Transfers. For example, if the group is going to Cancún, there would be the following 2 one-way Bookings:
 
-- **Arrival** to a tour Destination: a transfer picks up the group at the Cancún airport & brings them to their hotel
-- **Departure** from a tour Destination: a transfer picks up the group at their hotel & brings them to the Cancún airport
+- **Arrival** to a tour Destination: a Transfer picks up the group at the Cancún airport & brings them to their hotel
+- **Departure** from a tour Destination: a tTansfer picks up the group at their hotel & brings them to the Cancún airport
 
 Guests that have itineraries involving multiple Hotels may have additional transfers, so they would have 1 or more additional Bookings with the "Between Hotels" type.
 
@@ -147,16 +147,16 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 | destination_id   | string | Associated Destination for the tour. For an Arrival, this will be where the passengers are arriving to. For a Departure, this will be where the passengers are departing from. | "5006"                                                       |
 | touroperator_id  | string | Associated tour operator, identifying rules this booking needs to obey in planning. Each tour operator is specific to a Destination. | "5006-205747"                                                |
 | combinable       | bool   | Whether the Booking can be combined with other Bookings (e.g. VIP Bookings cannot be combined) | "true"                                                       |
-| flight_exclusive | bool   | Whether the Flight cannot be combined with other Flights. If operators think a flight is likely to be delayed, they may use this field to ensure a delay won't affect a large portion of the plan. | "false"                                                      |
+| flight_exclusive | bool   | Whether the Flight cannot be combined with other Flights. If staff think a flight is likely to be delayed, they may use this field to ensure a delay won't affect a large portion of the plan. | "false"                                                      |
 | welfare          | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to Bookings where this field is set to true. | "false"                                                      |
-| passengers       | dict   | Includes passenger_id (int starting from 1), name (string), & age (int). Upon ingestion of the Booking, ages of passengers are checked against min_age (specified in master data per tour operator). By default passengers with age under 2 are assumed to be infants in arms and not require a seat. Mobi does not use the passenger information aside from this age check. | "passengers":[{"passenger_id":1,"name":"Firstname Lastname","age":54},{"passenger_id":2,"name":"Firstname Lastname","age":50}] |
+| passengers       | dict   | Includes passenger_id (int starting from 1), name (string), & age (int). Upon ingestion of the Booking, ages of passengers are checked against min_age (specified in Master Data per tour operator). By default passengers with age under 2 are assumed to be infants in arms and not require a seat. Mobi does not use the passenger information aside from this age check. | "passengers":[{"passenger_id":1,"name":"Firstname Lastname","age":54},{"passenger_id":2,"name":"Firstname Lastname","age":50}] |
 
 ### Required Fields for Arrivals
 
 | Field                     | Type   | Description                                                  | Example             |
 | ------------------------- | ------ | ------------------------------------------------------------ | ------------------- |
 | origin_flight_id          | string | Associated Flight ID. String includes destination_id.        | "ASX-5175-347722-1" |
-| destination_stop_hotel_id | string | Hotel ID for the hotel where the transfer should drop the guests off. String includes destination_id. | "5175-64985"        |
+| destination_stop_hotel_id | string | Hotel ID for the hotel where the Transfer should drop the guests off. String includes destination_id. | "5175-64985"        |
 
 ### Required Fields for Departures
 
@@ -164,8 +164,8 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 | ------------------------ | ------ | ------------------------------------------------------------ | ------------------ |
 | destination_flight_id    | string | Associated Flight ID. String includes destination_id.        | "ASX-5006-1333547" |
 | origin_stop_hotel_id     | string | Hotel id for the hotel where the Transfer should pick up the guests. String includes destination_id. | "5006-7729"        |
-| presentation_window_from | int    | How many minutes ***at most*** the transfer can arrive at the airport before the flight departure time. e.g. 180 means the transfer can arrive at most 3 hours before the flight departure. | 180                |
-| presentation_window_to   | int    | How many minutes ***at least*** the transfer can arrive at the airport before the flight departure time. e.g. 120 means the transfer can arrive at most 2 hour before the flight departure. | 120                |
+| presentation_window_from | int    | How many minutes ***at most*** the transfer can arrive at the airport before the flight departure time. e.g. 180 means the Transfer can arrive at most 3 hours before the flight departure. | 180                |
+| presentation_window_to   | int    | How many minutes ***at least*** the transfer can arrive at the airport before the flight departure time. e.g. 120 means the Transfer can arrive at most 2 hour before the flight departure. | 120                |
 
 ### Optional Fields
 
@@ -219,8 +219,8 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 | flight_id               | string   | Unique ID for each Flight                                    | "10027"                     |
 | flight_way              | enum     | Whether a Flight is an Arrival to a tour Destination, or a Departure from a tour Destination. Possible values: "Arrival", "Departure". | "Departure"                 |
 | flight_date             | datetime | Date/time of Flight Arrival or Departure, depending on the flight_way | "2019-07-01T14:00:00+02:00" |
-| destination_terminal_id | string   | Terminal that Flight arrives in. If an Arrival, use this as the terminal for the booking. | "MUC"                       |
-| original_terminal_id    | string   | Terminal that Flight departs from. If a Departure, use this as the terminal for the booking. | "1"                         |
+| destination_terminal_id | string   | Terminal that Flight arrives in. If an Arrival, use this as the terminal for the Booking. | "MUC"                       |
+| original_terminal_id    | string   | Terminal that Flight departs from. If a Departure, use this as the terminal for the Booking. | "1"                         |
 
 ### Fields TUI Sends but Mobi Does Not Use
 
@@ -255,9 +255,9 @@ When a Booking comes in via the Kinesis stream, it gets ingested but not planned
   - saved (creating a new Booking or Flight, or updating it) - requires the Booking or Flight object with all required fields.
     - If a Booking or Flight comes in with a new booking_id or flight_id, it will be created
     - If a Booking or Flight comes in with an existing booking_id or flight_id, it will be updated
-    - The booking_id & flight_id are globally unique across destinations & dates
+    - The booking_id & flight_id are globally unique across Destinations & dates
   - deleted (deleting a Booking or Flight) - requires just the booking_id or flight_id
-    - If a Booking has already been assigned to a trip, deleting it will remove it from the relevant trip and will update the trip's schedule as needed
+    - If a Booking has already been assigned to a trip, deleting it will remove it from the relevant trip and will update the Trip's schedule as needed
   - locked (locking a Booking) - requires just the booking_id
     - Locking a Booking means it will not be affected by [Regular Planning](#regular-planning)
   - unlocked (unlocking a Booking) - requires just the booking_id
@@ -291,7 +291,7 @@ Payload fields for bookings & flights are specified in these sections:
 
 The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible messages that may be sent in AWS Kinesis Data Streams. This section describes one category of messages: **kinesis_rejection** messages.
 
-**kinesis_rejection** messages indicate that a booking or a flight has been sent into the system, but data validation checks upon ingestion from Kinesis indicated that the Booking or Flight had issues which would make it impossible to process. 
+**kinesis_rejection** messages indicate that a Booking or a Flight has been sent into the system, but data validation checks upon ingestion from Kinesis indicated that the Booking or Flight had issues which would make it impossible to process. 
 
 Currently, if multiple **kinesis_rejection** messages are applicable, multiple SNS messages will be sent. ***In the future, a single SNS message will be sent with all the applicable messages for the booking or flight.***
 
@@ -318,12 +318,12 @@ Currently, if multiple **kinesis_rejection** messages are applicable, multiple S
 
 ## Where The Planning Window is Specified
 
-- The start of the planning window for a particular destination is specified by the first_planning_time fields, as part of **Parameters** in Master Data
+- The start of the Planning Window for a particular Destination is specified by the first_planning_time fields, as part of **Parameters** in Master Data
   - First planning time pickups
   - First planning days pickups
   - First planning time dropoffs
   - First planning days dropoffs
-- The end of the planning window for a particular destination is specified by the stop_free_replan fields, as part of the **Destination** in Master Data
+- The end of the Planning Window for a particular Destination is specified by the stop_free_replan fields, as part of the **Destination** in Master Data
   - Stop free replan time pickups
   - Stop free replan days pickups
   - Stop free replan time dropoffs
@@ -333,7 +333,7 @@ Currently, if multiple **kinesis_rejection** messages are applicable, multiple S
 
 The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible messages that may be sent via AWS SNS. This section describes one category: **preprocessing** messages.
 
-At the start of planning, the system runs preprocessing checks to ensure that the bookings are viable for planning. If an issue is found, a Booking Discard message is sent via AWS SNS. These messages generally begin with "BD_" where BD stands for Booking Discards.
+At the start of planning, the system runs preprocessing checks to ensure that the Bookings are viable for planning. If an issue is found, a Booking Discard message is sent via AWS SNS. These messages generally begin with "BD_" where BD stands for Booking Discards.
 
 When a preprocessing issue occurs & a Booking Discard message is sent, the Booking is ignored during Regular Planning until it is altered (an updated version is sent either via the AWS Kinesis Data Stream or via API call).
 
@@ -370,9 +370,9 @@ When a preprocessing issue occurs & a Booking Discard message is sent, the Booki
 
 # Trips
 
-Trips are sent back as records in a AWS Kinesis Data Stream, each record representing one or more trips. Records include metadata and a payload. 
+Trips are sent back as records in a AWS Kinesis Data Stream, each record representing one or more Trips. Records include metadata and a payload. 
 
-Each Trip has a unique transfer_id. If a Trip is updated or deleted during regular planning or via API calls, a record will be sent with the same transfer_id as a trip that has been sent previously.
+Each Trip has a unique transfer_id. If a Trip is updated or deleted during Regular Planning or via API calls, a record will be sent with the same transfer_id as a trip that has been sent previously.
 
 Metadata specifies:
 
@@ -383,10 +383,10 @@ Data includes the following fields:
 
 | Field                | Type   | Description                                                  | Example                                |
 | -------------------- | ------ | ------------------------------------------------------------ | -------------------------------------- |
-| transfer_id          | string | Unique id for each trip                                      | "8496be06-656f-4403-ae67-b38fa8c5874c" |
-| date                 | string | Date of transfer (YYYY-MM-DD)                                | "2024-01-25"                           |
-| destination_id       | string | Associated destination                                       | "5006"                                 |
-| bookings             | list   | List of bookings, by booking_id                              | ["ASX-5006-1834847-3"]                 |
+| transfer_id          | string | Unique id for each Trip                                      | "8496be06-656f-4403-ae67-b38fa8c5874c" |
+| date                 | string | Date of Trip (YYYY-MM-DD)                                    | "2024-01-25"                           |
+| destination_id       | string | Associated Destination                                       | "5006"                                 |
+| bookings             | list   | List of Bookings, by booking_id                              | ["ASX-5006-1834847-3"]                 |
 | vehicle_id           | int    | Type of vehicle                                              | "5006-VAN 8-MX0-V-10080"               |
 | vehicle_sign         | string | Sign number for the vehicle (auto-generated 1-99)            | "29"                                   |
 | transfer_way         | enum   | Whether a flight is an arrival to a Destination, or a departure from a Destination. Possible values: "arrival", "departure", "between hotels" | "arrival"                              |
@@ -394,23 +394,23 @@ Data includes the following fields:
 | duration             | int    | Duration of trips in minutes, estimated based on local speed limits | 55                                     |
 | distance             | int    | Distance in meters                                           | 58922                                  |
 | routes               | list   | List of stops. Table below defines the fields in the routes object. |                                        |
-| remarks              | string | Notes about the trip                                         |                                        |
-| combinable           | bool   | Whether this trip contains combinable bookings               | "true"                                 |
-| welfare              | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to bookings where this field is set to true. | "false"                                |
+| remarks              | string | Notes about the Trip                                         |                                        |
+| combinable           | bool   | Whether this trip contains combinable Bookings               | "true"                                 |
+| welfare              | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to Bookings where this field is set to true. | "false"                                |
 | exclusive_to         | bool   | Indicates if the trip was planned for an exclusive tour operator | "false"                                |
-| change_origin        | enum   | What triggered the planning that output this plan. Options: Solver, Solver-trigger, Solver-replan, Insertion-replan, Dashboard, Supplier, Booking change response, Flight change response | "Dashboard"                            |
-| username             | string | Username that made the change that triggered the plan, if applicable | "tui-adfs_username@tui.com"            |
-| locked               | bool   | Whether this trip is locked and will not be changed in regular planning | "false"                                |
+| change_origin        | enum   | What triggered the planning that output this Trip. Options: Solver, Solver-trigger, Solver-replan, Insertion-replan, Dashboard, Supplier, Booking change response, Flight change response | "Dashboard"                            |
+| username             | string | Username that made the API call that triggered the planning, if applicable | "tui-adfs_username@tui.com"            |
+| locked               | bool   | Whether this Trip is locked and will not be changed in Regular Planning | "false"                                |
 | feasible             | bool   | Whether the trip conforms to applicable Business Rules. Trips can be made via API calls that violate Business Rules if force_infeasible is set to True. | "false"                                |
-| infeasibility_reason | string | Infeasible messages relevant to this trip                    | see example below                      |
-| total_pax            | int    | Total passengers on this trip                                | 5                                      |
+| infeasibility_reason | string | Infeasible messages relevant to this Trip                    | see example below                      |
+| total_pax            | int    | Total passengers on this Trip                                | 5                                      |
 | free_seats           | int    | Number of seats not occupied in vehicle                      | 3                                      |
 | total_seats          | int    | Total seats in the vehicle                                   | 8                                      |
 | available_seats      | int    | Number of free_seats available for passenger usage. For example when COVID-19 restrictions were in place limiting the % of capacity that could be filled, available_seats was less than free_seats. | 3                                      |
 
 
 
-The routes object include the following fields:
+The routes object include the following fields for each stop in the Trip:
 
 | Field                   | Type     | Description                                                  | Example                                |
 | ----------------------- | -------- | ------------------------------------------------------------ | -------------------------------------- |
@@ -418,12 +418,12 @@ The routes object include the following fields:
 | date_time               | datetime | Datetime of stop                                             | "2024-01-25T15:55:00+00:00"            |
 | stop_id                 | string   | Unique id for this stop on this trip                         | "b1db04fa-719f-470f-b06f-55b03af0c260" |
 | feeder_meeting_point    | bool     | Whether the stop is a feeder meeting point, where other vehicles will pick up or drop off passengers for these bookings | false                                  |
-| pickup_bookings         | list     | List of bookings, by booking_id, that will be picked up at this stop | ["ASX-5006-1834847-3"]                 |
-| dropoff_bookings        | list     | List of bookings, by booking_id, that will be dropped off at this stop | ["ASX-5006-1834847-3"]                 |
+| pickup_bookings         | list     | List of Bookings, by booking_id, that will be picked up at this stop | ["ASX-5006-1834847-3"]                 |
+| dropoff_bookings        | list     | List of Bookings, by booking_id, that will be dropped off at this stop | ["ASX-5006-1834847-3"]                 |
 | point_type              | enum     | One of the following: Shuttle, Hotel, Terminal.              | "Terminal"                             |
 | terminal_type           | enum     | If point_type is "Terminal", the type of terminal. Currently "Airport" is the only value. | "Airport"                              |
 | terminal_id             | string   | If point_type is Terminal, the id of the terminal            | "CUN-NA"                               |
-| stop_hotel_id           | string   | If point_type is Hotel, the id of the hotel. This generally includes the destination. | "5006-15902"                           |
+| stop_hotel_id           | string   | If point_type is Hotel, the id of the hotel. String includes destination_id. | "5006-15902"                           |
 | distance_from_last_stop | int      | Distance from last stop (km)                                 | 59                                     |
 
 
@@ -456,14 +456,14 @@ The routes object include the following fields:
 
 ## Requesting a Replan
 
-After the freeze date that is configured for the relevant destination (e.g. <2 days prior to planned date), Mobi will not replan automatically even if new bookings, changes to bookings, or changes to flights are received. If a replan is needed then it must be requested via an API call. These replan API calls are triggered by buttons in the Ermes interface.
+After the freeze date that is configured for the relevant destination (e.g. <2 days prior to planned date), Mobi will not replan automatically even if new bookings, changes to bookings, or changes to flights are received. If a replan is needed then it must be requested via an API call. These replan API calls are triggered by buttons in TUI's web portal.
 
 | Ermes Name | Mobi Name        | Description                                                  | Use Cases                                                    | API Call                                                     |
 | ---------- | ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| New Plan   | Replan           | Create new trips to handle these bookings, without affecting existing trips. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/bookings/replan](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_replan_create) |
-| Full Plan  | Domino Replan    | Solver will plan the selected bookings and may make any changes needed to the existing plan to maintain optimality. | Hub: ?<br />Airport: ?                                       | POST /tui-cps/v1/bookings/domino_replan                      |
-| Light Plan | Insertion Replan | To the extent possible, the solver will insert selected bookings into existing trips without changing the vehicles used. The remaining bookings will be planned seperately. | Airport: ?                                                   | POST /tui-cps/v1/bookings/insertion_replan                   |
-| [TBD]      | [TBD]            | Replan all bookings for the rest of the day without changing vehicles, affecting only passengers & vehicles that have not yet arrived at the airport. | Airport: When a flight gets delayed, ensure the affected passengers get an updated transfer plan, moving other passengers around as needed while minimizing the need to request new vehicles. | TBD                                                          |
+| New Plan   | Replan           | Create new Trips to handle these Bookings, without affecting existing Trips. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/bookings/replan](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_replan_create) |
+| Full Plan  | Domino Replan    | The Mobi Planner will plan the selected Bookings and may make any changes needed to maintain optimality. | Hub: ?<br />Airport: ?                                       | POST /tui-cps/v1/bookings/domino_replan                      |
+| Light Plan | Insertion Replan | To the extent possible, the Mobi Planner will insert selected Bookings into existing Trips without changing the vehicles used. The remaining Bookings will be planned seperately. | Airport: ?                                                   | POST /tui-cps/v1/bookings/insertion_replan                   |
+| [TBD]      | [TBD]            | Replan all Bookings for the rest of the day without changing vehicles, affecting only passengers & vehicles that have not yet arrived at the airport. | Airport: When a flight gets delayed, ensure the affected passengers get an updated transfer plan, moving other passengers around as needed while minimizing the need to request new vehicles. | TBD                                                          |
 
 
 
@@ -473,12 +473,12 @@ If TUI staff want to make specific adjustments or override Business Rules, then 
 
 | Ermes Name                         | Description                                                  | Use Cases                                                    | API Call                                                     |
 | ---------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| Bulk Assign                        | Assign bookings to existing trips manually. Mobi's solver will update the vehicle & optimize the route. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/trips/{id}/bulk_assign_bookings](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_bulk_assign_bookings_create) |
+| Bulk Assign                        | Assign Bookings to existing Trips manually. The Mobi Planner will update the vehicle & optimize the stops. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/trips/{id}/bulk_assign_bookings](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_bulk_assign_bookings_create) |
 | Edit parking number or sign number | Edit parking number or sign number                           | Hub: ?<br />Airport: Assign parking number or change sign number when vehicle arrives to parking, so that airport employees in other places can direct guests to the right parking area and sign number. Especially useful for big airports, replaces the need for calling on walkie talkies and mobile phones to communicate things like this. | [PATCH /tui-cps/v1/trips/{id}](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_partial_update) |
-| Create trip                        | Create new trip with specified bookings, vehicle, and sign number | Hub: When receiving new bookings or changes to bookings after the freeze date, create a new trip when needed then use bulk assign to assign bookings to that new trip.<br />Airport: ? | [POST /tui-cps/v1/trips](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_create) |
-| Lock                               | Lock a trip so that changes cannot be made by replans        | Hub: ?<br />Airport: ?                                       | POST /tui-cps/v1/trips/lock_trips                            |
-| Bulk Unassign                      | Unassign bookings from trips manually. Mobi's solver will update the vehicle & optimize the route. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/bookings/bulk_unassign](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_bulk_unassign_create) |
-| Delete Trip                        | Delete a specific trip                                       | Hub: ?<br />Airport: ?                                       | [DELETE /tui-cps/v1/trips/{id}](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_destroy) |
+| Create trip                        | Create new Trip with specified Bookings, vehicle, and sign number | Hub: When receiving new Bookings or changes to bookings after the Planning Window ends, create a new Trip when needed then use bulk assign to assign Bookings to that new Trip.<br />Airport: ? | [POST /tui-cps/v1/trips](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_create) |
+| Lock                               | Lock a Trip so that changes cannot be made by replans        | Hub: ?<br />Airport: ?                                       | POST /tui-cps/v1/trips/lock_trips                            |
+| Bulk Unassign                      | Unassign Bookings from Trips manually. The Mobi Planner will update the vehicle & optimize the route. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/bookings/bulk_unassign](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_bulk_unassign_create) |
+| Delete Trip                        | Delete a specific Trip                                       | Hub: ?<br />Airport: ?                                       | [DELETE /tui-cps/v1/trips/{id}](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_destroy) |
 
 ## Invalid and Infeasible Messages
 
@@ -486,7 +486,7 @@ When these APIs are called, there are 3 possible types of responses:
 
 - Success - The API call succeeded and will take effect
 - Invalid - The request cannot be completed, because a required field is missing or a critical constraint would be violated. More information about the specific issue will be provided in the response.
-- Infeasible - The request will not be completed, because it violates business rules. If the request is re-sent with "force_infeasible" set to True, the request can be completed. More information about the specific issue will be provided in the response.
+- Infeasible - The request will not be completed, because it violates Business Rules. If the request is re-sent with "force_infeasible" set to True, the request can be completed. More information about the specific issue will be provided in the response.
 
 
 
@@ -559,7 +559,7 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 
 ## Overview
 
-**Master Data** is relatively static data that includes information about physical places and the Business Rules that should apply to relevant bookings during planning. Business rules specified in the Bookings themselves generally override Business Rules supplied in Master Data. 
+**Master Data** is relatively static data that includes information about physical places and the Business Rules that should apply to relevant Bookings during planning. Business Rules specified in the Bookings themselves generally override Business Rules supplied in Master Data. 
 
 ## Key Concepts in Master Data
 
@@ -731,7 +731,7 @@ An optional piece of Master Data that can be used to specify if this hotel is ex
 
 ## Parameters 
 
-The Parameters object groups several business rules together. Each tour operator can map to a set of Parameters, via the qa_rule_id field.
+The Parameters object groups several Business Rules together. Each tour operator can map to a set of Parameters, via the qa_rule_id field.
 
 ```
 {'id': 77, 'boarding_fix': 1, 'boarding_per_person': 0.1, 'max_stops_arrival': 99, 'max_stops_departure': 99, 'max_num_grouped_flights_arrival': 99, 'max_num_grouped_flights_departure': 99, 'max_time_in_vehicle_arrival': 65, 'max_time_in_vehicle_departure': 65, 'max_time_span_arrival': 0, 'max_time_span_departure': 120, 'max_time_to_flight_arrival': 20, 'max_time_to_flight_departure': 40, 'percentage_capacity': 100.0, 'min_age_takes_place': 0, 'first_planning_days_pickups': 0, 'first_planning_days_dropoffs': 0, 'first_planning_time_pickups': '07:00:00Z', 'first_planning_time_dropoffs': '07:00:00Z'}
@@ -801,7 +801,7 @@ The record contains a list of fields which have changed, along with their update
 
 
 
-In addition to indicating that a Master Data record should be updated, the record can also instruct the Mobi Planner to replan a set of bookings after the data change has been processed.  For example, the `bookings` field may be set to something like:
+In addition to indicating that a Master Data record should be updated, the record can also instruct the Mobi Planner to replan a set of Bookings after the data change has been processed.  For example, the `bookings` field may be set to something like:
 
 ```
 "bookings": ["XXX-5027-23457", "XXX-5027-23273"]
