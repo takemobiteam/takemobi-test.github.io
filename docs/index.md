@@ -393,24 +393,24 @@ Data includes the following fields:
 | rules                | [int]  | The Parameters object applicable to this trip                | [233]                                  |
 | duration             | int    | Duration of trips in minutes, estimated based on local speed limits | 55                                     |
 | distance             | int    | Distance in meters                                           | 58922                                  |
-| routes               | list   | List of routes. Routes are defined below.                    |                                        |
+| routes               | list   | List of stops. Table below defines the fields in the routes object. |                                        |
 | remarks              | string | Notes about the trip                                         |                                        |
 | combinable           | bool   | Whether this trip contains combinable bookings               | "true"                                 |
 | welfare              | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to bookings where this field is set to true. | "false"                                |
-| exclusive_to         | bool   | Indicates if the trip was planned by an exclusive tour operator | "false"                                |
+| exclusive_to         | bool   | Indicates if the trip was planned for an exclusive tour operator | "false"                                |
 | change_origin        | enum   | What triggered the planning that output this plan. Options: Solver, Solver-trigger, Solver-replan, Insertion-replan, Dashboard, Supplier, Booking change response, Flight change response | "Dashboard"                            |
-| username             | string | Username that made the change that triggered the plan, if applicable | "tui-adfs username@tui.com"            |
+| username             | string | Username that made the change that triggered the plan, if applicable | "tui-adfs_username@tui.com"            |
 | locked               | bool   | Whether this trip is locked and will not be changed in regular planning | "false"                                |
-| feasible             | bool   | Whether the trip conforms to applicable business rules. Trips can be made that violate business rules using force_infeasible. | "false"                                |
+| feasible             | bool   | Whether the trip conforms to applicable Business Rules. Trips can be made via API calls that violate Business Rules if force_infeasible is set to True. | "false"                                |
 | infeasibility_reason | string | Infeasible messages relevant to this trip                    | see example below                      |
 | total_pax            | int    | Total passengers on this trip                                | 5                                      |
 | free_seats           | int    | Number of seats not occupied in vehicle                      | 3                                      |
 | total_seats          | int    | Total seats in the vehicle                                   | 8                                      |
-| available_seats      | int    | Number of free_seats available for passenger usage. When COVID-19 restrictions were in place limiting the % of capacity that could be filled, available_seats was less than free_seats. | 3                                      |
+| available_seats      | int    | Number of free_seats available for passenger usage. For example when COVID-19 restrictions were in place limiting the % of capacity that could be filled, available_seats was less than free_seats. | 3                                      |
 
 
 
-Routes include the following fields:
+The routes object include the following fields:
 
 | Field                   | Type     | Description                                                  | Example                                |
 | ----------------------- | -------- | ------------------------------------------------------------ | -------------------------------------- |
@@ -431,7 +431,7 @@ Routes include the following fields:
 ***Example Plan Record With One Booking:***
 
 ```
-{'Data': '{"metadata": {"content-type": "vnd.response-planning-event.v1", "operation": "saved"}, "payload": {"transfer_id": "8496be06-656f-4403-ae67-b38fa8c5874c", "date": "2024-01-25", "destination_id": 5006, "bookings": ["ASX-5006-1834847-3"], "vehicle_id": "5006-VAN 8-MX0-V-10080", "vehicle_sign": "29", "transfer_way": "arrival", "rules": ["233"], "duration": 55, "distance": 58922, **"routes": [{"stop_order": 0, "date_time": "2024-01-25T15:55:00+00:00", "stop_id": "b1db04fa-719f-470f-b06f-55b03af0c260", "feeder_meeting_point": false, "pickup_bookings": ["ASX-5006-1834847-3"], "point_type": "Terminal", "terminal_type": "Airport", "terminal_id": "CUN-NA", "distance_from_last_stop": 0}, {"stop_order": 1, "date_time": "2024-01-25T16:45:00+00:00", "stop_id": "3bf35cb0-7f14-485c-a73c-80c02a085ed7", "feeder_meeting_point": false, "dropoff_bookings": ["ASX-5006-1834847-3"], "point_type": "Hotel", "stop_hotel_id": "5006-15902", "distance_from_last_stop": 59}],** "remarks": [], "combinable": true, "welfare": false, "exclusive_to": false, "change_origin": "Dashboard", "username": "[tui-adfs_thamara.villagran@tui.com](mailto:tui-username@tui.com)", "locked": true, "feasible": true, "infeasibility_reason": [], "total_pax": 5, "free_seats": 3, "total_seats": 8, "available_seats": 3}
+{'Data': '{"metadata": {"content-type": "vnd.response-planning-event.v1", "operation": "saved"}, "payload": {"transfer_id": "8496be06-656f-4403-ae67-b38fa8c5874c", "date": "2024-01-25", "destination_id": 5006, "bookings": ["ASX-5006-1834847-3"], "vehicle_id": "5006-VAN 8-MX0-V-10080", "vehicle_sign": "29", "transfer_way": "arrival", "rules": ["233"], "duration": 55, "distance": 58922, **"routes": [{"stop_order": 0, "date_time": "2024-01-25T15:55:00+00:00", "stop_id": "b1db04fa-719f-470f-b06f-55b03af0c260", "feeder_meeting_point": false, "pickup_bookings": ["ASX-5006-1834847-3"], "point_type": "Terminal", "terminal_type": "Airport", "terminal_id": "CUN-NA", "distance_from_last_stop": 0}, {"stop_order": 1, "date_time": "2024-01-25T16:45:00+00:00", "stop_id": "3bf35cb0-7f14-485c-a73c-80c02a085ed7", "feeder_meeting_point": false, "dropoff_bookings": ["ASX-5006-1834847-3"], "point_type": "Hotel", "stop_hotel_id": "5006-15902", "distance_from_last_stop": 59}],** "remarks": [], "combinable": true, "welfare": false, "exclusive_to": false, "change_origin": "Dashboard", "username": "[tui-adfs_username@tui.com](mailto:tui-username@tui.com)", "locked": true, "feasible": true, "infeasibility_reason": [], "total_pax": 5, "free_seats": 3, "total_seats": 8, "available_seats": 3}
 ```
 
 
