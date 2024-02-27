@@ -63,7 +63,7 @@ Once the Planning Window ends for a particular Destination & date of travel, Reg
 
 ## API Overview
 
-API calls enable planning staff to make adjustments to plans as needed. These API calls can be triggered via the client's interface for staff, e.g. via buttons in a web portal that shows the Trips. While in many cases API calls are used on the date of travel, they can also be used in advance of the date of travel as needed.
+API calls enable planning staff to make adjustments to plans as needed. These API calls can be triggered via the client's interface for their staff, e.g. via buttons in a web portal that shows the Trips. While in many cases API calls are used on the date of travel, they can also be used in advance of the date of travel as needed.
 
 ### Example API Use Cases
 
@@ -87,7 +87,7 @@ There are 2 types of Cost Functions for TUI's Transfer Service:
 | Cost Function | Definition                                                   | Usage                                                        | Example Destination |
 | ------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------- |
 | Distance      | Cost = distance travelled                                    | Destinations where most transfers use TUI's own fleet        | Mallorca            |
-| Cost          | Cost = (# of Vehicle A x cost of Vehicle A) + (# of Vehicle B x cost of Vehicle B) + ... + (# of Vehicle Z x cost of Vehicle Z) | Destinations where most transfers use vehicles contracted from suppliers | Zakynthos           |
+| Cost          | Cost = a function of vehicle type, number of passengers driven, and areas driven (designed to mirror actual pricing structure with suppliers) | Destinations where most transfers use vehicles contracted from suppliers | Zakynthos           |
 
 ### Business Rules
 
@@ -663,11 +663,9 @@ Suppliers are specified per Destination. If the same supplier provides vehicles 
 
 ### Prices
 
-As described in [Optimization Overview](#optimization-overview), many destinations have a cost function like the following:
+As described in [Optimization Overview](#optimization-overview), many destinations have a cost function like the following, to mirror actual pricing structure with suppliers:
 
-Cost = (# of Vehicle A x cost of Vehicle A) + (# of Vehicle B x cost of Vehicle B) + ... + (# of Vehicle Z x cost of Vehicle Z)
-
-In this case, Mobi needs a price for each vehicle. These prices are per **(TODO: per kilometer?)**
+Cost = a function of vehicle type, number of passengers driven, and areas driven
 
 A price object shows price for the associated vehicle when it holds greater than pax_min passengers and less than pax_max passengers, from origin_point to destination_point (usually area object or terminal object). 
 
