@@ -1,5 +1,7 @@
 # Mobi Continuous Planning Service - Implementation for TUI
 
+**Jamie: Maybe it makes sense to get rid of references to TUI?  I know that we're specifically documenting their implementation, but perhaps we'd want to show potential customers this document.**
+
 ## Table of Contents
 
 [Overview](#overview)
@@ -28,6 +30,8 @@ The Mobi Planner turns **Bookings** and **Flights** into **Trips**. For a single
 
 ![Bookings To Trips](./attachments/BookingsToTrips2.png)
 
+**Jamie: Maybe a footnote here (or somewhere below) that points out that all these times are configurable?**
+
 ## Data Flow Overview
 
 The image below shows the timing around how the Mobi Planner turns Bookings and Flights into Trips, as well as how planning staff can affect Trips more directly using buttons in TUI's web portal.
@@ -41,14 +45,14 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 - **Inputs:** [Bookings and Flights](#bookings-and-flights) are streamed to Mobi via an AWS Kinesis Data Stream
 - **Outputs:** [Trips](#trips) are streamed back to the client via an AWS Data Stream
 - **Data Validation:** Any data issues identified in data validation checks are reported via AWS SNS. This includes [Kinesis Ingestion Data Validation](#kinesis-ingestion-data-validation) and [Pre-planning Data Validation](#pre-planning-data-validation).
-- **APIs:** Mobi REST [APIs](#apis) can be called by the client in order to make adjustments to plans as needed. These API calls can be triggered via the client's interface for staff, e.g. via buttons in a web portal that shows the Trips. If requests cannot be parsed, then they will return a relevant HTTP response status code. If requests are parsed successfully but an issue prevents the Mobi Planner from acting on the API call, [Invalid and Infeasible Messages](#invalid-and-infeasible-messages) will be sent via AWS Simple Notification Service (SNS).
-- **Master Data:** [Master Data](#master-data) is relatively static data that includes information about physical places and the Business Rules that should apply to relevant Bookings during planning. The client can provide REST APIs for Mobi to call regularly to update Master Data, and can optionally send updates via an AWS Data Stream as well with specific information about what Bookings should be updated. These mechanisms are described further in [Sending Master Data](#sending-master-data).
+- **APIs:** Mobi REST [APIs](#apis) can be called by the client in order to make adjustments to plans as needed. These API calls can be triggered via the client's interface for staff, e.g. via buttons in a web portal that shows the Trips. If requests cannot be parsed, then they will return a relevant HTTP response status code. If requests are parsed successfully but an issue prevents the Mobi Planner from acting on the API call, [Invalid and Infeasible Messages](#invalid-and-infeasible-messages) will be sent via AWS Simple Notification Service (SNS).  **Jamie: Invalid and Infeasible Messages are  the same as Pre-planning Data Validation messages, right?**
+- **Master Data:** [Master Data](#master-data) is static data that includes information about physical places and the Business Rules that should apply to relevant Bookings during planning. The client can provide REST APIs for Mobi to call regularly to update Master Data, and can optionally send updates via an AWS Data Stream as well with specific information about what Bookings should be updated. These mechanisms are described further in [Sending Master Data](#sending-master-data).
 
 ## Regular Planning Overview
 
-1. When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the **Planning Window** begins for the relevant Destination and date. For most Destinations, the Planning Window begins 7 days before the date of travel and ends 24 hours before the time of travel.
-2. Every 5 minutes, the Mobi Planner runs Regular Planning. First, it checks to see if any Bookings within their Planning Window are new, have been updated, or have had updates to their corresponding Flight. Then, it plans the changed Bookings and any other Bookings that could potentially be on the same Trip (e.g. Bookings in the same Destination on the same date of travel).
-3. The Mobi Planner starts by creating an initial solution that satisfies the client's Business Rules. It then rapidly uses a combination of AI algorithms to make changes to the initial solution, improving it until no more improvements can be made.
+1. When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the **Planning Window** begins for the relevant Destination and date. For most Destinations, the Planning Window begins 7 days before the date of travel and ends 24 hours before the time of travel.  **Jamie: Should we parenthetically indicate that all time periods in this doc are configurable?  Also, do we want to mention the "Freeze Date" term (== the end of the planning window).**
+2. Every 5 minutes, the Mobi Planner runs Regular Planning. First, it checks to see if any Bookings within their Planning Window are new, have been updated, have been removed (?), or have had updates to their corresponding Flight. Then, it plans the changed Bookings and any other Bookings that could potentially be on the same Trip (e.g. Bookings in the same Destination on the same date of travel).
+3. The Mobi Planner starts by creating an initial solution that satisfies the client's Business Rules. It then rapidly uses a combination of AI algorithms to make changes to the initial solution, improving it until no more improvements can be made. **Jamie: I think this is a little TMI for this doc.**
 4. The Continuous Planning System computes the timing for each stop within the trip based on Mobi's internal routing engine, then validates that the solution passes a set of criteria including the client's Business Rules (e.g. passengers don't spend more than the maximum time waiting at the airport)
 5. The Continous Planning System sends the Trips that have been planned to the client.
 
@@ -80,7 +84,7 @@ API calls enable planning staff to make adjustments to plans as needed. These AP
 
 ### Cost Functions
 
-The Continuous Planning System optimizes for cost while following business rules. In order to optimize for cost, we must first define what cost is. TUI's Transfer Service operates in many tour **Destinations**, which tend to be either islands or broad regions surrounding a major city (e.g Mallorca, Zakynthos, Antalya, Cancún). Each Destination has a specific **Cost Function** that defines the cost to be minimized during planning. The cost function is specified for each Destination in **Master Data**, relatively static data that includes information about physical places and the business rules that should apply to relevant Bookings during planning.
+The Continuous Planning System optimizes for cost while following business rules. In order to optimize for cost, we must first define what cost is. TUI's Transfer Service operates in many tour **Destinations**, which tend to be either islands or broad regions surrounding a major city (e.g Mallorca, Zakynthos, Antalya, Cancún). Each Destination has a specific **Cost Function** that defines the cost to be minimized during planning. The cost function is specified for each Destination in **Master Data**, static data that includes information about physical places and the business rules that should apply to relevant Bookings during planning.
 
 There are 2 types of Cost Functions for TUI's Transfer Service:
 
@@ -88,6 +92,8 @@ There are 2 types of Cost Functions for TUI's Transfer Service:
 | ------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------- |
 | Distance      | Cost = distance travelled                                    | Destinations where most transfers use TUI's own fleet        | Mallorca            |
 | Cost          | Cost = a function of vehicle type, number of passengers driven, and areas driven (designed to mirror actual pricing structure with suppliers) | Destinations where most transfers use vehicles contracted from suppliers | Zakynthos           |
+
+**Jamie: Maybe we should come up with different name for the "cost" cost function, so that we don't confuse it with the actual "cost."  What if we called the distance cost function "distance cost" and the other cost function "area cost?"**
 
 ### Business Rules
 
@@ -102,6 +108,8 @@ Example Business Rules:
 | Fleet Constraints    | Vehicle inventory limits                            | Ensure trips can be completed using the set of vehicles that exists in real life |
 
 ## Additional Features
+
+**Jamie: Should we include Hotel to Hotel?**
 
 ### Ferries
 
