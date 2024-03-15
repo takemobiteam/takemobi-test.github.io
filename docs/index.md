@@ -37,6 +37,8 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 ![Flow In Time](./attachments/FlowInTime4.png)
 
 ## Amazon Web Services (AWS) and API Interfaces
+idk, to me this should be flipped, putting aws first seems to put too much emphasis on it when we dont do that much with it, unless we're trying to go for a bling/buzzword affect 
+not that important though
 
 - **Inputs:** [Bookings and Flights](#bookings-and-flights) are streamed to Mobi via an AWS Kinesis Data Stream
 - **Outputs:** [Trips](#trips) are streamed back to the client via an AWS Data Stream
@@ -136,6 +138,11 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 ## Fields for Bookings
 
 ### Required Fields for All Bookings
+I wonder if the examples are too much jargin for someone unfamiliar with tuis naming/id-ing system, like the asx seems weird to me 
+
+do we require ext_booking id??
+
+do we make a distinction between origin_flight_id and destination_flight_id? i thought it was just flight_id
 
 | Field            | Type   | Description                                                  | Example                                                      |
 | ---------------- | ------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -176,6 +183,7 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 | vehicle_type           | enum     | Force planning to use a specific type of vehicle for this booking. Any vehicle type specified in the Master Data for the associated Destination is valid. | "Van / Minivan"             |
 
 ### Fields TUI Sends but Mobi Does Not Use
+is documentation for us and tui? or public facing? this feels weird to have if its public facing
 
 | Field                                           | Type   | Description                                                  |
 | ----------------------------------------------- | ------ | ------------------------------------------------------------ |
@@ -213,6 +221,7 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 ## Fields for Flights
 
 ### Required Fields for All Flights
+do we make a distinction internally on destination_terminal_id vs original_terminal_id?
 
 | Field                   | Type     | Description                                                  | Example                     |
 | ----------------------- | -------- | ------------------------------------------------------------ | --------------------------- |
@@ -330,6 +339,8 @@ Currently, if multiple **kinesis_rejection** messages are applicable, multiple S
   - Stop free replan time dropoffs
 
 ## Pre-planning Data Validation
+is BD_no_area_price's message rendering correctly? i see "%" popping up on the site
+actually same rendering questions for a several messages
 
 The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible messages that may be sent via AWS SNS. This section describes one category: **preprocessing** messages.
 
@@ -390,6 +401,7 @@ Data includes the following fields:
 | vehicle_id           | int    | Type of vehicle                                              | "5006-VAN 8-MX0-V-10080"               |
 | vehicle_sign         | string | Sign number for the vehicle (auto-generated 1-99)            | "29"                                   |
 | transfer_way         | enum   | Whether a flight is an arrival to a Destination, or a departure from a Destination. Possible values: "arrival", "departure", "between hotels" | "arrival"                              |
+is there a reason this int is in brackets?
 | rules                | [int]  | The Parameters object applicable to this trip                | [233]                                  |
 | duration             | int    | Duration of trips in minutes, estimated based on local speed limits | 55                                     |
 | distance             | int    | Distance in meters                                           | 58922                                  |
@@ -399,6 +411,7 @@ Data includes the following fields:
 | welfare              | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to Bookings where this field is set to true. | "false"                                |
 | exclusive_to         | bool   | Indicates if the trip was planned for an exclusive tour operator | "false"                                |
 | change_origin        | enum   | What triggered the planning that output this Trip. Options: Solver, Solver-trigger, Solver-replan, Insertion-replan, Dashboard, Supplier, Booking change response, Flight change response | "Dashboard"                            |
+is worth scrubbing that email? idk seems like a privacy thing for tui if this documenation is public facing
 | username             | string | Username that made the API call that triggered the planning, if applicable | "tui-adfs_username@tui.com"            |
 | locked               | bool   | Whether this Trip is locked and will not be changed in Regular Planning | "false"                                |
 | feasible             | bool   | Whether the trip conforms to applicable Business Rules. Trips can be made via API calls that violate Business Rules if force_infeasible is set to True. | "false"                                |
@@ -453,6 +466,7 @@ The routes object include the following fields for each stop in the Trip:
 
 
 # APIs
+the question marks are gonna get filled in right?
 
 ## Requesting a Replan
 
@@ -493,7 +507,7 @@ When these APIs are called, there are 3 possible types of responses:
 The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible messages that may be sent via AWS SNS.
 
 ### Invalid Messages
-
+"%" doesn't seem to render 
 | message_id  | Message                                                      |
 | ----------- | ------------------------------------------------------------ |
 | "T_ERR_020" | "Trip %(id)s does not have a vehicle."                       |
@@ -562,6 +576,8 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 **Master Data** is relatively static data that includes information about physical places and the Business Rules that should apply to relevant Bookings during planning. Business Rules specified in the Bookings themselves generally override Business Rules supplied in Master Data. 
 
 ## Key Concepts in Master Data
+in the diagram, idk if this true or not, or if we can, but i think its like one airport to a destination (would double check with jacob)
+no that important though
 
 ![Master Data Download](./attachments/MasterDataDownload.jpg)
 
@@ -662,6 +678,8 @@ Suppliers are specified per Destination. If the same supplier provides vehicles 
 ```
 
 ### Prices
+i feel like prices could be expanded, like bookings and trips have tables, i feel like things like suppliers or areas we could wing it in getting things correct during ingestion, 
+but pricing affects results a lot ... feel like it safer for more words now rather than later
 
 As described in [Optimization Overview](#optimization-overview), many destinations have a cost function like the following, to mirror actual pricing structure with suppliers:
 
