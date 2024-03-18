@@ -46,7 +46,7 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 
 ## Regular Planning Overview
 
-1. When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the **Planning Window** begins for the relevant Destination and date. For most Destinations, the Planning Window begins 7 days before the date of travel and ends 24 hours before the time of travel.
+1. When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the **Planning Window** (What is the planning window definition? what value do we set it now? 14 days? 7 days according to the image? Maybe we can rename this to **regular planning window**?) begins for the relevant Destination and date. For most Destinations, the Planning Window begins 7 days before the date of travel and ends 24 hours before the time of travel.
 2. Every 5 minutes, the Mobi Planner runs Regular Planning. First, it checks to see if any Bookings within their Planning Window are new, have been updated, or have had updates to their corresponding Flight. Then, it plans the changed Bookings and any other Bookings that could potentially be on the same Trip (e.g. Bookings in the same Destination on the same date of travel).
 3. The Mobi Planner starts by creating an initial solution that satisfies the client's Business Rules. It then rapidly uses a combination of AI algorithms to make changes to the initial solution, improving it until no more improvements can be made.
 4. The Continuous Planning System computes the timing for each stop within the trip based on Mobi's internal routing engine, then validates that the solution passes a set of criteria including the client's Business Rules (e.g. passengers don't spend more than the maximum time waiting at the airport)
@@ -56,7 +56,7 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 
 ## After the Planning Window
 
-Once the Planning Window ends for a particular Destination & date of travel, Regular Planning no longer affects those Bookings. However, changes to Bookings or Flights will have the following effects:
+Once the Planning Window ends for a particular Destination & date of travel (And last to the last minute of the trip date?), Regular Planning no longer affects those Bookings. However, changes to Bookings or Flights will have the following effects:
 
 - If a Booking changes, the Booking will be dropped from the Trip and the Trip's schedule of stops will adjust as needed. The changed Booking will no longer be assigned to a Trip, and API calls will need to be used to assign it to a Trip.
 - If a Flight changes, all Bookings involving that flight will be dropped from their Trips, and those Trips' schedules will adjust as needed. Those Bookings will no longer be assigned to Trips, and API calls will need to be used to assign it to a Trip.
