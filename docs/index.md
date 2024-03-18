@@ -375,13 +375,13 @@ When a preprocessing issue occurs & a Booking Discard message is sent, the Booki
 | "BD_missing_main_booking"              | "Feeder booking is missing the associated main booking."     |
 | "BD_main_not_configured_for_feeder"    | "Feeder booking is missing a properly-configured main booking" |
 | "BD_ftaa_flaw"                         | "Some flaw with flight_terminal_airport_area."               |
-
+> DMS I'm thinking maybe we should write a ticket to rename PRIVATE_FEEDER_MAIN_DISCARDED
 # Trips
 
 Trips are sent back as records in a AWS Kinesis Data Stream, each record representing one or more Trips. Records include metadata and a payload. 
 
 Each Trip has a unique transfer_id. If a Trip is updated or deleted during Regular Planning or via API calls, a record will be sent with the same transfer_id as a trip that has been sent previously.
-
+> DMS - This was a little tricky for me to follow - maybe bump the example up here?
 Metadata specifies:
 
 - content-type: vnd.response-planning-event.v1
@@ -535,7 +535,7 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 | "T_ERR_036"                   | "Trip %(id)s violates the force pickup time for booking %(booking_id)s." |
 | "T_ERR_023"                   | "Trip %(id)s with %(seats)s seats violates hotel %(hotels_name)s seat limit %(limits)s." |
 | "Infeasible_Booking"          | "Booking %(bid)s in Trip %(tid)s is incompatible because of %(reasons)s" |
-
+> DMS THis is kinda icky now that I look at it - might be worth a ticket for consistency both internally to these errors and maybe some similarity with the booking discards
 ### Incompatible Messages (a subset of Infeasible Messages, where Bookings cannot be grouped)
 
 | message_id  | Message                                                      |
