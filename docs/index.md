@@ -33,6 +33,7 @@ The Mobi Planner turns **Bookings** and **Flights** into **Trips**. For a single
 The image below shows the timing around how the Mobi Planner turns Bookings and Flights into Trips, as well as how planning staff can affect Trips more directly using buttons in TUI's web portal.
 
 ### Data Flow Diagram: 1 Date in 1 Destination
+> DMS - Maybe add the term "Planning Window" in parentheses to the 1-7 days before portion
 
 ![Flow In Time](./attachments/FlowInTime4.png)
 
@@ -40,6 +41,7 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 
 - **Inputs:** [Bookings and Flights](#bookings-and-flights) are streamed to Mobi via an AWS Kinesis Data Stream
 - **Outputs:** [Trips](#trips) are streamed back to the client via an AWS Data Stream
+> DMS - Specify kinesis for outputs?
 - **Data Validation:** Any data issues identified in data validation checks are reported via AWS SNS. This includes [Kinesis Ingestion Data Validation](#kinesis-ingestion-data-validation) and [Pre-planning Data Validation](#pre-planning-data-validation).
 - **APIs:** Mobi REST [APIs](#apis) can be called by the client in order to make adjustments to plans as needed. These API calls can be triggered via the client's interface for staff, e.g. via buttons in a web portal that shows the Trips. If requests cannot be parsed, then they will return a relevant HTTP response status code. If requests are parsed successfully but an issue prevents the Mobi Planner from acting on the API call, [Invalid and Infeasible Messages](#invalid-and-infeasible-messages) will be sent via AWS Simple Notification Service (SNS).
 - **Master Data:** [Master Data](#master-data) is relatively static data that includes information about physical places and the Business Rules that should apply to relevant Bookings during planning. The client can provide REST APIs for Mobi to call regularly to update Master Data, and can optionally send updates via an AWS Data Stream as well with specific information about what Bookings should be updated. These mechanisms are described further in [Sending Master Data](#sending-master-data).
@@ -47,8 +49,10 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 ## Regular Planning Overview
 
 1. When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the **Planning Window** begins for the relevant Destination and date. For most Destinations, the Planning Window begins 7 days before the date of travel and ends 24 hours before the time of travel.
+> DMS - Maybe a little note that the window can be defined in Parameters
 2. Every 5 minutes, the Mobi Planner runs Regular Planning. First, it checks to see if any Bookings within their Planning Window are new, have been updated, or have had updates to their corresponding Flight. Then, it plans the changed Bookings and any other Bookings that could potentially be on the same Trip (e.g. Bookings in the same Destination on the same date of travel).
 3. The Mobi Planner starts by creating an initial solution that satisfies the client's Business Rules. It then rapidly uses a combination of AI algorithms to make changes to the initial solution, improving it until no more improvements can be made.
+> DMS I wonder if "until no more until no more improvemnents can be made" is too bold a claim as the TSP is a complex problem'
 4. The Continuous Planning System computes the timing for each stop within the trip based on Mobi's internal routing engine, then validates that the solution passes a set of criteria including the client's Business Rules (e.g. passengers don't spend more than the maximum time waiting at the airport)
 5. The Continous Planning System sends the Trips that have been planned to the client.
 
@@ -60,6 +64,7 @@ Once the Planning Window ends for a particular Destination & date of travel, Reg
 
 - If a Booking changes, the Booking will be dropped from the Trip and the Trip's schedule of stops will adjust as needed. The changed Booking will no longer be assigned to a Trip, and API calls will need to be used to assign it to a Trip.
 - If a Flight changes, all Bookings involving that flight will be dropped from their Trips, and those Trips' schedules will adjust as needed. Those Bookings will no longer be assigned to Trips, and API calls will need to be used to assign it to a Trip.
+> DMS This might be a good place to mention the possibility of forcing a replan
 
 ## API Overview
 
@@ -151,6 +156,8 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 | welfare          | bool   | Whether the group needs a handicap-accessible vehicle. Handicap-accessible vehicles will only be assigned to Bookings where this field is set to true. | "false"                                                      |
 | passengers       | dict   | Includes passenger_id (int starting from 1), name (string), & age (int). Upon ingestion of the Booking, ages of passengers are checked against min_age (specified in Master Data per tour operator). By default passengers with age under 2 are assumed to be infants in arms and not require a seat. Mobi does not use the passenger information aside from this age check. | "passengers":[{"passenger_id":1,"name":"Firstname Lastname","age":54},{"passenger_id":2,"name":"Firstname Lastname","age":50}] |
 
+
+> DMS - Maybe explain where booking_id and ext_booking originate from"
 ### Required Fields for Arrivals
 
 | Field                     | Type   | Description                                                  | Example             |
@@ -186,7 +193,7 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 | origin_point_type/destination_point_type        | enum   | "Hotel" or "Terminal". These are not used because transfer_way already defines what the origin & destination point types are. |
 | orgin_terminal_type / destination_terminal_type | enum   | "Airport"                                                    |
 
-
+> DMS typo orgin_terminal_type -> origin_terminal_type
 
 ### Example Bookings
 
@@ -294,7 +301,8 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 **kinesis_rejection** messages indicate that a Booking or a Flight has been sent into the system, but data validation checks upon ingestion from Kinesis indicated that the Booking or Flight had issues which would make it impossible to process. 
 
 Currently, if multiple **kinesis_rejection** messages are applicable, multiple SNS messages will be sent. ***In the future, a single SNS message will be sent with all the applicable messages for the booking or flight.***
-
+> DMS Is this "in the future" committed?
+> 
 ### Kinesis Rejection Messages for Bookings
 
 | message_id                      | Message                                                      | Description                                                  |
@@ -328,7 +336,7 @@ Currently, if multiple **kinesis_rejection** messages are applicable, multiple S
   - Stop free replan days pickups
   - Stop free replan time dropoffs
   - Stop free replan time dropoffs
-
+> DMS - I know it's our terminology but I always find the "time"/"days" makes me do a double-take. Maybe an extra blurb that they are combined to determine the time window.
 ## Pre-planning Data Validation
 
 The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set of possible messages that may be sent via AWS SNS. This section describes one category: **preprocessing** messages.
@@ -367,13 +375,13 @@ When a preprocessing issue occurs & a Booking Discard message is sent, the Booki
 | "BD_missing_main_booking"              | "Feeder booking is missing the associated main booking."     |
 | "BD_main_not_configured_for_feeder"    | "Feeder booking is missing a properly-configured main booking" |
 | "BD_ftaa_flaw"                         | "Some flaw with flight_terminal_airport_area."               |
-
+> DMS I'm thinking maybe we should write a ticket to rename PRIVATE_FEEDER_MAIN_DISCARDED
 # Trips
 
 Trips are sent back as records in a AWS Kinesis Data Stream, each record representing one or more Trips. Records include metadata and a payload. 
 
 Each Trip has a unique transfer_id. If a Trip is updated or deleted during Regular Planning or via API calls, a record will be sent with the same transfer_id as a trip that has been sent previously.
-
+> DMS - This was a little tricky for me to follow - maybe bump the example up here?
 Metadata specifies:
 
 - content-type: vnd.response-planning-event.v1
@@ -527,7 +535,7 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 | "T_ERR_036"                   | "Trip %(id)s violates the force pickup time for booking %(booking_id)s." |
 | "T_ERR_023"                   | "Trip %(id)s with %(seats)s seats violates hotel %(hotels_name)s seat limit %(limits)s." |
 | "Infeasible_Booking"          | "Booking %(bid)s in Trip %(tid)s is incompatible because of %(reasons)s" |
-
+> DMS THis is kinda icky now that I look at it - might be worth a ticket for consistency both internally to these errors and maybe some similarity with the booking discards
 ### Incompatible Messages (a subset of Infeasible Messages, where Bookings cannot be grouped)
 
 | message_id  | Message                                                      |
