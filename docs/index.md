@@ -39,7 +39,7 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 ## Amazon Web Services (AWS) and API Interfaces
 
 - **Inputs:** [Bookings and Flights](#bookings-and-flights) are streamed to Mobi via an AWS Kinesis Data Stream
-- **Outputs:** [Trips](#trips) are streamed back to the client via an AWS Data Stream
+- **Outputs:** [Trips](#trips) are streamed back to the client via an AWS Kinesis Data Stream
 - **Data Validation:** Any data issues identified in data validation checks are reported via AWS SNS. This includes [Kinesis Ingestion Data Validation](#kinesis-ingestion-data-validation) and [Pre-planning Data Validation](#pre-planning-data-validation).
 - **APIs:** Mobi REST [APIs](#apis) can be called by the client in order to make adjustments to plans as needed. These API calls can be triggered via the client's interface for staff, e.g. via buttons in a web portal that shows the Trips. If requests cannot be parsed, then they will return a relevant HTTP response status code. If requests are parsed successfully but an issue prevents the Mobi Planner from acting on the API call, [Invalid and Infeasible Messages](#invalid-and-infeasible-messages) will be sent via AWS Simple Notification Service (SNS).
 - **Master Data:** [Master Data](#master-data) is relatively static data that includes information about physical places and the Business Rules that should apply to relevant Bookings during planning. The client can provide REST APIs for Mobi to call regularly to update Master Data, and can optionally send updates via an AWS Data Stream as well with specific information about what Bookings should be updated. These mechanisms are described further in [Sending Master Data](#sending-master-data).
@@ -48,7 +48,7 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 
 1. When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the **Planning Window** begins for the relevant Destination and date. For most Destinations, the Planning Window begins 7 days before the date of travel and ends 24 hours before the time of travel.
 2. Every 5 minutes, the Mobi Planner runs Regular Planning. First, it checks to see if any Bookings within their Planning Window are new, have been updated, or have had updates to their corresponding Flight. Then, it plans the changed Bookings and any other Bookings that could potentially be on the same Trip (e.g. Bookings in the same Destination on the same date of travel).
-3. The Mobi Planner starts by creating an initial solution that satisfies the client's Business Rules. It then rapidly uses a combination of AI algorithms to make changes to the initial solution, improving it until no more improvements can be made.
+3. The Mobi Planner uses a combination of cutting-edge AI algorithms and planning methods based on insight from human operators to quickly and efficiently optimize a set of Trips that satisfies the client's Business Rules.
 4. The Continuous Planning System computes the timing for each stop within the trip based on Mobi's internal routing engine, then validates that the solution passes a set of criteria including the client's Business Rules (e.g. passengers don't spend more than the maximum time waiting at the airport)
 5. The Continous Planning System sends the Trips that have been planned to the client.
 
@@ -60,6 +60,8 @@ Once the Planning Window ends for a particular Destination & date of travel, Reg
 
 - If a Booking changes, the Booking will be dropped from the Trip and the Trip's schedule of stops will adjust as needed. The changed Booking will no longer be assigned to a Trip, and API calls will need to be used to assign it to a Trip.
 - If a Flight changes, all Bookings involving that flight will be dropped from their Trips, and those Trips' schedules will adjust as needed. Those Bookings will no longer be assigned to Trips, and API calls will need to be used to assign it to a Trip.
+
+Planning staff can still make adjustments to Bookings & Trips and trigger replanning after the Planning Window ends.
 
 ## API Overview
 
@@ -177,14 +179,14 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 
 ### Fields TUI Sends but Mobi Does Not Use
 
-| Field                                           | Type   | Description                                                  |
-| ----------------------------------------------- | ------ | ------------------------------------------------------------ |
-| booking_plan_status                             | enum   | "Pending" or "Planned"                                       |
-| destination_guest_hotel_id                      | string | Hotel ID for the hotel where the guests are staying, provided for Arrivals. This is not used, because destination_stop_hotel_id is used instead. |
-| origin_guest_hotel_id                           | string | Hotel id for the hotel where the guests are staying, provided for Departures. This is not used, because origin_stop_hotel_id is used instead. |
-| lead_pax_name                                   | string | Lead passenger for the Booking                               |
-| origin_point_type/destination_point_type        | enum   | "Hotel" or "Terminal". These are not used because transfer_way already defines what the origin & destination point types are. |
-| orgin_terminal_type / destination_terminal_type | enum   | "Airport"                                                    |
+| Field                                            | Type   | Description                                                  |
+| ------------------------------------------------ | ------ | ------------------------------------------------------------ |
+| booking_plan_status                              | enum   | "Pending" or "Planned"                                       |
+| destination_guest_hotel_id                       | string | Hotel ID for the hotel where the guests are staying, provided for Arrivals. This is not used, because destination_stop_hotel_id is used instead. |
+| origin_guest_hotel_id                            | string | Hotel id for the hotel where the guests are staying, provided for Departures. This is not used, because origin_stop_hotel_id is used instead. |
+| lead_pax_name                                    | string | Lead passenger for the Booking                               |
+| origin_point_type/destination_point_type         | enum   | "Hotel" or "Terminal". These are not used because transfer_way already defines what the origin & destination point types are. |
+| origin_terminal_type / destination_terminal_type | enum   | "Airport"                                                    |
 
 
 
@@ -293,7 +295,7 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 
 **kinesis_rejection** messages indicate that a Booking or a Flight has been sent into the system, but data validation checks upon ingestion from Kinesis indicated that the Booking or Flight had issues which would make it impossible to process. 
 
-Currently, if multiple **kinesis_rejection** messages are applicable, multiple SNS messages will be sent. ***In the future, a single SNS message will be sent with all the applicable messages for the booking or flight.***
+Currently, if multiple **kinesis_rejection** messages are applicable, multiple SNS messages will be sent. ***In the future, a single SNS message may be sent with all the applicable messages for the booking or flight.***
 
 ### Kinesis Rejection Messages for Bookings
 
