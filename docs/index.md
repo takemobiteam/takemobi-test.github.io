@@ -254,15 +254,15 @@ When a Booking comes in via the Kinesis stream, it gets ingested but not planned
   - 'vnd.booking-event.v1' for Bookings
   - 'vnd.flight-event.v1' for Flights
 - operation
-  - saved (creating a new Booking or Flight, or updating it) - requires the Booking or Flight object with all required fields.
+  - **saved** (creating a new Booking or Flight, or updating it) - requires the Booking or Flight object with all required fields.
     - If a Booking or Flight comes in with a new booking_id or flight_id, it will be created
     - If a Booking or Flight comes in with an existing booking_id or flight_id, it will be updated
     - The booking_id & flight_id are globally unique across Destinations & dates
-  - deleted (deleting a Booking or Flight) - requires just the booking_id or flight_id
+  - **deleted** (deleting a Booking or Flight) - requires just the booking_id or flight_id
     - If a Booking has already been assigned to a trip, deleting it will remove it from the relevant trip and will update the Trip's schedule as needed
-  - locked (locking a Booking) - requires just the booking_id
+  - **locked** (locking a Booking) - requires just the booking_id
     - Locking a Booking means it will not be affected by [Regular Planning](#regular-planning)
-  - unlocked (unlocking a Booking) - requires just the booking_id
+  - **unlocked** (unlocking a Booking) - requires just the booking_id
     - Unlocking a Booking means it will be affected by [Regular Planning](#regular-planning)
 
 
