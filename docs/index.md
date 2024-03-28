@@ -47,7 +47,7 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 ## Regular Planning Overview
 
 1. When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the **Planning Window** begins for the relevant Destination and date. For most Destinations, the Planning Window begins 7 days before the date of travel and ends 24 hours before the time of travel.
-2. Every 5 minutes, the Mobi Planner runs Regular Planning. First, it checks to see if any Bookings within their Planning Window are new, have been updated, or have had updates to their corresponding Flight. Then, it plans the changed Bookings and any other Bookings that could potentially be on the same Trip (e.g. Bookings in the same Destination on the same date of travel).
+2. Every 5 minutes, the Mobi Planner runs Regular Planning. First, it checks to see if any Bookings within their Planning Window are new, have been updated, have been removed, or have had updates to their corresponding Flight. Then, it plans the changed Bookings and any other Bookings that could potentially be on the same Trip (e.g. Bookings in the same Destination on the same date of travel).
 3. The Mobi Planner uses a combination of cutting-edge AI algorithms and planning methods based on insight from human operators to quickly and efficiently optimize a set of Trips that satisfies the client's Business Rules.
 4. The Continuous Planning System computes the timing for each stop within the trip based on Mobi's internal routing engine, then validates that the solution passes a set of criteria including the client's Business Rules (e.g. passengers don't spend more than the maximum time waiting at the airport)
 5. The Continous Planning System sends the Trips that have been planned to the client.
@@ -122,7 +122,7 @@ The feeder feature is useful when there are small groups of hotels away from a m
 
 ## Bookings & Flights Introduction
 
-A **Booking** represents a need for a one-way Transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single Booking generally has booked a tour together, will be on the same flight, and will be staying at the same hotel.
+A **Booking** represents a need for a one-way Transfer (a ride in a vehicle) for a group of passengers (1 or more). A group represented in a single Booking has booked a tour together, will be on the same flight, and will be staying at the same hotel.
 
 For every group who books a tour together, there will generally be 2 one-way Bookings sent to Mobi because there are 2 one-way Transfers. For example, if the group is going to Cancún, there would be the following 2 one-way Bookings:
 
