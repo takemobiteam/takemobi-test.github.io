@@ -127,7 +127,7 @@ A **Booking** represents a need for a one-way Transfer (a ride in a vehicle) for
 For every group who books a tour together, there will generally be 2 one-way Bookings sent to Mobi because there are 2 one-way Transfers. For example, if the group is going to Cancún, there would be the following 2 one-way Bookings:
 
 - **Arrival** to a tour Destination: a Transfer picks up the group at the Cancún airport & brings them to their hotel
-- **Departure** from a tour Destination: a tTansfer picks up the group at their hotel & brings them to the Cancún airport
+- **Departure** from a tour Destination: a Transfer picks up the group at their hotel & brings them to the Cancún airport
 
 Guests that have itineraries involving multiple Hotels may have additional transfers, so they would have 1 or more additional Bookings with the "Between Hotels" type.
 
