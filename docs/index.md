@@ -101,7 +101,7 @@ Example Business Rules:
 | Physical Constraints | Vehicle clearance for hotels                        | Prevent incompatible vehicles from being assigned to hotels with limited clearance |
 | Fleet Constraints    | Vehicle inventory limits                            | Ensure trips can be completed using the set of vehicles that exists in real life |
 
-## Additional Features
+## Multi-Leg Travel Features
 
 ### Ferries
 
