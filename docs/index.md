@@ -80,16 +80,16 @@ API calls enable planning staff to make adjustments to plans as needed. These AP
 
 ## Optimization Overview
 
-### Cost Functions
+### Optimization Functions
 
-The Continuous Planning System optimizes for cost while following business rules. In order to optimize for cost, we must first define what cost is. TUI's Transfer Service operates in many tour **Destinations**, which tend to be either islands or broad regions surrounding a major city (e.g Mallorca, Zakynthos, Antalya, Cancún). Each Destination has a specific **Cost Function** that defines the cost to be minimized during planning. The cost function is specified for each Destination in **Master Data**, relatively static data that includes information about physical places and the business rules that should apply to relevant Bookings during planning.
+The Continuous Planning System optimizes for a specific optimization function while following business rules. In order to optimize, we must first define the optimization function. TUI's Transfer Service operates in many tour **Destinations**, which tend to be either islands or broad regions surrounding a major city (e.g Mallorca, Zakynthos, Antalya, Cancún). Each Destination has a specific **Optimization Function** that defines what needs to be minimized or maximized during planning. The Optimiation Function is specified for each Destination in **Master Data**, relatively static data that includes information about physical places and the business rules that should apply to relevant Bookings during planning.
 
-There are 2 types of Cost Functions for TUI's Transfer Service:
+There are 2 types of Optimization Functions for TUI's Transfer Service:
 
-| Cost Function | Definition                                                   | Usage                                                        | Example Destination |
-| ------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------- |
-| Distance      | Cost = distance travelled                                    | Destinations where most transfers use TUI's own fleet        | Mallorca            |
-| Cost          | Cost = a function of vehicle type, number of passengers driven, and areas driven (designed to mirror actual pricing structure with suppliers) | Destinations where most transfers use vehicles contracted from suppliers | Zakynthos           |
+| Optimization Function | Definition                                                   | Usage                                                        | Example Destination |
+| --------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------- |
+| Minimize Distance     | Distance = total distance travelled                          | Destinations where most transfers use TUI's own fleet        | Mallorca            |
+| Minimize Cost         | Cost = a function of vehicle type, number of passengers driven, and areas driven (designed to mirror actual pricing structure with suppliers) | Destinations where most transfers use vehicles contracted from suppliers | Zakynthos           |
 
 ### Business Rules
 
@@ -474,8 +474,8 @@ After the freeze date that is configured for the relevant destination (e.g. <2 d
 | Ermes Name | Mobi Name        | Description                                                  | Use Cases                                                    | API Call                                                     |
 | ---------- | ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | New Plan   | Replan           | Create new Trips to handle these Bookings, without affecting existing Trips. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/bookings/replan](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_replan_create) |
-| Full Plan  | Domino Replan    | The Mobi Planner will plan the selected Bookings and may make any changes needed to maintain optimality. | Hub: ?<br />Airport: ?                                       | POST /tui-cps/v1/bookings/domino_replan                      |
-| Light Plan | Insertion Replan | To the extent possible, the Mobi Planner will insert selected Bookings into existing Trips without changing the vehicles used. The remaining Bookings will be planned seperately. | Airport: ?                                                   | POST /tui-cps/v1/bookings/insertion_replan                   |
+| Full Plan  | Domino Replan    | The Mobi Planner will plan the selected Bookings and may make any changes needed to maintain optimality. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/bookings/domino_replan](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_domino_replan_create) |
+| Light Plan | Insertion Replan | To the extent possible, the Mobi Planner will insert selected Bookings into existing Trips without changing the vehicles used. The remaining Bookings will be planned seperately. | Airport: ?                                                   | [POST /tui-cps/v1/bookings/insertion_replan](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_insertion_replan_create) |
 | [TBD]      | [TBD]            | Replan all Bookings for the rest of the day without changing vehicles, affecting only passengers & vehicles that have not yet arrived at the airport. | Airport: When a flight gets delayed, ensure the affected passengers get an updated transfer plan, moving other passengers around as needed while minimizing the need to request new vehicles. | TBD                                                          |
 
 
@@ -489,7 +489,7 @@ If TUI staff want to make specific adjustments or override Business Rules, then 
 | Bulk Assign                        | Assign Bookings to existing Trips manually. The Mobi Planner will update the vehicle & optimize the stops. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/trips/{id}/bulk_assign_bookings](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_bulk_assign_bookings_create) |
 | Edit parking number or sign number | Edit parking number or sign number                           | Hub: ?<br />Airport: Assign parking number or change sign number when vehicle arrives to parking, so that airport employees in other places can direct guests to the right parking area and sign number. Especially useful for big airports, replaces the need for calling on walkie talkies and mobile phones to communicate things like this. | [PATCH /tui-cps/v1/trips/{id}](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_partial_update) |
 | Create trip                        | Create new Trip with specified Bookings, vehicle, and sign number | Hub: When receiving new Bookings or changes to bookings after the Planning Window ends, create a new Trip when needed then use bulk assign to assign Bookings to that new Trip.<br />Airport: ? | [POST /tui-cps/v1/trips](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_create) |
-| Lock                               | Lock a Trip so that changes cannot be made by replans        | Hub: ?<br />Airport: ?                                       | POST /tui-cps/v1/trips/lock_trips                            |
+| Lock                               | Lock a Trip so that changes cannot be made by replans        | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/trips/lock_trips](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_lock_trips_create) |
 | Bulk Unassign                      | Unassign Bookings from Trips manually. The Mobi Planner will update the vehicle & optimize the route. | Hub: ?<br />Airport: ?                                       | [POST /tui-cps/v1/bookings/bulk_unassign](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_bulk_unassign_create) |
 | Delete Trip                        | Delete a specific Trip                                       | Hub: ?<br />Airport: ?                                       | [DELETE /tui-cps/v1/trips/{id}](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_destroy) |
 
@@ -676,9 +676,9 @@ Suppliers are specified per Destination. If the same supplier provides vehicles 
 
 ### Prices
 
-As described in [Optimization Overview](#optimization-overview), many destinations have a cost function like the following, to mirror actual pricing structure with suppliers:
+As described in [Optimization Overview](#optimization-overview), many destinations have an Optimization Function like the following, to mirror actual pricing structure with suppliers:
 
-Cost = a function of vehicle type, number of passengers driven, and areas driven
+Minimize cost, where cost = a function of vehicle type, number of passengers driven, and areas driven
 
 A price object shows price for the associated vehicle when it holds greater than pax_min passengers and less than pax_max passengers, from origin_point to destination_point (usually area object or terminal object). 
 
