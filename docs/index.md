@@ -177,6 +177,18 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 | force_dropoff_datetime | datetime | Force planning to use a specific time for dropoff for this Booking. Used for Arrivals. | "2024-05-05T18:15:00-04:00" |
 | vehicle_type           | enum     | Force planning to use a specific type of vehicle for this booking. Any vehicle type specified in the Master Data for the associated Destination is valid. | "Van / Minivan"             |
 
+### Fields Used for Feeders & Ferries
+
+| Field                       | Feeders or Ferries? | Type   | Description                                                  |
+| --------------------------- | ------------------- | ------ | ------------------------------------------------------------ |
+| feeder_type                 | feeders             | enum   | "feeder" or "main". Set to "None" when not a feeder-related booking. |
+| previous_transfer_id        | feeders & ferries   | string | id of previous transfer. This is used for both ferries and feeders. |
+| next_transfer_id            | feeders & ferries   | string | id of next transfer. This is used for both ferries and feeders. |
+| origin_point_type           | ferries             | enum   | "Hotel" or "Terminal" or "Shuttle". This field is not used most of the time because transfer_way already defines what the origin & destination point types are, but if it's set to "Shuttle" then the origin point is a shuttle station for a ferry. |
+| destination_point_type      | ferries             | enum   | "Hotel" or "Terminal" or "Shuttle". This field is not used most of the time because transfer_way already defines what the origin & destination point types are, but if it's set to "Shuttle" then the destination point is a shuttle station for a ferry. |
+| origin_shuttle_station      | ferries             | string | id of shuttle station for a ferry, if the origin_point_type is "Shuttle" |
+| destination_shuttle_station | ferries             | string | id of shuttle station for a ferry, if the destination_point_type is "Shuttle" |
+
 ### Fields TUI Sends but Mobi Does Not Use
 
 | Field                                            | Type   | Description                                                  |
@@ -185,7 +197,6 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 | destination_guest_hotel_id                       | string | Hotel ID for the hotel where the guests are staying, provided for Arrivals. This is not used, because destination_stop_hotel_id is used instead. |
 | origin_guest_hotel_id                            | string | Hotel id for the hotel where the guests are staying, provided for Departures. This is not used, because origin_stop_hotel_id is used instead. |
 | lead_pax_name                                    | string | Lead passenger for the Booking                               |
-| origin_point_type/destination_point_type         | enum   | "Hotel" or "Terminal". These are not used because transfer_way already defines what the origin & destination point types are. |
 | origin_terminal_type / destination_terminal_type | enum   | "Airport"                                                    |
 
 
