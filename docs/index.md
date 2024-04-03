@@ -845,7 +845,7 @@ These messages are not currently sent to TUI, but are flagged within the Contino
 | ---------------------------------------- | ------------------------------------------------------------ |
 | "AREA_EXTRANEOUS_MEETING_POINT"          | "Area record `area_id` specifies a meeting point but its feeder field is not set to true--the meeting point will be ignored" |
 | "AREA_MISSING_MEETING_POINT"             | "Area `area_id` discarded because it supports a feeder but the meeting point is not specified" |
-| "CONFLICTING_TERMINAL_IDS"               | "Terminal has conflicting ids: entity_id is \`entity_id`\" and terminal_id is `terminal_id`\" |
+| "CONFLICTING_TERMINAL_IDS"               | "Terminal has conflicting ids: entity_id is `entity_id` and terminal_id is `terminal_id`" |
 | "MD_UPDATE_MISSING_FIELD"                | "Data record `id` of type `type` is missing required field(s) `field`" |
 | "MD_UPDATE_MISSING_INCOMPATIBILITY_AREA" | "Attempted to add non-existent area `area_id` to area_incompatibility `area_incompatibility_id`" |
 | "MISSING_VEHICLE_REFERENCE"              | "Vehicle `id` dropped because it is missing its vehicle reference" |
