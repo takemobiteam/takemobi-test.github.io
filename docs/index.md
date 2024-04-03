@@ -280,9 +280,8 @@ When a Booking comes in via the Kinesis stream, it gets ingested but not planned
 
 Payload fields for bookings & flights are specified in these sections:
 
-[Fields for Bookings](#fields-for-bookings)
-
-[Fields for Flights](#fields-for-flights)
+- [Fields for Bookings](#fields-for-bookings)
+- [Fields for Flights](#fields-for-flights)
 
 
 
