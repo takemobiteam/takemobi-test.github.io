@@ -34,7 +34,7 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 
 ### Data Flow Diagram: 1 Date in 1 Destination
 
-![Flow In Time](./attachments/FlowInTime4.png)
+![Flow In Time](./attachments/FlowInTime5.png)
 
 ## Amazon Web Services (AWS) and API Interfaces
 
@@ -46,22 +46,22 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 
 ## Regular Planning Overview
 
-1. When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the **Planning Window** begins for the relevant Destination and date. For most Destinations, the Planning Window begins 7 days before the date of travel and ends 24 hours before the time of travel.
-2. Every 5 minutes, the Mobi Planner runs Regular Planning. First, it checks to see if any Bookings within their Planning Window are new, have been updated, have been removed, or have had updates to their corresponding Flight. Then, it plans the changed Bookings and any other Bookings that could potentially be on the same Trip (e.g. Bookings in the same Destination on the same date of travel).
+1. When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the **Regular Planning Window** begins for the relevant Destination and date. For most Destinations, the Regular Planning Window begins 7 days before the date of travel and ends 24 hours before the time of travel.
+2. Every 5 minutes, the Mobi Planner runs Regular Planning. First, it checks to see if any Bookings within their Regular Planning Window are new, have been updated, have been removed, or have had updates to their corresponding Flight. Then, it plans the changed Bookings and any other Bookings that could potentially be on the same Trip (e.g. Bookings in the same Destination on the same date of travel).
 3. The Mobi Planner uses a combination of cutting-edge AI algorithms and planning methods based on insight from human operators to quickly and efficiently optimize a set of Trips that satisfies the client's Business Rules.
 4. The Continuous Planning System computes the timing for each stop within the trip based on Mobi's internal routing engine, then validates that the solution passes a set of criteria including the client's Business Rules (e.g. passengers don't spend more than the maximum time waiting at the airport)
 5. The Continous Planning System sends the Trips that have been planned to the client.
 
-*Plan output format, data validation during planning, and how the planning window is specified are covered in more detail in [Regular Planning](#regular-planning).*
+*Plan output format, data validation during planning, and how the Regular Planning Window is specified are covered in more detail in [Regular Planning](#regular-planning).*
 
-## After the Planning Window
+## After the Regular Planning Window
 
-Once the Planning Window ends for a particular Destination & date of travel, Regular Planning no longer affects those Bookings. However, changes to Bookings or Flights will have the following effects:
+Once the Regular Planning Window ends for a particular Destination & date of travel, Regular Planning no longer affects those Bookings. However, changes to Bookings or Flights will have the following effects:
 
 - If a Booking changes, the Booking will be dropped from the Trip and the Trip's schedule of stops will adjust as needed. The changed Booking will no longer be assigned to a Trip, and API calls will need to be used to assign it to a Trip.
 - If a Flight changes, all Bookings involving that flight will be dropped from their Trips, and those Trips' schedules will adjust as needed. Those Bookings will no longer be assigned to Trips, and API calls will need to be used to assign it to a Trip.
 
-Planning staff can still make adjustments to Bookings & Trips and trigger replanning after the Planning Window ends.
+Planning staff can still make adjustments to Bookings & Trips and trigger replanning after the Regular Planning Window ends.
 
 ## API Overview
 
@@ -69,7 +69,7 @@ API calls enable planning staff to make adjustments to plans as needed. These AP
 
 ### Example API Use Cases
 
-- After the Planning Window, if Bookings have changed and have been unassigned from Trips, they need to be assigned for those guests to have a ride
+- After the Regular Planning Window, if Bookings have changed and have been unassigned from Trips, they need to be assigned for those guests to have a ride
   - Multiple types of automated replan APIs are available, which will run the Mobi Planner to assign selected Bookings to Trips. The different types of replan vary in how much they can affect other Bookings.
   - Bookings can be assigned to existing Trips manually, if planning staff have a specific idea of what will work best. New Trips can also be created as needed to support this manual adjustment.
 
@@ -257,7 +257,7 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 
 Bookings & Flights are sent as records in an AWS Kinesis Data Stream. Records include metadata and a payload. Fields within the record can be sent in any order. 
 
-When a Booking comes in via the Kinesis stream, it gets ingested but not planned until the Planning Window for the relevant destination. See [Regular Planning](#regular-planning) for further details.
+When a Booking comes in via the Kinesis stream, it gets ingested but not planned until the Regular Planning Window for the relevant destination. See [Regular Planning](#regular-planning) for further details.
 
 **Metadata specifies:**
 
@@ -328,14 +328,14 @@ Currently, if multiple **kinesis_rejection** messages are applicable, multiple S
 # Regular Planning
 
 
-## Where The Planning Window is Specified
+## Where The Regular Planning Window is Specified
 
-- The start of the Planning Window for a particular Destination is specified by the first_planning_time fields, as part of **Parameters** in Master Data
+- The start of the Regular Planning Window for a particular Destination is specified by the first_planning_time fields, as part of **Parameters** in Master Data
   - First planning time pickups
   - First planning days pickups
   - First planning time dropoffs
   - First planning days dropoffs
-- The end of the Planning Window for a particular Destination is specified by the stop_free_replan fields, as part of the **Destination** in Master Data
+- The end of the Regular Planning Window for a particular Destination is specified by the stop_free_replan fields, as part of the **Destination** in Master Data
   - Stop free replan time pickups
   - Stop free replan days pickups
   - Stop free replan time dropoffs
@@ -485,7 +485,7 @@ If TUI staff want to make specific adjustments or override Business Rules, then 
 | ---------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | Bulk Assign                        | Assign Bookings to existing Trips manually. The Mobi Planner will update the vehicle & optimize the stops. | Hub: ?`br /`Airport: ?                                       | [POST /tui-cps/v1/trips/{id}/bulk_assign_bookings](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_bulk_assign_bookings_create) |
 | Edit parking number or sign number | Edit parking number or sign number                           | Hub: ?`br /`Airport: Assign parking number or change sign number when vehicle arrives to parking, so that airport employees in other places can direct guests to the right parking area and sign number. Especially useful for big airports, replaces the need for calling on walkie talkies and mobile phones to communicate things like this. | [PATCH /tui-cps/v1/trips/{id}](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_partial_update) |
-| Create trip                        | Create new Trip with specified Bookings, vehicle, and sign number | Hub: When receiving new Bookings or changes to bookings after the Planning Window ends, create a new Trip when needed then use bulk assign to assign Bookings to that new Trip.`br /`Airport: ? | [POST /tui-cps/v1/trips](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_create) |
+| Create trip                        | Create new Trip with specified Bookings, vehicle, and sign number | Hub: When receiving new Bookings or changes to bookings after the Regular Planning Window ends, create a new Trip when needed then use bulk assign to assign Bookings to that new Trip.`br /`Airport: ? | [POST /tui-cps/v1/trips](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_create) |
 | Lock                               | Lock a Trip so that changes cannot be made by replans        | Hub: ?`br /`Airport: ?                                       | [POST /tui-cps/v1/trips/lock_trips](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_lock_trips_create) |
 | Bulk Unassign                      | Unassign Bookings from Trips manually. The Mobi Planner will update the vehicle & optimize the route. | Hub: ?`br /`Airport: ?                                       | [POST /tui-cps/v1/bookings/bulk_unassign](https://shiny-enigma-qklzoe7.pages.github.io/#/bookings/bookings_bulk_unassign_create) |
 | Delete Trip                        | Delete a specific Trip                                       | Hub: ?`br /`Airport: ?                                       | [DELETE /tui-cps/v1/trips/{id}](https://shiny-enigma-qklzoe7.pages.github.io/#/trips/trips_destroy) |
