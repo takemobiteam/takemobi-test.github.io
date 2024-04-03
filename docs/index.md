@@ -311,17 +311,17 @@ Currently, if multiple **kinesis_rejection** messages are applicable, multiple S
 
 | message_id                      | Message                                                      | Description                                                  |
 | ------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| "KR_unsupported_transfer_type"  | "Kinesis record for booking %(booking_id)s discarded: booking has unsupported transfer type %(transfer_type)s" | transfer_type must be "Arrival", "Departure", or "Between Hotels". Any other value for transfer_type will cause this message. |
-| "KR_no_existing_tour_operator"  | "Kinesis record for booking %(booking_id)s discarded: Touroperator %(tour_operator_id)s has not been defined in Master Data" | touroperator_id must match a touroperator object that has been defined in the Master Data for the Destination. If it does not, that will cause this message. |
-| "KR_between_hotels_no_pickup"   | "Kinesis record for booking %(booking_id)s discarded: booking between hotels without specified pickup time." | A Booking with transfer_way "Between Hotels" must have a specified pickup time. If it does not, that will cause this message. |
-| "KR_between_hotels_same_hotels" | "Kinesis record for booking %(booking_id)s discarded: the origin and destination hotels are the same: %(hotel_id)s" | A Booking with transfer_way "Between Hotels" must specify 2 different hotels, one as origin and one as destination. If the hotel_id is the same for the origin and destination, that will cause this message. |
-| "KR_no_terminal_exists"         | "Kinesis record for flight %(flight_id)s discarded: the flight is non-existent and no flight can be created because no terminal is found in master data" | Sometimes Bookings are sent before the corresponding flight record, so Mobi creates a placeholder flight in order to save the booking. Without a terminal in the booking, Mobi cannot create a placeholder flight and cannot save the Booking. |
+| "KR_unsupported_transfer_type"  | "Kinesis record for booking <booking_id> discarded: booking has unsupported transfer type <transfer_type>" | transfer_type must be "Arrival", "Departure", or "Between Hotels". Any other value for transfer_type will cause this message. |
+| "KR_no_existing_tour_operator"  | "Kinesis record for booking <booking_id> discarded: Touroperator <tour_operator_id> has not been defined in Master Data" | touroperator_id must match a touroperator object that has been defined in the Master Data for the Destination. If it does not, that will cause this message. |
+| "KR_between_hotels_no_pickup"   | "Kinesis record for booking <booking_id> discarded: booking between hotels without specified pickup time." | A Booking with transfer_way "Between Hotels" must have a specified pickup time. If it does not, that will cause this message. |
+| "KR_between_hotels_same_hotels" | "Kinesis record for booking <booking_id> discarded: the origin and destination hotels are the same: <hotel_id>" | A Booking with transfer_way "Between Hotels" must specify 2 different hotels, one as origin and one as destination. If the hotel_id is the same for the origin and destination, that will cause this message. |
+| "KR_no_terminal_exists"         | "Kinesis record for flight <flight_id> discarded: the flight is non-existent and no flight can be created because no terminal is found in master data" | Sometimes Bookings are sent before the corresponding flight record, so Mobi creates a placeholder flight in order to save the booking. Without a terminal in the booking, Mobi cannot create a placeholder flight and cannot save the Booking. |
 
 ### Kinesis Rejection Messages for Flights
 
 | message_id                 | Message                                                      | Description                                         |
 | -------------------------- | ------------------------------------------------------------ | --------------------------------------------------- |
-| "KR_non_existing_terminal" | "Kinesis record for flight %(flight_id)s discarded: Non-existing terminal %(terminal_id)s referenced" | Terminal_id did not match a terminal in Master Data |
+| "KR_non_existing_terminal" | "Kinesis record for flight <flight_id> discarded: Non-existing terminal <terminal_id> referenced" | Terminal_id did not match a terminal in Master Data |
 
 
 
@@ -355,25 +355,25 @@ When a preprocessing issue occurs & a Booking Discard message is sent, the Booki
 | -------------------------------------- | ------------------------------------------------------------ |
 | "BD_no_hotel"                          | "Missing needed hotel"                                       |
 | "BD_zero_pax_booking"                  | "Listed with 0 seated passengers."                           |
-| "BD_no_area_price"                     | "Booking %(booking_id)s has no price object. Needs price from origin %(origin)s to destination %(destination)s." |
+| "BD_no_area_price"                     | "Booking <booking_id> has no price object. Needs price from origin <origin> to destination <destination>." |
 | "BD_missing_ferry_bookings"            | "Associated ferry trip legs are missing"                     |
 | "BD_missing_ferry_terminal"            | "Missing the destination/origin point associated with the ferry stop." |
 | "BD_missing_feeder_meeting_point"      | "Booking is a feeder but area has no feeder meeting point."  |
 | "BD_missing_feeder_main_meeting_point" | "Main booking for feeder is missing the main meeting point"  |
-| "BD_dummy_hotel"                       | "Hotel %(hotel_name)s of id %(hotel_id)s is unknown to the planner. It is using the Dummy hotel placeholder" |
-| "BD_wrong_coordinates"                 | "Hotel %(hotel_name)s of id %(hotel_id)s has coordinates of 0,0. It is using the Dummy hotel placeholder" |
-| "BD_duplicated_locations"              | "Hotel %(hotel_name)s of id %(hotel_id)s has the same location of %(coordinates)s as some other hotels" |
-| "BD_dummy_flight"                      | "Flight %(flight_id)s of booking %(booking_id)s is unknown to the planner. It is using flight placeholder info" |
-| "BD_invalid_vehicle_type"              | "message": "Vehicle type %(vehicle_type)s does not exists."  |
-| "BD_too_large_for_hotel"               | "Listed with %(pax_amount)s seated passengers, but its hotel can only take buses of size %(hotel_capacity)s, vehicles constrained to capacity %(vehicle_capacity)s. Available seats are: %(available_seats)s" |
+| "BD_dummy_hotel"                       | "Hotel <hotel_name> of id <hotel_id> is unknown to the planner. It is using the Dummy hotel placeholder" |
+| "BD_wrong_coordinates"                 | "Hotel <hotel_name> of id <hotel_id> has coordinates of 0,0. It is using the Dummy hotel placeholder" |
+| "BD_duplicated_locations"              | "Hotel <hotel_name> of id <hotel_id> has the same location of <coordinates> as some other hotels" |
+| "BD_dummy_flight"                      | "Flight <flight_id> of booking <booking_id> is unknown to the planner. It is using flight placeholder info" |
+| "BD_invalid_vehicle_type"              | "message": "Vehicle type <vehicle_type> does not exists."    |
+| "BD_too_large_for_hotel"               | "Listed with <pax_amount> seated passengers, but its hotel can only take buses of size <hotel_capacity>, vehicles constrained to capacity <vehicle_capacity>. Available seats are: <available_seats>" |
 | "BD_no_vehicle"                        | "There is no vehicle that can accommodate it."               |
 | "BD_split_needed"                      | "There is no vehicle that can accommodate it."               |
-| "BD_no_ferry"                          | "Unable to assign a ferry to booking %(booking_id)s"         |
+| "BD_no_ferry"                          | "Unable to assign a ferry to booking <booking_id>"           |
 | "BD_hotel_invalid"                     | "booking's hotel order is in a circular"                     |
 | "BD_feeder_criteria_setup"             | "booking hotel area has two feeder criteria set"             |
-| "BD_between_hotels_same_hotels"        | "booking %(booking_id)s between hotels with same destination and origin" |
-| "PRIVATE_FEEDER_MAIN_DISCARDED"        | "Not using feeders with the following bookings as they are marked as exclusive: %(bookings)s" |
-| "BD_no_more_vehicles"                  | "Unable to satisfy vehicle quantity limits for booking %(booking_id)s" |
+| "BD_between_hotels_same_hotels"        | "booking <booking_id> between hotels with same destination and origin" |
+| "PRIVATE_FEEDER_MAIN_DISCARDED"        | "Not using feeders with the following bookings as they are marked as exclusive: <bookings>" |
+| "BD_no_more_vehicles"                  | "Unable to satisfy vehicle quantity limits for booking <booking_id>" |
 | "BD_no_prev_next"                      | "Previous or next transfer booking discarded"                |
 | "BD_missing_feeder_booking"            | "Main booking is missing the associated feeder booking."     |
 | "BD_missing_main_booking"              | "Feeder booking is missing the associated main booking."     |
@@ -508,64 +508,64 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 
 | message_id  | Message                                                      |
 | ----------- | ------------------------------------------------------------ |
-| "T_ERR_020" | "Trip %(id)s does not have a vehicle."                       |
-| "T_ERR_033" | "Trip %(id)s has no start time."                             |
-| "T_ERR_039" | "Trip %(id)s visits a stop with no coordinates."             |
-| "T_ERR_029" | "Trip %(id)s does not have a correct route."                 |
-| "T_ERR_034" | "Trip %(id)s violates the presentation window for booking/s. Correct start time is %(correct_start_time)s given is %(real_start_time)s." |
-| "T_ERR_042" | "Trip %(id)s has stops that are out of order in time."       |
-| "T_ERR_030" | "Trip %(id)s does not match the departure/arrival type of its bookings." |
-| "T_ERR_035" | "Trip %(id)s violates the presentation window for booking %(booking_id)s. Correct latest time is %(correct_last_time)s given is %(real_last_time)s." |
-| "T_ERR_038" | "Trip %(id)s services %(terminal_amount)s terminal locations instead of 1." |
-| "T_ERR_043" | "Trip %(id)s has mixed ferry dropoff/pickup bookings."       |
-| "T_ERR_032" | "Trip %(id)s has booking/s not assigned a dropoff and pickup." |
+| "T_ERR_020" | "Trip <id> does not have a vehicle."                         |
+| "T_ERR_033" | "Trip <id> has no start time."                               |
+| "T_ERR_039" | "Trip <id> visits a stop with no coordinates."               |
+| "T_ERR_029" | "Trip <id> does not have a correct route."                   |
+| "T_ERR_034" | "Trip <id> violates the presentation window for booking/s. Correct start time is <correct_start_time> given is <real_start_time>." |
+| "T_ERR_042" | "Trip <id> has stops that are out of order in time."         |
+| "T_ERR_030" | "Trip <id> does not match the departure/arrival type of its bookings." |
+| "T_ERR_035" | "Trip <id> violates the presentation window for booking <booking_id>. Correct latest time is <correct_last_time> given is <real_last_time>." |
+| "T_ERR_038" | "Trip <id> services <terminal_amount> terminal locations instead of 1." |
+| "T_ERR_043" | "Trip <id> has mixed ferry dropoff/pickup bookings."         |
+| "T_ERR_032" | "Trip <id> has booking not assigned a dropoff and pickup."   |
 
 ### Infeasible Messages
 
 | message_id                    | Message                                                      |
 | ----------------------------- | ------------------------------------------------------------ |
-| "SAME_FLIGHT_HOTEL_VIOLATION" | "The combination %(flight)s %(hotel)s violates the same flight/hotel/trip constraint." |
-| "T_ERR_024"                   | "Trip %(id)s with %(real_time)s violates maximum time limit %(max_time)s." |
-| "T_ERR_020"                   | "Trip %(id)s does not have a vehicle."                       |
-| "T_ERR_028"                   | "Trip %(id)s with non-combinable vehicle has combinable booking %(bookings_id)s." |
-| "T_ERR_038"                   | "Bookings %(ids)s have different terminal locations."        |
-| "T_ERR_021"                   | "Trip %(id)s has %(pax)s passengers but %(seats)s available seats" |
-| "T_ERR_025"                   | "Trip %(id)s with %(flights)s flights violates maximum number of grouped flights" |
-| "T_ERR_031"                   | "Trip %(id)s violates the first stop requirement for booking %(booking_id)s." |
-| "T_ERR_027"                   | "Trip %(id)s with %(trip_type)s vehicle type and Booking %(booking_id)s requiring %(booking_type)s do not match." |
-| "T_ERR_037"                   | "Trip %(id)s violates the force dropoff time for bookings %(booking_id)s." |
-| "T_ERR_022"                   | "Trip %(id)s with %(real_stop)s stops violates the maximum %(max_stop)s stops constraint." |
-| "T_ERR_026"                   | "Trip %(id)s has a welfare check vehicle but non-welfare bookings." |
-| "T_ERR_036"                   | "Trip %(id)s violates the force pickup time for booking %(booking_id)s." |
-| "T_ERR_023"                   | "Trip %(id)s with %(seats)s seats violates hotel %(hotels_name)s seat limit %(limits)s." |
-| "Infeasible_Booking"          | "Booking %(bid)s in Trip %(tid)s is incompatible because of %(reasons)s" |
+| "SAME_FLIGHT_HOTEL_VIOLATION" | "The combination <flight> <hotel> violates the same flight/hotel/trip constraint." |
+| "T_ERR_024"                   | "Trip <id> with <real_time> violates maximum time limit %(max_time)s." |
+| "T_ERR_020"                   | "Trip <id> does not have a vehicle."                         |
+| "T_ERR_028"                   | "Trip <id> with non-combinable vehicle has combinable booking <bookings_id>." |
+| "T_ERR_038"                   | "Bookings <id> have different terminal locations."           |
+| "T_ERR_021"                   | "Trip <id> has <pax> passengers but <seats> available seats" |
+| "T_ERR_025"                   | "Trip <id> with <flights> flights violates maximum number of grouped flights" |
+| "T_ERR_031"                   | "Trip <id> violates the first stop requirement for booking <booking_id>." |
+| "T_ERR_027"                   | "Trip <id> with <trip_type> vehicle type and Booking <booking_id> requiring <booking_type> do not match." |
+| "T_ERR_037"                   | "Trip <id> violates the force dropoff time for bookings <booking_id>." |
+| "T_ERR_022"                   | "Trip <id> with <real_stop> stops violates the maximum <max_stop> stops constraint." |
+| "T_ERR_026"                   | "Trip <id> has a welfare check vehicle but non-welfare bookings." |
+| "T_ERR_036"                   | "Trip <id> violates the force pickup time for booking <booking_id>." |
+| "T_ERR_023"                   | "Trip <id> with <seats> seats violates hotel <hotels_name> seat limit <limits>." |
+| "Infeasible_Booking"          | "Booking <id> in Trip <id> is incompatible because of <reasons>" |
 
 ### Incompatible Messages (a subset of Infeasible Messages, where Bookings cannot be grouped)
 
 | message_id  | Message                                                      |
 | ----------- | ------------------------------------------------------------ |
-| "T_ERR_005" | "Bookings %(ids)s have mismatched transfer ways."            |
-| "T_ERR_006" | "Bookings %(ids)s do not have overlapping intervals."        |
-| "T_ERR_007" | "Bookings %(ids)s violate hotel exclusivity."                |
-| "T_ERR_008" | "Bookings %(ids)s violate hotel area exclusivity."           |
-| "T_ERR_009" | "Bookings %(ids)s violate tour operator exclusivity."        |
-| "T_ERR_010" | "Bookings %(ids)s violate tour operator hotel exclusivity."  |
-| "T_ERR_011" | "Bookings %(ids)s violate tour operator group exclusivity."  |
-| "T_ERR_012" | "Bookings %(ids)s violate flight exclusivity."               |
-| "T_ERR_013" | "Bookings %(ids)s violate hotel area group exclusivity."     |
-| "T_ERR_014" | "Bookings %(ids)s violate flight-cooperator exclusivity."    |
-| "T_ERR_015" | "Bookings %(ids)s have incompatible areas."                  |
-| "T_ERR_016" | "Bookings %(ids)s have incompatible dossier codes."          |
-| "T_ERR_000" | "Bookings %(ids)s are the same booking."                     |
-| "T_ERR_001" | "Bookings %(ids)s are uncombinable"                          |
-| "T_ERR_017" | "Bookings %(ids)s have incompatible flights due to first flight feature." |
-| "T_ERR_002" | "Bookings %(ids)s have incompatible flight times."           |
-| "T_ERR_040" | "Bookings %(ids)s have incompatible ferry leg types."        |
-| "T_ERR_018" | "Bookings %(ids)s have incompatible force pickup %(attribute)s." |
-| "T_ERR_003" | "Bookings %(ids)s are too far apart to be grouped"           |
-| "T_ERR_041" | "Feeder bookings %(ids)s have different corresponding main trips." |
-| "T_ERR_019" | "Bookings %(ids)s have incompatible force dropoff %(attribute)s." |
-| "T_ERR_004" | "Bookings %(ids)s violate terminal exclusivity."             |
+| "T_ERR_005" | "Bookings <id> have mismatched transfer ways."               |
+| "T_ERR_006" | "Bookings <id> do not have overlapping intervals."           |
+| "T_ERR_007" | "Bookings <id> violate hotel exclusivity."                   |
+| "T_ERR_008" | "Bookings <id> violate hotel area exclusivity."              |
+| "T_ERR_009" | "Bookings <id> violate tour operator exclusivity."           |
+| "T_ERR_010" | "Bookings <id> violate tour operator hotel exclusivity."     |
+| "T_ERR_011" | "Bookings <id> violate tour operator group exclusivity."     |
+| "T_ERR_012" | "Bookings <id> violate flight exclusivity."                  |
+| "T_ERR_013" | "Bookings <id> violate hotel area group exclusivity."        |
+| "T_ERR_014" | "Bookings <id> violate flight-cooperator exclusivity."       |
+| "T_ERR_015" | "Bookings <id> have incompatible areas."                     |
+| "T_ERR_016" | "Bookings <id> have incompatible dossier codes."             |
+| "T_ERR_000" | "Bookings <id> are the same booking."                        |
+| "T_ERR_001" | "Bookings <id> are uncombinable"                             |
+| "T_ERR_017" | "Bookings <id> have incompatible flights due to first flight feature." |
+| "T_ERR_002" | "Bookings <id> have incompatible flight times."              |
+| "T_ERR_040" | "Bookings <id> have incompatible ferry leg types."           |
+| "T_ERR_018" | "Bookings <id> have incompatible force pickup %(attribute)s." |
+| "T_ERR_003" | "Bookings <id> are too far apart to be grouped"              |
+| "T_ERR_041" | "Feeder bookings <id> have different corresponding main trips." |
+| "T_ERR_019" | "Bookings <id> have incompatible force dropoff %(attribute)s." |
+| "T_ERR_004" | "Bookings <id> violate terminal exclusivity."                |
 
 # Master Data
 
@@ -845,19 +845,19 @@ These messages are not currently sent to TUI, but are flagged within the Contino
 
 | message_id                               | Message                                                      |
 | ---------------------------------------- | ------------------------------------------------------------ |
-| "AREA_EXTRANEOUS_MEETING_POINT"          | "Area record %(area_id)s specifies a meeting point but its feeder field is not set to true--the meeting point will be ignored" |
-| "AREA_MISSING_MEETING_POINT"             | "Area %(area_id)s discarded because it supports a feeder but the meeting point is not specified" |
-| "CONFLICTING_TERMINAL_IDS"               | "Terminal has conflicting ids: entity_id is \"%(entity_id)s\" and terminal_id is \"%(terminal_id)s\" |
-| "MD_UPDATE_MISSING_FIELD"                | "Data record %(id)s of type %(type_)s is missing required field(s) %(field)s" |
-| "MD_UPDATE_MISSING_INCOMPATIBILITY_AREA" | "Attempted to add non-existent area %(area_id)s to area_incompatibility %(area_incompatibility_id)s" |
-| "MISSING_VEHICLE_REFERENCE"              | "Vehicle %(id)s dropped because it is missing its vehicle reference" |
-| "MISSING_VEHICLE_TYPE"                   | "Vehicle %(id)s dropped because it is missing its vehicle type reference" |
-| "DESTINATION_MISSING_TRANSPORT_STATION"  | "Attempted to add non-existent transport station %(id)s to destination %(destination_id)s" |
-| "CONFLICTING_PRICE_IDS"                  | "Price has conflicting ids: entity_id is \"%(entity_id)s\" and price_id is \"%(price_id)s\" |
-| "MULTIPLE_MD_ISSUES"                     | "Multiple issues encountered performing MD update: %(issues)s" |
-| "VEHICLE_BAD_REFERENCE"                  | "Attempted to add non-existent %(ref_type)s %(id)s to vehicle %(vehicle_id)s" |
-| "IMPROPER_JSON"                          | "The message passed in to the MD update processor failed validation: %(message)s" |
-| "CANNOT_CONNECT_TO_DATA_ENDPOINT"        | "Received status code %(status_code)s for endpoint %(endpoint)s and destination id %(dest_id)s" |
-| "VEHICLE_TYPE_MISSING_FIELDS"            | "Vehicle type id: %(vehicle_id)s dropped from processing due to missing fields [%(missing_fields)s]" |
-| "MD_NONEXISTENT_INSTANCE"                | "Cannot perform update as object with id \"%(entity_id)s\" does not exist" |
-| "INVALID_MD_OPERATION"                   | "A message passed to the MD update process has an invalid operation %(op)s" |
+| "AREA_EXTRANEOUS_MEETING_POINT"          | "Area record <area_id> specifies a meeting point but its feeder field is not set to true--the meeting point will be ignored" |
+| "AREA_MISSING_MEETING_POINT"             | "Area <area_id> discarded because it supports a feeder but the meeting point is not specified" |
+| "CONFLICTING_TERMINAL_IDS"               | "Terminal has conflicting ids: entity_id is \<entity_id>\" and terminal_id is <terminal_id>\" |
+| "MD_UPDATE_MISSING_FIELD"                | "Data record <id> of type <type> is missing required field(s) <field>" |
+| "MD_UPDATE_MISSING_INCOMPATIBILITY_AREA" | "Attempted to add non-existent area <area_id> to area_incompatibility <area_incompatibility_id>" |
+| "MISSING_VEHICLE_REFERENCE"              | "Vehicle <id> dropped because it is missing its vehicle reference" |
+| "MISSING_VEHICLE_TYPE"                   | "Vehicle <id> dropped because it is missing its vehicle type reference" |
+| "DESTINATION_MISSING_TRANSPORT_STATION"  | "Attempted to add non-existent transport station <id> to destination <destination_id>" |
+| "CONFLICTING_PRICE_IDS"                  | "Price has conflicting ids: entity_id is <entity_id> and price_id is <price_id> |
+| "MULTIPLE_MD_ISSUES"                     | "Multiple issues encountered performing MD update: <issues>  |
+| "VEHICLE_BAD_REFERENCE"                  | "Attempted to add non-existent <ref_type> <id> to vehicle <vehicle_id> |
+| "IMPROPER_JSON"                          | "The message passed in to the MD update processor failed validation: <message>" |
+| "CANNOT_CONNECT_TO_DATA_ENDPOINT"        | "Received status code <status_code> for endpoint <endpoint> and destination id <dest_id>" |
+| "VEHICLE_TYPE_MISSING_FIELDS"            | "Vehicle type id: <vehicle_id> dropped from processing due to missing fields <missing_fields>" |
+| "MD_NONEXISTENT_INSTANCE"                | "Cannot perform update as object with id <entity_id> does not exist" |
+| "INVALID_MD_OPERATION"                   | "A message passed to the MD update process has an invalid operation <op> |
