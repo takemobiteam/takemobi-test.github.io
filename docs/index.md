@@ -349,8 +349,6 @@ At the start of planning, the system runs preprocessing checks to ensure that th
 
 When a preprocessing issue occurs & a Booking Discard message is sent, the Booking is ignored during Regular Planning until it is altered (an updated version is sent either via the AWS Kinesis Data Stream or via API call).
 
-
-
 | message_id                             | Message                                                      |
 | -------------------------------------- | ------------------------------------------------------------ |
 | "BD_no_hotel"                          | "Missing needed hotel"                                       |
