@@ -659,19 +659,27 @@ Each Destination has vehicles specified separately. Attributes of a vehicle incl
 **Vehicle Example:**
 
 ```
-{'id': '5016-ADAPTED VEHICLE-GR0-E', 'destination_id': '5016', 'code': 'ADAPTED VEHICLE', 'name': 'ADAPTED VEHICLE RAMP', 'vehicle_type_id': '5016-E', 'transport_setup': {'show_sign_at': ['none']}}
+{"id": "5095-BUS-E20-B", "code": "BUS", "name": "BUS HASTA 72", "destination_id": "5095", "transport_setup": {"show_sign_at": ["arrival", "departure"]}, "vehicle_type_id": "5095-B"}
 ```
 
-### Suppliers
+### Vehicle Suppliers
 
 Each vehicle has one supplier, and suppliers generally have multiple vehicles.
 
-Suppliers are specified per Destination. If the same supplier provides vehicles in multiple Destinations, it is specified as a spearate supplier per Destination.
+Suppliers are specified per Destination. If the same supplier provides vehicles in multiple Destinations, it is specified as a separate supplier per Destination.
 
 **Supplier Example:**
 
 ```
-{'id': '5016-4111', 'name': 'TUI HELLAS - ZTH', 'destination_id': '5016', 'sap_code': '0000224308', 'transport_setup': {'live_tracking_enabled': False, 'no_transfer': False, 'allow_multiple_b2b': False}}
+"{""id"": ""5095-BUS-E20-B-1035"", ""name"": ""BUS HASTA 72"", ""price"": [], ""seats"": 71, ""quantity"": -1, ""vehicle_id"": ""5095-BUS-E20-B"", ""supplier_id"": ""5095-1035"", ""ttoo_excluded"": [], ""destination_id"": ""5095"", ""only_non_combinable"": false}"
+```
+
+### Vehicle Type
+
+Each vehicle corresponds to a type object.
+
+```
+{"id": "5095-B", "name": "Bus", "destination_id": "5095"}
 ```
 
 ### Prices
