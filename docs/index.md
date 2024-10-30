@@ -20,6 +20,9 @@
 
 **TUI's Transfer Service** provides guests with rides between places during tours: from the airport to their hotel and back, to ports and back for cruises, and between hotels for multi-hotel vacations. Each one-way ride is a **Transfer**. Mobi's Continuous Planning Service enables TUI’s Transfer Service to operate efficiently by planning optimized trips in advance and enabling fast on-the-fly adjustments in response to disruptions like flight delays or vehicle breakdowns.
 
+Jamie: ^^^Obviously we want to phrase this in a customer-agnostic way...  Ideally the primary documentation would be
+universal, but for API details we could branch off into "version 1" and "version 2."
+
 ## Inputs and Outputs
 
 The Mobi Planner turns **Bookings** and **Flights** into **Trips**. For a single tour, a group of guests will have separate Bookings for their **Arrival** to the tour **Destination** and their **Departure** from the tour Destination.
@@ -39,17 +42,29 @@ The image below shows the timing around how the Mobi Planner turns Bookings and 
 ## Amazon Web Services (AWS) and API Interfaces
 
 - **Inputs:** [Bookings and Flights](#bookings-and-flights) are streamed to Mobi via an AWS Kinesis Data Stream
+  - Jamie: The way this will work is still kind of an open question...  Under the covers I think that we will want to
+    own our own Kinesis stream for this--but I'm not sure exactly how we want to expose this to them.  One relevant
+    question is: does CyberLogic themselves use AWS?
 - **Outputs:** [Trips](#trips) are streamed back to the client via an AWS Kinesis Data Stream
+  - Jamie: Same question as inputs
 - **Data Validation:** Any data issues identified in data validation checks are reported via AWS SNS. This includes [Kinesis Ingestion Data Validation](#kinesis-ingestion-data-validation) and [Pre-planning Data Validation](#pre-planning-data-validation).
 - **APIs:** Mobi REST [APIs](#apis) can be called by the client in order to make adjustments to plans as needed. These API calls can be triggered via the client's interface for staff, e.g. via buttons in a web portal that shows the Trips. If requests cannot be parsed, then they will return a relevant HTTP response status code. If requests are parsed successfully but an issue prevents the Mobi Planner from acting on the API call, [Invalid and Infeasible Messages](#invalid-and-infeasible-messages) will be sent via AWS Simple Notification Service (SNS).
 - **Master Data:** [Master Data](#master-data) is relatively static data that includes information about physical places and the Business Rules that should apply to relevant Bookings during planning. The client can provide REST APIs for Mobi to call regularly to update Master Data, and can optionally send updates via an AWS Data Stream as well with specific information about what Bookings should be updated. These mechanisms are described further in [Sending Master Data](#sending-master-data).
+  - Jamie: This is a totally open question...  There are many ways we could do this (e.g. should we pull data from them,
+    or should they push data to us?).  Here I think we have the opportunity to see what type of mechanism will be
+    easiest for them, and to come up with a generalized mechanism around that.
 
 ## Regular Planning Overview
 
 1. When a Booking comes in via the AWS Kinesis Data Stream, it gets ingested but not planned until the **Regular Planning Window** begins for the relevant Destination and date. For most Destinations, the Regular Planning Window begins 7 days before the date of travel and ends 24 hours before the time of travel.
 2. Every 5 minutes, the Mobi Planner runs Regular Planning. First, it checks to see if any Bookings within their Regular Planning Window are new, have been updated, have been removed, or have had updates to their corresponding Flight. Then, it plans the changed Bookings and any other Bookings that could potentially be on the same Trip (e.g. Bookings in the same Destination on the same date of travel).
+   1. Jamie: Just a nitpick--I don't think we want to call this the "Mobi Planner," as this usually refers to something
+      else.  Is there a distinction you're trying to make between "Mobi Planner" and "Continous Planning System?"
 3. The Mobi Planner uses a combination of cutting-edge AI algorithms and planning methods based on insight from human operators to quickly and efficiently optimize a set of Trips that satisfies the client's Business Rules.
 4. The Continuous Planning System computes the timing for each stop within the trip based on Mobi's internal routing engine, then validates that the solution passes a set of criteria including the client's Business Rules (e.g. passengers don't spend more than the maximum time waiting at the airport)
+   1. Another nitpick--I wouldn't phrase this as two separate steps (_i.e._ #1 we compute the trip, #2 we do validation).
+      We really refer to the business rules throughout the planning process.  IMO specifying this as two separate steps 
+      makes us sounds less sophisticated than we really are.
 5. The Continous Planning System sends the Trips that have been planned to the client.
 
 *Plan output format, data validation during planning, and how the Regular Planning Window is specified are covered in more detail in [Regular Planning](#regular-planning).*
@@ -91,6 +106,8 @@ There are 2 types of Optimization Functions for TUI's Transfer Service:
 | Minimize Distance     | Distance = total distance travelled                          | Destinations where most transfers use TUI's own fleet        | Mallorca            |
 | Minimize Cost         | Cost = a function of vehicle type, number of passengers driven, and areas driven (designed to mirror actual pricing structure with suppliers) | Destinations where most transfers use vehicles contracted from suppliers | Zakynthos           |
 
+Jamie: Didn't we introduce another option?  Do we want to provide all of these options to Cyberlogic?
+
 ### Business Rules
 
 The Continuous Planning System has been configured with **Business Rules** for each Destination, constraints that are in place to plan trips that are physically possible given the realities of the geography and fleets of vehicles, and ensure a great customer experience. Most Business Rules are specified in [Master Data](#master-data), and some are specified in [Bookings](#bookings-and-flights).
@@ -104,6 +121,9 @@ Example Business Rules:
 | Fleet Constraints    | Vehicle inventory limits                            | Ensure trips can be completed using the set of vehicles that exists in real life |
 
 ## Multi-Leg Travel Features
+
+Jamie: We're presumably not going to provide these options to Cyberlogic for now, right?  It might be nice to pull these
+out into their own page(s) ("Advanced features").
 
 ### Ferries
 
@@ -119,6 +139,10 @@ The feeder feature is useful when there are small groups of hotels away from a m
 
 
 # Bookings and Flights
+
+Jamie: I think that everything in this section (aside from the introduction) is up in the air. I think we want a new API, and I think we still need to
+figure out whether they interact with us directly through a Kinesis stream we own, or through some sort of
+intermediary.  (This _might_ depend on whether Cyberlogic currently uses AWS.)
 
 ## Bookings & Flights Introduction
 
@@ -138,6 +162,7 @@ Each **Flight** represents a real flight in the world that corresponds to an Arr
 ## Fields for Bookings
 
 ### Required Fields for All Bookings
+
 
 | Field            | Type   | Description                                                  | Example                                                      |
 | ---------------- | ------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -380,6 +405,8 @@ When a preprocessing issue occurs & a Booking Discard message is sent, the Booki
 
 # Trips
 
+Jamie: We probably want a new trip API.
+
 Trips are sent back as records in a AWS Kinesis Data Stream, each record representing one or more Trips. Records include metadata and a payload. 
 
 Each Trip has a unique transfer_id. If a Trip is updated or deleted during Regular Planning or via API calls, a record will be sent with the same transfer_id as a trip that has been sent previously.
@@ -567,6 +594,9 @@ The endpoint **GET /tui-cps/v1/messages** can be used to retrieve a complete set
 
 # Master Data
 
+Jamie: As I mentioned before, we need to rethink this mechanism.  We definitely want a new API (since the current one is TUI-specific in 
+awkward ways).  Plus we want to figure out the best way to communicate this data between them & us.
+
 ## Overview
 
 **Master Data** is relatively static data that includes information about physical places and the Business Rules that should apply to relevant Bookings during planning. Business Rules specified in the Bookings themselves generally override Business Rules supplied in Master Data. 
@@ -648,6 +678,8 @@ Hotels map to hotels in the real world. There are generally many hotels per Dest
 
 
 ## Vehicles
+
+Jamie: I think we definitely want to combine these all into one record (since the current schema is specific to TUI.)
 
 **Vehicles** map to vehicles available for transporting passengers in the real world, either part of TUI's fleet or available from suppliers.
 
